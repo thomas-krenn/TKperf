@@ -3,19 +3,17 @@ Created on 04.07.2012
 
 @author: gschoenb
 '''
+from perfTest.DeviceTest import DeviceTest
 
-class HddTest(object):
+class HddTest(DeviceTest):
     '''
     A fio performance test for a hard disk.
     '''
     
-    def __init__(self,testName):
+    def __init__(self,testname,filename):
         '''
         Constructor
-        @param testName Name of the test, specifies the output file 
         '''
-        
-        ## The output file for the fio job.
-        self.__outputFile = testName
+        super(HddTest,self).__init__(testname,filename)
         
         
