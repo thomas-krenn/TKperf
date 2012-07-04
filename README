@@ -1,0 +1,6 @@
+To use fio with a device root privileges are required.
+-Add the modules to the PYTHONPATH to run 'runTest.py' from command line:
+  export PYTHONPATH=/home/gschoenb/repos/io_perf_test/src/
+-Call the script with sudo an preserve the PYTHONPATH:
+  sudo PYTHONPATH=$PYTHONPATH python runTest.py
+-Add an alias for that command to call it more comfortable
