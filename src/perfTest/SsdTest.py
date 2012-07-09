@@ -6,6 +6,9 @@ Created on 04.07.2012
 from perfTest.DeviceTest import DeviceTest
 from fio.FioJob import FioJob
 
+import numpy as np
+from collections import deque
+
 class SsdTest(DeviceTest):
     '''
     A fio performance test for a solid state drive.
@@ -57,8 +60,9 @@ class SsdTest(DeviceTest):
         @return An output matrix 7*8 values - the sum of avg. IOPS in each
         round of the inner loops.
         '''
-        rwmixreads = [100,95]#,65,50,35,5,0] #Start with 100% reads
-        bs = [4,0.5]#[1024,128,64,32,16,8,4,0.5] #List of block sizes
+        rwmixreads = [5,0]#[100,95,65,50,35,5,0] #Start with 100% reads
+        bs = [8,4]#[1024,128,64,32,16,8,4,0.5] #List of block sizes
+        #FIXME This is a problem as fio can't handle bs of 0.5k
         
         job = FioJob()
         job.addKVArg("filename",self.getFilename())
@@ -81,15 +85,99 @@ class SsdTest(DeviceTest):
                 job.addKVArg("rwmixread",str(i))
                 job.addKVArg("bs",str(j)+'k')
                 jobOut = job.start()
-                print jobOut
+                print jobOut #TODO what to do with the fio output
                 print "#####################################"
                 rwRow.append(job.getIOPS(jobOut))
             rndMatrix.append(rwRow)
         return rndMatrix
     
+    def checkSteadyState(self,xs,ys):
+        '''
+        Checks if the steady is reached for the given values.
+        The steady state is defined by the allowed data excursion from the average (+-10%), and
+        the allowed slope excursion of the linear regression best fit line (+-5%).
+        @return [True,avg,k,d] (k*x+d is slope line) if steady state is reached, [False,0,0,0] if not
+        '''
+        maxY = max(ys)
+        minY = min(ys)
+        avg = sum(ys)/len(ys)#calc average of values
+        avgLowLim = avg * 0.9
+        avgUppLim = avg * 1.10#calc limits where avg must be in
+        #given min and max are out of allowed range
+        if minY < avgLowLim and maxY > avgUppLim:
+            return [False,0,0,0]
+        
+        #do linear regression to calculate slope of linear best fit
+        y = np.array(ys)
+        x = np.array(xs)
+        A = np.vstack([x, np.ones(len(x))]).T
+        #calculate k*x+d
+        k, d = np.linalg.lstsq(A, y)[0]
+        
+        #as we have a measurement window of 4, we double the slope 
+        #to get the maximum slope excursion
+        slopeExc = k * (self.testMesWindow / 2)
+        if slopeExc < 0:
+            slopeExc *= -1
+        maxSlopeExc = avg * 0.10 #allowed are 10% of avg
+        if slopeExc > maxSlopeExc:
+            return [False,0,0,0]
+        
+        return [True,avg,k,d]
+          
     def IOPSTest(self):
         rndMatrix = []
-                
+        steadyValues = deque([])#List of 4k random writes IOPS
+        xranges = deque([])#rounds of current measurement window
+        
+        for i in range(self.IOPSTestRnds):
+            rndMatrix = self.IOPSTestRnd()
+            self.__roundMatrices.append(rndMatrix)
+            # Use the last row and its last value -> 0/100% r/w and 4k for steady state detection
+            steadyValues.append(rndMatrix[-1][-1])
+            xranges.append(i)
+            #remove the first value and append the next ones
+            if i > 4:
+                xranges.popleft()
+                steadyValues.popleft()
+            if i >= 4:
+                steadyState,avg,k,d = self.checkSteadyState(xranges,steadyValues)
+                if steadyState == True:
+                    return [True,xranges,avg,k,d]
+        return [False,0,0,0]
+        
+    def IOPSTestReport(self):
+        
+        steadyState,rounds,avg,k,d = self.IOPSTest()
+        if steadyState == False:
+            print "Not reached Steady State"
+        else:
+            print self.__roundMatrices
+        
+#       
+#        if steadyState == True:
+#            import matplotlib.pyplot as plt
+#            x = np.array(rounds)
+#            av = []
+#            av.append(avg)
+#            av = av * len(x)
+#            print av
+#            plt.plot(x,
+#                     [self.__roundMatrices[0][-1][-1],
+#                      self.__roundMatrices[1][-1][-1],
+#                      self.__roundMatrices[2][-1][-1],
+#                      self.__roundMatrices[3][-1][-1],
+#                      self.__roundMatrices[4][-1][-1]],
+#                     'o', label='Original data', markersize=10)
+#            plt.plot(x, k*x + d, 'r', label='Fitted line')
+#            plt.plot(x, av, 'g', label='Average')
+#            plt.legend()
+#            plt.show()
+        
+            
+        
+        
+        
         
         
         
