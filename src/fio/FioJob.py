@@ -98,8 +98,6 @@ class FioJob(object):
         #index 7 iops read
         #index 48 iops write
         fioTerse = fioOut.split(';')
-        print "iops read:" + fioTerse[FioJob.terseIOPSReadPos]
-        print "iops write:" + fioTerse[FioJob.terseIOPSWritePos]
         return int(fioTerse[FioJob.terseIOPSReadPos]) + int(fioTerse[FioJob.terseIOPSWritePos])
        
      
