@@ -5,6 +5,7 @@ Created on 04.07.2012
 '''
 from perfTest.DeviceTest import DeviceTest
 from fio.FioJob import FioJob
+import plots.genPlots as pgp
 
 import numpy as np
 from collections import deque
@@ -18,10 +19,17 @@ class SsdTest(DeviceTest):
     wlIndPrecRnds = 2
     
     ## Max number of test rounds for the IOPS test.
-    IOPSTestRnds = 25
+    IOPSTestRnds = 5
     
     ## Alwasys use a slinding window of 4 to measure performance values.
     testMesWindow = 4
+    
+    ##Labels of block sizes.
+    bsLabels = ["8k","4k","512"]#[1024,128,64,32,16,8,4,0.5]
+    
+    ##Percentages of mixed workloads.
+    mixWlds = [5,0]#[100,95,65,50,35,5,0] #Start with 100% reads
+    
     
     def __init__(self,testname,filename):
         '''
@@ -31,6 +39,34 @@ class SsdTest(DeviceTest):
         
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
+        
+        ## Number of rounds until steady state has been reached
+        self.__rounds = 0
+        
+        ## Number of round where steady state has been reached.
+        self.__stdyRnds = []
+        
+        ## Corresponding 4k random write IOPS for steady state.
+        self.__stdyValues = []
+        
+        ##Average of IOPS in measurement window.
+        self.__stdyAvg = 0
+        
+        ##Slope of steady regression line.
+        self.__stdySlope = []
+    
+    def getRndMatrices(self):
+        return self.__roundMatrices
+    def getRnds(self):
+        return self.__rounds
+    def getStdyRnds(self):
+        return self.__stdyRnds
+    def getStdyValues(self):
+        return self.__stdyValues
+    def getStdyAvg(self):
+        return self.__stdyAvg
+    def getStdySlope(self):
+        return self.__stdySlope
         
     def wlIndPrec(self):
         ''' 
@@ -60,16 +96,12 @@ class SsdTest(DeviceTest):
         @return An output matrix 7*8 values - the sum of avg. IOPS in each
         round of the inner loops.
         '''
-        rwmixreads = [5,0]#[100,95,65,50,35,5,0] #Start with 100% reads
-        bs = [8,4]#[1024,128,64,32,16,8,4,0.5] #List of block sizes
-        #FIXME This is a problem as fio can't handle bs of 0.5k
-        
         job = FioJob()
         job.addKVArg("filename",self.getFilename())
         job.addKVArg("name",self.getTestname())
         job.addKVArg("rw","randrw")
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","60")
+        job.addKVArg("runtime","20")#FIXME Change to 60 seconds
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")     
@@ -79,13 +111,13 @@ class SsdTest(DeviceTest):
         jobOut = ''
         
         rndMatrix = []        
-        for i in rwmixreads:
+        for i in SsdTest.mixWlds:
             rwRow = []
-            for j in bs:
+            for j in SsdTest.bsLabels:
                 job.addKVArg("rwmixread",str(i))
-                job.addKVArg("bs",str(j)+'k')
+                job.addKVArg("bs",j)
                 jobOut = job.start()
-                print jobOut #TODO what to do with the fio output
+                print jobOut #TODO Write output to logfile
                 print "#####################################"
                 rwRow.append(job.getIOPS(jobOut))
             rndMatrix.append(rwRow)
@@ -126,55 +158,65 @@ class SsdTest(DeviceTest):
         return [True,avg,k,d]
           
     def IOPSTest(self):
+        '''
+        Carry out the IOPS test rounds and check if the steady state is reached.
+        For a maximum of 25 rounds IOPS test round are carried out. After each
+        test round we check for a measurement window of the last 5 rounds if
+        the steady state has been reached. The IOPS of 4k random write of the measurement
+        window as well as their corresponding round numbers are saved as class attributes
+        for further usage. If the steady state is reached before 25 rounds we stop the test
+        and return.
+        @return True if the steady state has been reached, False if not.
+        '''
         rndMatrix = []
         steadyValues = deque([])#List of 4k random writes IOPS
-        xranges = deque([])#rounds of current measurement window
+        xranges = deque([])#Rounds of current measurement window
         
         for i in range(self.IOPSTestRnds):
             rndMatrix = self.IOPSTestRnd()
             self.__roundMatrices.append(rndMatrix)
-            # Use the last row and its last value -> 0/100% r/w and 4k for steady state detection
-            steadyValues.append(rndMatrix[-1][-1])
+            # Use the last row and its next to last value -> 0/100% r/w and 4k for steady state detection
+            steadyValues.append(rndMatrix[-1][-2])
             xranges.append(i)
             #remove the first value and append the next ones
             if i > 4:
                 xranges.popleft()
                 steadyValues.popleft()
+            #check if the steady state has been reached in the last 5 rounds
             if i >= 4:
                 steadyState,avg,k,d = self.checkSteadyState(xranges,steadyValues)
                 if steadyState == True:
-                    return [True,xranges,avg,k,d]
-        return [False,0,0,0]
+                    self.__rounds = i
+                    self.__stdyRnds = xranges
+                    self.__stdyValues = steadyValues
+                    self.__stdyAvg = avg
+                    self.__stdySlope.extend([k,d])
+                    return True
+        #TODO How to handle the case if the steady state has not been reached
+        return False
         
     def IOPSTestReport(self):
         
-        steadyState,rounds,avg,k,d = self.IOPSTest()
+        steadyState = self.IOPSTest()
         if steadyState == False:
             print "Not reached Steady State"
+            return False
         else:
+            print "Round IOPS results: "
             print self.__roundMatrices
-        
-#       
-#        if steadyState == True:
-#            import matplotlib.pyplot as plt
-#            x = np.array(rounds)
-#            av = []
-#            av.append(avg)
-#            av = av * len(x)
-#            print av
-#            plt.plot(x,
-#                     [self.__roundMatrices[0][-1][-1],
-#                      self.__roundMatrices[1][-1][-1],
-#                      self.__roundMatrices[2][-1][-1],
-#                      self.__roundMatrices[3][-1][-1],
-#                      self.__roundMatrices[4][-1][-1]],
-#                     'o', label='Original data', markersize=10)
-#            plt.plot(x, k*x + d, 'r', label='Fitted line')
-#            plt.plot(x, av, 'g', label='Average')
-#            plt.legend()
-#            plt.show()
-        
-            
+            print "Rounds of steady state:"
+            print self.__stdyRnds
+            print "K and d of steady best fit slope:"
+            print self.__stdySlope
+            print "Steady average:"
+            print self.__stdyAvg
+            print "Stopped after round number:"
+            print self.__rounds
+
+            pgp.stdyStVerPlt(self)
+            pgp.stdyStConvPlt(self)
+            pgp.mes2DPlt(self)
+            return True
         
         
         

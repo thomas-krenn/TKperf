@@ -9,6 +9,7 @@ import argparse
 from fio.FioJob import FioJob
 from perfTest.SsdTest import SsdTest
 
+
 if __name__ == '__main__':
     vTest = FioJob()
     fioVersion = vTest.__str__()#Fetch the fio version
@@ -28,5 +29,6 @@ if __name__ == '__main__':
         print "ssd on"
         myTest = SsdTest(args.testname,args.filename)
         myTest.wlIndPrec()
+        myTest.IOPSTestReport()
         print myTest.getTestname()
         print myTest.getFilename()
