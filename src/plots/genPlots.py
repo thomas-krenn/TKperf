@@ -12,9 +12,16 @@ import perfTest as pT
 def stdyStVerPlt(toPlot):
     '''
     Generate a steady state verification plot.
+    The plot includes:
+    -Measured IOPS of rounds in which steady state was reached
+    -Average IOPS in steady state rounds
+    -Slope of best fit line of measured IOPS
+    -Top and Bottom limits: +-10% percent of average
+    The figure is saved as SsdTest.Testname-stdyStVerPlt.png.
     @param toPlot A SsdTest object.
     '''
     x = np.array(toPlot.getStdyRnds())
+    #calculate average and its top and bottom limit
     av = []
     avT = []
     avB = []
@@ -34,6 +41,7 @@ def stdyStVerPlt(toPlot):
     plt.plot(x, avT, '--', color='black',label='Top')
     plt.plot(x, avB, '--', color='black',label='Bottom')
     
+    #set the y axes to start at 3/4 of mininum
     plt.ylim(min(toPlot.getStdyValues())*0.75,max(toPlot.getStdyValues())*1.25)
     plt.xticks(x)
     plt.title("Steady State Verification Plot")
@@ -45,6 +53,11 @@ def stdyStVerPlt(toPlot):
 def stdyStConvPlt(toPlot):
     '''
     Generate a steady state convergence plot.
+    The plot consists of:
+    -Measured IOPS of pure random write
+    -All lines are the different block sizes
+    -IOPS of all the rounds are plotted
+    The figure is saved as SsdTest.Testname-stdyStConvPlt.png.
     @param toPlot A SsdTest object.
     '''
     rnds = toPlot.getRnds()
@@ -74,7 +87,19 @@ def stdyStConvPlt(toPlot):
     plt.savefig(toPlot.getTestname()+'-stdyStConvPlt.png',dpi=300)
     
 def mes2DPlt(toPlot):
-
+    '''
+    Generate a measurement 2D plot.
+    The plot includes:
+    -Lines of the workloads
+    -Each line consists of the average of IOPS per round
+    for each block size.
+    Therefore the x axes are the block sizes, the plotted lines
+    are the different workloads (from 100% read to 100% write). The
+    y axes is the average of IOPS over all rounds for each block size
+    and workload.
+    The figure is saved as SsdTest.Testname-mes2DPlt.png.
+    @param toPlot A SsdTest object.
+    '''
     mixWLds = []
     #each row will be a workload percentage
     for i in range(len(pT.SsdTest.SsdTest.mixWlds)):

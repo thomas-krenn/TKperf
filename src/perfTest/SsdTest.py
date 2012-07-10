@@ -14,7 +14,7 @@ class SsdTest(DeviceTest):
     '''
     A fio performance test for a solid state drive.
     '''
-    
+
     ## Number of rounds to carry out workload independent preconditioning.
     wlIndPrecRnds = 2
     
