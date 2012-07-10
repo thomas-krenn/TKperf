@@ -196,7 +196,11 @@ class SsdTest(DeviceTest):
         return False
         
     def IOPSTestReport(self):
-        
+        '''
+        Print various informations about the IOPS test (steady state informations etc.).
+        Moreover call the functions to plot the results.
+        @return True if steady state was reached and plots were generated, False if not.
+        '''
         steadyState = self.IOPSTest()
         if steadyState == False:
             print "Not reached Steady State"
@@ -212,7 +216,7 @@ class SsdTest(DeviceTest):
             print self.__stdyAvg
             print "Stopped after round number:"
             print self.__rounds
-
+            #call plotting functions
             pgp.stdyStVerPlt(self)
             pgp.stdyStConvPlt(self)
             pgp.mes2DPlt(self)
