@@ -59,3 +59,22 @@ class DeviceTest(object):
                 logging.info("#Device" + self.__filename + " sector size: " + str(sectorSize))
                 logging.info("#Device" + self.__filename + " size in KB: " + str(devSzKB))
                 return [True,devSzKB]
+    
+    def checkDevIsMounted(self):
+        '''
+        Check if the given device is mounted. As we work as
+        super user it is slightly dangerous to overwrite
+        a mounted partition.
+        @return True if device is mounted, False if not.
+        '''
+        out = subprocess.Popen(['mount','-l'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("mount -l encountered an error: " + stderr)
+            exit(1)
+        else:
+            for line in stdout.split('\n'):
+                if line.find(self.__filename) > -1:
+                    logging.info("#"+line)
+                    return True
+            return False
