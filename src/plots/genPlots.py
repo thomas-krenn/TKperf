@@ -9,7 +9,7 @@ import numpy as np
 
 import perfTest as pT
 
-def stdyStVerPlt(toPlot):
+def stdyStVerPlt(toPlot,mode):
     '''
     Generate a steady state verification plot.
     The plot includes:
@@ -19,6 +19,7 @@ def stdyStVerPlt(toPlot):
     -Top and Bottom limits: +-10% percent of average
     The figure is saved as SsdTest.Testname-stdyStVerPlt.png.
     @param toPlot A SsdTest object.
+    @param mode A string representing the test mode (iops|throughput)
     '''
     x = np.array(toPlot.getStdyRnds())
     #calculate average and its top and bottom limit
@@ -35,7 +36,7 @@ def stdyStVerPlt(toPlot):
     avB = avB * len(x)
     
     plt.clf()#clear
-    plt.plot(x,toPlot.getStdyValues(),'o', label='IOPS', markersize=10)
+    plt.plot(x,toPlot.getStdyValues(),'o', label=mode, markersize=10)
     plt.plot(x, toPlot.getStdySlope()[0]*x + toPlot.getStdySlope()[1], 'r', label='Slope')
     plt.plot(x, av, '-', color='black',label='Average')
     plt.plot(x, avT, '--', color='black',label='Top')
@@ -46,9 +47,12 @@ def stdyStVerPlt(toPlot):
     plt.xticks(x)
     plt.title("Steady State Verification Plot")
     plt.xlabel("Round")
-    plt.ylabel("IOPS")
+    if mode == "bw":
+        plt.ylabel(mode + " KB/s")
+    else:
+        plt.ylabel(mode)
     plt.legend()
-    plt.savefig(toPlot.getTestname()+'-stdyStVerPlt.png',dpi=300)
+    plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStVerPlt.png',dpi=300)
     
 def stdyStConvPlt(toPlot):
     '''
@@ -75,7 +79,9 @@ def stdyStConvPlt(toPlot):
             lines[i].append(row[i])#switch from row to column wise ordering of values
     
     plt.clf()#clear
-    x = range(rnds + 1)#fetch number of rounds, we want to include all rounds
+    #fetch number of rounds, we want to include all rounds
+    #as stdy state was reached at rnds, it must be included
+    x = range(rnds + 1)
     for i in range(len(lines)):
         plt.plot(x,lines[i],'o-',label='bs='+pT.SsdTest.SsdTest.bsLabels[i])
     
@@ -120,12 +126,13 @@ def mes2DPlt(toPlot):
                 else:
                     mixWLds[i][bs] = row[bs]
     plt.clf()#clear plot
-    x = [8,4,0.5]
+    x = [8,4,0.5]#FIXME Add correct block sizes here
     for i in range(len(mixWLds)):
-        #the gonna be r/w percentage of mixed workload
+        #the labels are r/w percentage of mixed workload
         plt.plot(x,mixWLds[i],'o-',
                   label=str(pT.SsdTest.SsdTest.mixWlds[i])+'/'+str(100-pT.SsdTest.SsdTest.mixWlds[i]))
-        
+     
+    #TODO Scale axes log   
          
     plt.xticks(x)
     plt.title("IOPS test")
@@ -134,9 +141,45 @@ def mes2DPlt(toPlot):
     plt.legend()
     plt.savefig(toPlot.getTestname()+'-mes2DPlt.png',dpi=300)
     
-                
-                
+def writeSatIOPSPlt(toPlot):
+    #fetch number of rounds, we want to include all rounds
+    #as stdy state was reached at rnds, it must be included
+    rnds = toPlot.getWriteSatRnds()
+    x = range(rnds + 1)
     
+    iops_l = toPlot.getWriteSatMatrix()[0]#first elem in matrix are iops
+
+    plt.clf()#clear plot        
+    plt.plot(x,iops_l,'-',label='Avg IOPS')
+    plt.ylim(min(iops_l)*0.75,max(iops_l)*1.25)
+    plt.xticks(x)
+    plt.title("Write Saturation Test")
+    plt.xlabel("Round #")
+    plt.ylabel("IOPS")
+    plt.legend()
+    plt.savefig(toPlot.getTestname()+'-writeSatIOPSPlt.png',dpi=300)
+    
+def writeSatLatPlt(toPlot):
+    rnds = toPlot.getWriteSatRnds()
+    x = range(rnds + 1)
+    
+    lats_l = toPlot.getWriteSatMatrix()[1]#second elem in matrix are latencies
+    
+    #get the average latencies from the lat list (last elem)
+    av_lats = []
+    for i in lats_l:
+        av_lats.append((i[2]) / 1000)
+    
+    plt.clf()#clear plot
+    plt.plot(x,av_lats,'-',label='Avg latency')
+    #set the y axes to start at 3/4 of mininum
+    plt.ylim(min(av_lats)*0.75,max(av_lats)*1.25)
+    plt.xticks(x)
+    plt.title("Write Saturation Test")
+    plt.xlabel("Round #")
+    plt.ylabel("Latency ms")
+    plt.legend()
+    plt.savefig(toPlot.getTestname()+'-writeSatLatPlt.png',dpi=300)
     
     
     
