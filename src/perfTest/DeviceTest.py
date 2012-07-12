@@ -78,3 +78,20 @@ class DeviceTest(object):
                     logging.info("#"+line)
                     return True
             return False
+        
+    def checkDevIsAvbl(self):
+        '''
+        Check if the given device is a valid partition.
+        @return True if yes, False if not.
+        '''
+        out = subprocess.Popen(['cat','/proc/partitions'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("cat /proc/partitions encountered an error: " + stderr)
+            exit(1)
+        else:
+            for line in stdout.split('\n'):
+                if line.find(self.__filename[5:]) > -1:
+                    logging.info("#"+line)
+                    return True
+            return False
