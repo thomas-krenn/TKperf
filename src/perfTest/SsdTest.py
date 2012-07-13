@@ -84,6 +84,8 @@ class SsdTest(DeviceTest):
         return self.__writeSatRnds
     def getWriteSatMatrix(self):
         return self.__writeSatMatrix
+    def getTPRndMatrices(self):
+        return self.__tpRoundMatrices
         
     def wlIndPrec(self):
         ''' 
@@ -223,7 +225,7 @@ class SsdTest(DeviceTest):
         Moreover call the functions to plot the results.
         @return True if steady state was reached and plots were generated, False if not.
         '''
-        self.wlIndPrec()
+        #self.wlIndPrec()
         steadyState = self.IOPSTest()
         if steadyState == False:
             logging.warn("Not reached Steady State")
@@ -366,14 +368,8 @@ class SsdTest(DeviceTest):
         Carry out the throughput/bandwidth test rounds and check if the steady state is reached.
          @return True if the steady state has been reached, False if not.
         '''
-        #TODO Currently only write is used to detect steady state
-        #It should be inconvenient that write and read differ in terms
-        #of steady state        
         stdyValsWrite = deque([])#List of 1M sequential write IOPS
         xrangesWrite = deque([])#Rounds of current measurement window
-        
-        #FIXME Check test round of TP test
-        #this should be for bs...for testRnds...etc, so this has to be switched
         
         #rounds are the same for IOPS and throughput
         for j in SsdTest.tpBsLabels:
@@ -401,7 +397,8 @@ class SsdTest(DeviceTest):
                 if j == "1024k":
                     stdyValsWrite.append(tpWrite)
                     xrangesWrite.append(i)
-                    #remove the first value and append the next ones
+                    #remove the first value and append the next ones, this
+                    #is out measurement window
                     if i > 4:
                         xrangesWrite.popleft()
                         stdyValsWrite.popleft()
@@ -410,7 +407,7 @@ class SsdTest(DeviceTest):
                         steadyState,avg,k,d = self.checkSteadyState(xrangesWrite,stdyValsWrite)
                         if steadyState == True:
                             #TODO Currently the parameters from the previous tests are overwritten
-                            #TODO Save the parameters in a suited formate (e.g. XML) to have them for reporting
+                            #TODO Save the parameters in a suited format (e.g. XML) to have them for reporting
                             self.__rounds = i
                             self.__stdyRnds = xrangesWrite
                             self.__stdyValues = stdyValsWrite
@@ -436,24 +433,32 @@ class SsdTest(DeviceTest):
         Moreover call the functions to plot the results.
         @return True if steady state was reached and plots were generated, False if not.
         '''
-        steadyState = self.tpTest()
-        if steadyState == False:
-            logging.warn("Not reached Steady State")
-            return False
-        else:
-            logging.info("Round TP results: ")
-            logging.info(self.__tpRoundMatrices)
-            logging.info("Rounds of steady state:")
-            logging.info(self.__stdyRnds)
-            logging.info("K and d of steady best fit slope:")
-            logging.info(self.__stdySlope)
-            logging.info("Steady average:")
-            logging.info(self.__stdyAvg)
-            logging.info("Stopped after round number:")
-            logging.info(self.__rounds)
-            #call plotting functions
-            pgp.stdyStVerPlt(self,"bw")
-            return True
+#        steadyState = self.tpTest()
+#        if steadyState == False:
+#            logging.warn("Not reached Steady State")
+#            return False
+#        else:
+#            logging.info("Round TP results: ")
+#            logging.info(self.__tpRoundMatrices)
+#            logging.info("Rounds of steady state:")
+#            logging.info(self.__stdyRnds)
+#            logging.info("K and d of steady best fit slope:")
+#            logging.info(self.__stdySlope)
+#            logging.info("Steady average:")
+#            logging.info(self.__stdyAvg)
+#            logging.info("Stopped after round number:")
+#            logging.info(self.__rounds)
+#            #call plotting functions
+#            pgp.stdyStVerPlt(self,"bw")
+#            pgp.tpStdyStConvPlt(self, "read")
+#            pgp.tpStdyStConvPlt(self, "write")
+
+        self.__tpRoundMatrices = [[[32148, 32687, 32981, 33090, 33454], [32442, 31892, 32343, 32282, 32278]],
+                                      [[27957, 28907, 27759, 27646, 27613], [27336, 27765, 27168, 27210, 27195]]]
+        self.__stdyRnds = [0,1,2,3,4]
+        pgp.tpMes2DPlt(self)
+            
+        return True
     
     
     
