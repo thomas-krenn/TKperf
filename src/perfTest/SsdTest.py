@@ -433,32 +433,28 @@ class SsdTest(DeviceTest):
         Moreover call the functions to plot the results.
         @return True if steady state was reached and plots were generated, False if not.
         '''
-#        steadyState = self.tpTest()
-#        if steadyState == False:
-#            logging.warn("Not reached Steady State")
-#            return False
-#        else:
-#            logging.info("Round TP results: ")
-#            logging.info(self.__tpRoundMatrices)
-#            logging.info("Rounds of steady state:")
-#            logging.info(self.__stdyRnds)
-#            logging.info("K and d of steady best fit slope:")
-#            logging.info(self.__stdySlope)
-#            logging.info("Steady average:")
-#            logging.info(self.__stdyAvg)
-#            logging.info("Stopped after round number:")
-#            logging.info(self.__rounds)
-#            #call plotting functions
-#            pgp.stdyStVerPlt(self,"bw")
-#            pgp.tpStdyStConvPlt(self, "read")
-#            pgp.tpStdyStConvPlt(self, "write")
+        steadyState = self.tpTest()
+        if steadyState == False:
+            logging.warn("Not reached Steady State")
+            return False
+        else:
+            logging.info("Round TP results: ")
+            logging.info(self.__tpRoundMatrices)
+            logging.info("Rounds of steady state:")
+            logging.info(self.__stdyRnds)
+            logging.info("K and d of steady best fit slope:")
+            logging.info(self.__stdySlope)
+            logging.info("Steady average:")
+            logging.info(self.__stdyAvg)
+            logging.info("Stopped after round number:")
+            logging.info(self.__rounds)
+            #call plotting functions
+            pgp.stdyStVerPlt(self,"bw")
+            pgp.tpStdyStConvPlt(self, "read")
+            pgp.tpStdyStConvPlt(self, "write")
+            pgp.tpMes2DPlt(self)
 
-        self.__tpRoundMatrices = [[[32148, 32687, 32981, 33090, 33454], [32442, 31892, 32343, 32282, 32278]],
-                                      [[27957, 28907, 27759, 27646, 27613], [27336, 27765, 27168, 27210, 27195]]]
-        self.__stdyRnds = [0,1,2,3,4]
-        pgp.tpMes2DPlt(self)
-            
-        return True
+            return True
     
     
     
