@@ -53,7 +53,7 @@ if __name__ == '__main__':
         else:
             print "You are not using a valid device or partition!"
             exit(1)        
-        
+        #myTest.runIOPSTest()
         #myTest.runWriteSatTest()
         myTest.runTpTest()
         print myTest.getTestname()
