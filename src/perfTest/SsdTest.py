@@ -32,6 +32,12 @@ class SsdTest(DeviceTest):
     ##Percentages of mixed workloads for IOPS test.
     mixWlds = [5,0]#FIXME: [100,95,65,50,35,5,0] #Start with 100% reads
 
+    ##Percentages of mixed workloads for latency test.
+    latMixWlds = [100,65,0]
+
+    ##Labels of block sizes for latency test.
+    latBsLabels = ["8k","4k","512"]
+    
     ##Labels of block sizes for throughput test
     tpBsLabels = ["1024k","64k"]#FIXME: ["1024k","64k","8k","4k","512"]
     
@@ -103,16 +109,15 @@ class SsdTest(DeviceTest):
             job.start()
         logging.info("# Finished workload independent preconditioning")
             
-    def IOPSTestRnd(self):
+    def testLoop(self,mode):
         '''
-        Carry out one test round of the IOPS test.
+        Carry out one test round of a test.
         The round consists of two inner loops: one iterating over the
         percentage of random reads/writes in the mixed workload, the other
-        over different block sizes. In every fio call the sum of average IOPS
-        of reads and writes is calculated and written to an output matrix.
-        @return An output matrix 7*8 values - the sum of avg. IOPS in each
-        round of the inner loops.
-        @return A 7x8 matrix containing the IOPS of mixed workloads and bs
+        over different block sizes. In every fio call the sum of the
+        corresponding mode unit is calculated and written to an output matrix.
+        @param mode String "IOPS" or "LAT" to choose a test mode.
+        @return A matrix containing the values of the corresponding mode
         '''
         job = FioJob()
         job.addKVArg("filename",self.getFilename())
@@ -125,13 +130,20 @@ class SsdTest(DeviceTest):
         job.addSglArg("group_reporting")     
         
         #iterate over mixed rand read and write and vary block size
-        #save the output of fio for parsing and retreiving IOPS
+        #save the output of fio for parsing and retreiving IOPS/Latencies
         jobOut = ''
         
+        if mode == "IOPS":
+            wlds = SsdTest.mixWlds
+            bsLabels = SsdTest.bsLabels
+        if mode == "LAT":
+            wlds = SsdTest.latMixWlds
+            bsLabels = SsdTest.latBsLabels
+        
         rndMatrix = []        
-        for i in SsdTest.mixWlds:
+        for i in wlds:
             rwRow = []
-            for j in SsdTest.bsLabels:
+            for j in bsLabels:
                 job.addKVArg("rwmixread",str(i))
                 job.addKVArg("bs",j)
                 call,jobOut = job.start()
@@ -141,7 +153,10 @@ class SsdTest(DeviceTest):
                 logging.info("bs: "+j)
                 logging.info(jobOut)
                 logging.info("######")
-                rwRow.append(job.getIOPS(jobOut))
+                if mode == "IOPS":
+                    rwRow.append(job.getIOPS(jobOut))
+                if mode == "LAT":
+                    rwRow.append(job.getTotLats(jobOut))
             rndMatrix.append(rwRow)
         return rndMatrix
     
@@ -197,7 +212,7 @@ class SsdTest(DeviceTest):
         for i in range(self.IOPSTestRnds):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
-            rndMatrix = self.IOPSTestRnd()
+            rndMatrix = self.testLoop("IOPS")
             self.__roundMatrices.append(rndMatrix)
             # Use the last row and its next to last value -> 0/100% r/w and 4k for steady state detection
             steadyValues.append(rndMatrix[-1][-2])
@@ -270,7 +285,7 @@ class SsdTest(DeviceTest):
         
         writeIO = job.getTotIOWrite(jobOut)
         iops = job.getIOPS(jobOut)
-        lats = job.getTotLats(jobOut)
+        lats = job.getWriteLats(jobOut)
         
         logging.info(jobOut)
         logging.info("#IOPS: " + str(iops))
@@ -456,6 +471,7 @@ class SsdTest(DeviceTest):
 
             return True
     
+
     
     
     
