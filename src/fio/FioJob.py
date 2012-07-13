@@ -2,6 +2,7 @@
 A module realizing a fio job run.
 '''
 import subprocess
+import logging
 
 class FioJob(object):
     '''
@@ -14,13 +15,26 @@ class FioJob(object):
     ## Position of write IOPS in the fio terse output.
     terseIOPSWritePos = 48
     
+    ## Position of write total IO in the fio terse output
+    terseTotIOWritePos = 46
+    
+    ## Start Position of latencies in fio terse output
+    terseLatStartWritePos = 78
+    
+    ## Postion of total read throughput.
+    terseTPReadPos = 6
+    
+    ## Postion of total write throughput.
+    terseTPWritePos = 47
+    
+    
     def __init__(self):
         ''' The constructor '''
         fio = subprocess.Popen(['which', 'fio'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout = fio.communicate()[0]
         fio.wait()
         if fio.returncode != 0:
-            print "Error: command 'which fio' returned an error code."
+            logging.error("# Error: command 'which fio' returned an error code.")
             exit(1)
 
         self.__fioPath = stdout.rstrip("\n");
@@ -73,21 +87,21 @@ class FioJob(object):
     def start(self):
         ''' Start a fio job with its argument list.
         The argument list defines the parameters given to fio.
-        @return: The standard output of the fio test or stderr on error.
+        @return: [True,standard output] of the fio test or [False,0] on error.
         '''
         args = self.prepKVArgs()
         args = self.prepSglArgs(args)
-        print args
+        logging.info('%s',args)
         if len(args) == 0:
-            print "Error: fio argument list is empty."
+            logging.error("Error: fio argument list is empty.")
             exit(1)
         out = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
-            print "Fio encountered an error: " + stderr
-            return stderr
+            logging.error("Fio encountered an error: " + stderr)
+            return [False,'']
         else:
-            return stdout
+            return [True,stdout]
         
     def getIOPS(self,fioOut):
         '''
@@ -100,7 +114,62 @@ class FioJob(object):
         fioTerse = fioOut.split(';')
         return int(fioTerse[FioJob.terseIOPSReadPos]) + int(fioTerse[FioJob.terseIOPSWritePos])
        
-     
+    def getTotIOWrite(self,fioOut):
+        '''
+        Parses the write total IO out of the fio result output.
+        @param fioOut The output of the fio performance test.
+        @return Write total IO in KB.
+        '''
+        #index 46 write total IO
+        fioTerse = fioOut.split(';')
+        return int(fioTerse[FioJob.terseTotIOWritePos])
+    
+    def getTotLats(self,fioOut):
+        '''
+        Parses the write total latencies out of the fio result output.
+        @param fioOut The output of the fio performance test.
+        @return [min,max,mean] total write latencies in microseconds.
+        '''
+        #index 78 write total latency
+        fioTerse = fioOut.split(';')
+        return [float(fioTerse[FioJob.terseLatStartWritePos]),
+                float(fioTerse[FioJob.terseLatStartWritePos + 1]),
+                float(fioTerse[FioJob.terseLatStartWritePos + 2])]
+
+    def getTPRead(self,fioOut):
+        '''
+        Parses the read bandwidth of the fio result output.
+        @param fioOut The output of the fio performance test.
+        @return Read total bandwidth.
+        '''
+        #index 6 write total IO
+        fioTerse = fioOut.split(';')
+        return int(fioTerse[FioJob.terseTPReadPos])
+        
+    def getTPWrite(self,fioOut):
+        '''
+        Parses the write bandwidth of the fio result output.
+        @param fioOut The output of the fio performance test.
+        @return Write total bandwidth.
+        '''
+        #index 47 write total IO
+        fioTerse = fioOut.split(';')
+        return int(fioTerse[FioJob.terseTPWritePos])
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
         
         
         
