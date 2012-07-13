@@ -18,8 +18,11 @@ class FioJob(object):
     ## Position of write total IO in the fio terse output
     terseTotIOWritePos = 46
     
-    ## Start Position of latencies in fio terse output
+    ## Start Position of write latencies in fio terse output
     terseLatStartWritePos = 78
+    
+    ## Start Position of read latencies in fio terse output
+    terseLatStartReadPos = 37
     
     ## Postion of total read throughput.
     terseTPReadPos = 6
@@ -124,7 +127,7 @@ class FioJob(object):
         fioTerse = fioOut.split(';')
         return int(fioTerse[FioJob.terseTotIOWritePos])
     
-    def getTotLats(self,fioOut):
+    def getWriteLats(self,fioOut):
         '''
         Parses the write total latencies out of the fio result output.
         @param fioOut The output of the fio performance test.
@@ -135,6 +138,33 @@ class FioJob(object):
         return [float(fioTerse[FioJob.terseLatStartWritePos]),
                 float(fioTerse[FioJob.terseLatStartWritePos + 1]),
                 float(fioTerse[FioJob.terseLatStartWritePos + 2])]
+        
+    def getReadLats(self,fioOut):
+        '''
+        Parses the read total latencies out of the fio result output.
+        @param fioOut The output of the fio performance test.
+        @return [min,max,mean] total read latencies in microseconds.
+        '''
+        #index 78 write total latency
+        fioTerse = fioOut.split(';')
+        return [float(fioTerse[FioJob.terseLatStartReadPos]),
+                float(fioTerse[FioJob.terseLatStartReadPos + 1]),
+                float(fioTerse[FioJob.terseLatStartReadPos + 2])]
+        
+    def getTotLats(self,fioOut):
+        '''
+        Parses the read+write total latencies out of the fio result output.
+        @param fioOut The output of the fio performance test.
+        @return [min,max,mean] total latencies in microseconds.
+        '''
+        #index 78 write total latency
+        fioTerse = fioOut.split(';')
+        return [float(fioTerse[FioJob.terseLatStartReadPos]) + 
+                      float(fioTerse[FioJob.terseLatStartWritePos]),
+                float(fioTerse[FioJob.terseLatStartReadPos + 1]) + 
+                      float(fioTerse[FioJob.terseLatStartWritePos + 1]),
+                float(fioTerse[FioJob.terseLatStartReadPos + 2]) + 
+                      float(fioTerse[FioJob.terseLatStartWritePos + 2])]
 
     def getTPRead(self,fioOut):
         '''
