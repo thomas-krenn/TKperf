@@ -36,7 +36,7 @@ class SsdTest(DeviceTest):
     latMixWlds = [100,65,0]
 
     ##Labels of block sizes for latency test.
-    latBsLabels = ["8k","4k","512"]
+    latBsLabels = ["4k","512"]#FIXMW: ["8k","4k","512"]
     
     ##Labels of block sizes for throughput test
     tpBsLabels = ["1024k","64k"]#FIXME: ["1024k","64k","8k","4k","512"]
@@ -93,6 +93,16 @@ class SsdTest(DeviceTest):
     def getTPRndMatrices(self):
         return self.__tpRoundMatrices
         
+    def printMatrix(self,mode):
+        
+        if mode == "LAT":
+            for rnd in self.__roundMatrices:
+                for wl in rnd:
+                    for bs in wl:
+                        print bs
+                    print "---wl---"
+                print "---#rnd---"
+    
     def wlIndPrec(self):
         ''' 
         Workload independent preconditioning for SSDs.
@@ -156,7 +166,15 @@ class SsdTest(DeviceTest):
                 if mode == "IOPS":
                     rwRow.append(job.getIOPS(jobOut))
                 if mode == "LAT":
-                    rwRow.append(job.getTotLats(jobOut))
+                    #FIXME: Are the total latencies here correct?
+                    l = job.getTotLats(jobOut)
+                    #if we have a mixed workload divide the latency
+                    if i == 65:
+                        l[0] /= 2
+                        l[1] /= 2
+                        l[2] /= 2
+                    rwRow.append(l)
+                    
             rndMatrix.append(rwRow)
         return rndMatrix
     
@@ -173,6 +191,7 @@ class SsdTest(DeviceTest):
         avgLowLim = avg * 0.9
         avgUppLim = avg * 1.10#calc limits where avg must be in
         #given min and max are out of allowed range
+        #FIXME Is this OK for the steady state?
         if minY < avgLowLim and maxY > avgUppLim:
             return [False,0,0,0]
         
@@ -194,15 +213,16 @@ class SsdTest(DeviceTest):
         
         return [True,avg,k,d]
           
-    def IOPSTest(self):
+    def runLoops(self,mode):
         '''
-        Carry out the IOPS test rounds and check if the steady state is reached.
-        For a maximum of 25 rounds IOPS test round are carried out. After each
+        Carry out the IOPS or Latencies test rounds and check if the steady state is reached.
+        For a maximum of 25 rounds the test loop is carried out. After each
         test round we check for a measurement window of the last 5 rounds if
-        the steady state has been reached. The IOPS of 4k random write of the measurement
+        the steady state has been reached. The steady state dependent variables of the measurement
         window as well as their corresponding round numbers are saved as class attributes
         for further usage. If the steady state is reached before 25 rounds we stop the test
         and return.
+        @param mode String "IOPS" or "LAT" to choose a test mode.
         @return True if the steady state has been reached, False if not.
         '''
         rndMatrix = []
@@ -212,10 +232,18 @@ class SsdTest(DeviceTest):
         for i in range(self.IOPSTestRnds):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
-            rndMatrix = self.testLoop("IOPS")
+            if mode == "IOPS":
+                rndMatrix = self.testLoop("IOPS")
+            if mode == "LAT":
+                rndMatrix = self.testLoop("LAT")
             self.__roundMatrices.append(rndMatrix)
             # Use the last row and its next to last value -> 0/100% r/w and 4k for steady state detection
-            steadyValues.append(rndMatrix[-1][-2])
+            if mode == "IOPS":
+                steadyValues.append(rndMatrix[-1][-2])
+            if mode == "LAT":
+                #Latencies always consist of [min,max,mean] latency
+                #Take mean/average for steady state detection
+                steadyValues.append(rndMatrix[-1][-2][2])
             xranges.append(i)
             #remove the first value and append the next ones
             if i > 4:
@@ -241,7 +269,7 @@ class SsdTest(DeviceTest):
         @return True if steady state was reached and plots were generated, False if not.
         '''
         #self.wlIndPrec()
-        steadyState = self.IOPSTest()
+        steadyState = self.runLoops("IOPS")
         if steadyState == False:
             logging.warn("Not reached Steady State")
             return False
@@ -250,6 +278,8 @@ class SsdTest(DeviceTest):
             logging.info(self.__roundMatrices)
             logging.info("Rounds of steady state:")
             logging.info(self.__stdyRnds)
+            logging.info("Steady values:")
+            logging.info(self.__stdyValues)
             logging.info("K and d of steady best fit slope:")
             logging.info(self.__stdySlope)
             logging.info("Steady average:")
@@ -258,9 +288,54 @@ class SsdTest(DeviceTest):
             logging.info(self.__rounds)
             #call plotting functions
             pgp.stdyStVerPlt(self,"IOPS")
-            pgp.stdyStConvPlt(self)
+            pgp.stdyStConvPlt(self,"IOPS")
             pgp.mes2DPlt(self)
             return True
+
+    def runLatsTest(self):
+        '''
+        Print various informations about the Latencies test (steady state informations etc.).
+        Moreover call the functions to plot the results.
+        @return True if steady state was reached and plots were generated, False if not.
+        '''
+#        self.wlIndPrec()
+#        steadyState = self.runLoops("LAT")
+#        if steadyState == False:
+#            logging.warn("Not reached Steady State")
+#            return False
+#        else:
+#            logging.info("Round LATs results: ")
+#            logging.info(self.__roundMatrices)
+#            logging.info("Rounds of steady state:")
+#            logging.info(self.__stdyRnds)
+#            logging.info("Steady values:")
+#            logging.info(self.__stdyValues)
+#            logging.info("K and d of steady best fit slope:")
+#            logging.info(self.__stdySlope)
+#            logging.info("Steady average:")
+#            logging.info(self.__stdyAvg)
+#            logging.info("Stopped after round number:")
+#            logging.info(self.__rounds)
+#            #call plotting functions
+            
+        self.__stdyRnds = [0,1,2,3,4]
+        self.__roundMatrices = [[[[447.0, 3814.0, 830.815373], [301.0, 6747.0, 755.732648]], [[710.0, 9031.0, 1582.938556], [623.0, 6810.0, 1614.537988]], [[297.0, 8596.0, 780.083166], [303.0, 8651.0, 801.650158]]], [[[421.0, 3813.0, 830.082563], [335.0, 3147.0, 810.046681]], [[770.0, 5994.0, 1648.821309], [661.0, 5098.0, 1625.868226]], [[317.0, 1670.0, 810.969515], [309.0, 3524.0, 801.203392]]], [[[437.0, 3859.0, 830.294723], [353.0, 2885.0, 811.491537]], [[726.0, 7138.0, 1620.030049], [636.0, 5432.0, 1620.7081739999999]], [[313.0, 8816.0, 809.148683], [317.0, 3768.0, 805.170034]]], [[[425.0, 1766.0, 828.666861], [305.0, 2515.0, 802.176433]], [[844.0, 5217.0, 1649.222155], [615.0, 5161.0, 1619.5856050000002]], [[298.0, 9057.0, 805.612107], [335.0, 16441.0, 812.913514]]], [[[445.0, 3541.0, 828.376069], [296.0, 4779.0, 809.256503]], [[726.0, 4951.0, 1608.847429], [628.0, 7825.0, 1591.5731070000002]], [[299.0, 10667.0, 786.107467], [316.0, 8452.0, 798.06339]]]]
+        self.__rounds = 4
+        self.__stdyAvg = 798
+        k = 0.0669
+        d = 797.6
+        self.__stdySlope.extend([k,d])
+        self.__stdyValues.append(self.__roundMatrices[0][-1][-2][2])
+        self.__stdyValues.append(self.__roundMatrices[1][-1][-2][2])
+        self.__stdyValues.append(self.__roundMatrices[2][-1][-2][2])
+        self.__stdyValues.append(self.__roundMatrices[3][-1][-2][2])
+        self.__stdyValues.append(self.__roundMatrices[4][-1][-2][2])
+            
+        pgp.stdyStVerPlt(self,"LAT")
+        pgp.stdyStConvPlt(self,"LAT")
+        pgp.mes2DPlt(self,"avg-LAT")
+        pgp.mes2DPlt(self,"max-LAT")
+        return True
     
     def writeSatTestRnd(self):
         '''
@@ -457,6 +532,8 @@ class SsdTest(DeviceTest):
             logging.info(self.__tpRoundMatrices)
             logging.info("Rounds of steady state:")
             logging.info(self.__stdyRnds)
+            logging.info("Steady values:")
+            logging.info(self.__stdyValues)
             logging.info("K and d of steady best fit slope:")
             logging.info(self.__stdySlope)
             logging.info("Steady average:")
@@ -464,7 +541,7 @@ class SsdTest(DeviceTest):
             logging.info("Stopped after round number:")
             logging.info(self.__rounds)
             #call plotting functions
-            pgp.stdyStVerPlt(self,"bw")
+            pgp.stdyStVerPlt(self,"TP")
             pgp.tpStdyStConvPlt(self, "read")
             pgp.tpStdyStConvPlt(self, "write")
             pgp.tpMes2DPlt(self)
