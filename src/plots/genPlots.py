@@ -13,13 +13,13 @@ def stdyStVerPlt(toPlot,mode):
     '''
     Generate a steady state verification plot.
     The plot includes:
-    -Measured IOPS of rounds in which steady state was reached
-    -Average IOPS in steady state rounds
-    -Slope of best fit line of measured IOPS
+    -Measured IOPS|Latencies|Throughput of rounds in which steady state was reached
+    -Average IOPS|Latencies|Throughput in steady state rounds
+    -Slope of best fit line
     -Top and Bottom limits: +-10% percent of average
     The figure is saved as SsdTest.Testname-stdyStVerPlt.png.
     @param toPlot A SsdTest object.
-    @param mode A string representing the test mode (iops|throughput)
+    @param mode A string representing the test mode (IOPS|LAT|TP)
     '''
     x = np.array(toPlot.getStdyRnds())
     #calculate average and its top and bottom limit
@@ -45,53 +45,86 @@ def stdyStVerPlt(toPlot,mode):
     #set the y axes to start at 3/4 of mininum
     plt.ylim(min(toPlot.getStdyValues())*0.75,max(toPlot.getStdyValues())*1.25)
     plt.xticks(x)
-    plt.title("Steady State Verification Plot")
+    title = mode + " Steady State Verification Plot"
+    plt.title(title)
     plt.xlabel("Round")
-    if mode == "bw":
-        plt.ylabel(mode + " KB/s")
-    else:
+    if mode == "LAT":
+        plt.ylabel("Avg latency (us)")
+    if mode == "TP":
+        plt.ylabel("Avg bandwidth (KB/s)")
+    if mode == "IOPS":
         plt.ylabel(mode)
     plt.legend()
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStVerPlt.png',dpi=300)
     
-def stdyStConvPlt(toPlot):
+def stdyStConvPlt(toPlot,mode):
     '''
     Generate a steady state convergence plot.
     The plot consists of:
-    -Measured IOPS of pure random write
+    IOPS:
+        -Measured IOPS of pure random write
+    LAT:
+        -Avg latency of read, mixed, write
     -All lines are the different block sizes
-    -IOPS of all the rounds are plotted
+    -IOPS/Latencies of all the rounds are plotted
     The figure is saved as SsdTest.Testname-stdyStConvPlt.png.
     @param toPlot A SsdTest object.
+    @param mode A string representing the test mode (IOPS|LAT)
     '''
     rnds = toPlot.getRnds()
     matrices = toPlot.getRndMatrices()
     bsLens = len(matrices[0][-1])#fetch the number of bs of the first matrix
     
     #initialize matrix for plotting
-    lines = []
-    for i in range(bsLens):
-        lines.append([])
-
-    for rndMat in matrices:
-        row = rndMat[-1]#last row is random write
-        for i in range(len(row)):
-            lines[i].append(row[i])#switch from row to column wise ordering of values
+    if mode == "IOPS":
+        lines = []
+        for i in range(bsLens):
+            lines.append([])
+        for rndMat in matrices:
+            row = rndMat[-1]#last row is random write
+            for i in range(len(row)):
+                lines[i].append(row[i])#switch from row to column wise ordering of values
+    
+    if mode == "LAT":
+        readLines = []
+        writeLines = []
+        mixLines = []
+        for i in range(bsLens):
+            readLines.append([])
+            writeLines.append([])
+            mixLines.append([])
+        for rndMat in matrices:
+            #take read mat len, every elem has the same len
+            for i in range(len(rndMat[0])):
+                readLines[i].append(rndMat[0][i][2])#mean latency
+                mixLines[i].append(rndMat[1][i][2])#mean latency
+                writeLines[i].append(rndMat[2][i][2])#mean latency
     
     plt.clf()#clear
     #fetch number of rounds, we want to include all rounds
     x = range(rnds + 1)
-    for i in range(len(lines)):
-        plt.plot(x,lines[i],'o-',label='bs='+pT.SsdTest.SsdTest.bsLabels[i])
+    if mode == "IOPS":
+        for i in range(len(lines)):
+            plt.plot(x,lines[i],'o-',label='bs='+pT.SsdTest.SsdTest.bsLabels[i])
+    if mode == "LAT":
+        for i in range(len(readLines)):
+            plt.plot(x,readLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' read')
+        for i in range(len(mixLines)):
+            plt.plot(x,mixLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' mixed')
+        for i in range(len(writeLines)):
+            plt.plot(x,writeLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' write')
     
     plt.xticks(x)
-    plt.title("Steady State Convergence Plot")
+    plt.title(mode+" Steady State Convergence Plot")
     plt.xlabel("Round")
-    plt.ylabel("IOPS")
+    if mode == "LAT":
+        plt.ylabel("Avg latency (us)")
+    if mode == "IOPS":
+        plt.ylabel(mode)
     plt.legend()
-    plt.savefig(toPlot.getTestname()+'-stdyStConvPlt.png',dpi=300)
+    plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
     
-def mes2DPlt(toPlot):
+def mes2DPlt(toPlot,mode):
     '''
     Generate a measurement 2D plot.
     The plot includes:
@@ -104,14 +137,23 @@ def mes2DPlt(toPlot):
     and workload.
     The figure is saved as SsdTest.Testname-mes2DPlt.png.
     @param toPlot A SsdTest object.
+    @param mode A string representing the test mode (IOPS|max-LAT|avg-LAT)
     '''
     mixWLds = []
     mesWin = toPlot.getStdyRnds() #get measurement window, only include these values
+    
+    if mode == "IOPS":
+        wlds = pT.SsdTest.SsdTest.mixWlds
+        bsLabels = pT.SsdTest.SsdTest.bsLabels
+    if mode == "avg-LAT" or mode == "max-LAT":
+        wlds = pT.SsdTest.SsdTest.latMixWlds
+        bsLabels = pT.SsdTest.SsdTest.latBsLabels
+    
     #each row will be a workload percentage
-    for i in range(len(pT.SsdTest.SsdTest.mixWlds)):
+    for i in range(len(wlds)):
         mixWLds.append([])
         #in each row will be the different block sizes
-        for bs in range(len(pT.SsdTest.SsdTest.bsLabels)):
+        for bs in range(len(bsLabels)):
             mixWLds[i].append(0)
     matrices = toPlot.getRndMatrices()    
     
@@ -124,26 +166,55 @@ def mes2DPlt(toPlot):
             for bs in range(len(row)):
                 #calculate average iteratively
                 if mixWLds[i][bs] != 0:
-                    mixWLds[i][bs] *= bs
-                    mixWLds[i][bs] += row[bs]
-                    mixWLds[i][bs] = (mixWLds[i][bs]) / (bs+1)
+                    #calculate max latency or continue with average
+                    if mode == "max-LAT":
+                        if row[bs][1] > mixWLds[i][bs]:
+                            mixWLds[i][bs] = row[bs][1]#max latency
+                    else:
+                        mixWLds[i][bs] *= bs
+                        if mode == "IOPS":
+                            mixWLds[i][bs] += row[bs]#IOPS
+                        if mode == "avg-LAT":
+                            mixWLds[i][bs] += row[bs][2]#mean latency
+                        mixWLds[i][bs] = (mixWLds[i][bs]) / (bs+1)
                 else:
-                    mixWLds[i][bs] = row[bs]
+                    if mode == "IOPS":
+                        mixWLds[i][bs] = row[bs]#IOPS
+                    if mode == "max-LAT":
+                        mixWLds[i][bs] = row[bs][1]#max latency
+                    if mode == "avg-LAT":
+                        mixWLds[i][bs] = row[bs][2]#mean latency
+                        
     plt.clf()#clear plot
-    x = [8,4,0.5]#FIXME Add correct block sizes here
+    if mode == "IOPS":
+        x = getBS(pT.SsdTest.SsdTest.bsLabels)
+    if mode == "avg-LAT" or mode == "max-LAT":
+        x = getBS(pT.SsdTest.SsdTest.latBsLabels)
     for i in range(len(mixWLds)):
         #the labels are r/w percentage of mixed workload
         plt.plot(x,mixWLds[i],'o-',
-                  label=str(pT.SsdTest.SsdTest.mixWlds[i])+'/'+str(100-pT.SsdTest.SsdTest.mixWlds[i]))
+                  label=str(wlds[i])+'/'+str(100-wlds[i]))
      
     #TODO Scale axes log   
-         
     plt.xticks(x)
-    plt.title("IOPS Measurement Plot")
+    plt.title(mode+" Measurement Plot")
     plt.xlabel("Block Size (KB)")
-    plt.ylabel("IOPS")
+    if mode == "avg-LAT" or mode == "max-LAT":
+        plt.ylabel("Avg latency (us)")
+    if mode == "IOPS":
+        plt.ylabel(mode)
     plt.legend()
-    plt.savefig(toPlot.getTestname()+'-mes2DPlt.png',dpi=300)
+    plt.savefig(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png',dpi=300)
+
+def getBS(bsLabels):
+    bs = []
+    for b in bsLabels:
+        if b == "512":
+            bs.append(0.5)
+            continue
+        s = b[0:-1]
+        bs.append(int(s))
+    return bs
     
 def writeSatIOPSPlt(toPlot):
     #fetch number of rounds, we want to include all rounds
@@ -210,7 +281,7 @@ def tpStdyStConvPlt(toPlot,mode):
     x = range(rnds)#determined by len of matrix
     for i,rndMat in enumerate(matrices):
         if mode == "read":
-            row = rndMat[0]#plot to the read row
+            row = rndMat[0]#plot the read row
         else:
             row = rndMat[1]#plot the write row
         plt.plot(x,row,'o-',label='bs='+pT.SsdTest.SsdTest.tpBsLabels[i])
@@ -259,7 +330,7 @@ def tpMes2DPlt(toPlot):
                     wlds[j][i] = row[rnd]
     print wlds
     plt.clf()#clear
-    x = [1024,64]#FIXME Add correct block sizes here
+    x = getBS(pT.SsdTest.SsdTest.tpBsLabels)
     for i in range(len(wlds)):
         if i == 0:
             label = "read"
