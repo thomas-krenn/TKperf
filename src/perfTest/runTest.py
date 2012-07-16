@@ -55,6 +55,7 @@ if __name__ == '__main__':
             exit(1)        
         #myTest.runIOPSTest()
         #myTest.runWriteSatTest()
-        myTest.runTpTest()
+        myTest.runLatsTest()
+        #myTest.runTpTest()
         print myTest.getTestname()
         print myTest.getFilename()
