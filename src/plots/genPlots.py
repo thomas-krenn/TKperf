@@ -5,6 +5,7 @@ Created on 09.07.2012
 '''
 from __future__ import division
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import numpy as np
 
 import perfTest as pT
@@ -101,27 +102,37 @@ def stdyStConvPlt(toPlot,mode):
                 writeLines[i].append(rndMat[2][i][2])#mean latency
     
     plt.clf()#clear
+
     #fetch number of rounds, we want to include all rounds
     x = range(rnds + 1)
+    max_y = 0
+    min_y = 0
     if mode == "IOPS":
         for i in range(len(lines)):
+            min_y,max_y = getMinMax(lines[i], min_y, max_y)
             plt.plot(x,lines[i],'o-',label='bs='+pT.SsdTest.SsdTest.bsLabels[i])
     if mode == "LAT":
         for i in range(len(readLines)):
+            min_y,max_y = getMinMax(readLines[i], min_y, max_y)
             plt.plot(x,readLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' read')
         for i in range(len(mixLines)):
+            min_y,max_y = getMinMax(mixLines[i], min_y, max_y)
             plt.plot(x,mixLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' mixed')
         for i in range(len(writeLines)):
+            min_y,max_y = getMinMax(writeLines[i], min_y, max_y)
             plt.plot(x,writeLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' write')
     
+    #create a subplot with two columns for legend placement
     plt.xticks(x)
-    plt.title(mode+" Steady State Convergence Plot")
+    plt.suptitle(mode+" Steady State Convergence Plot",fontweight='bold')
     plt.xlabel("Round")
+    plt.ylim((min_y*0.75,max_y*1.25))
     if mode == "LAT":
         plt.ylabel("Avg latency (us)")
     if mode == "IOPS":
         plt.ylabel(mode)
-    plt.legend()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
+               ncol=3, fancybox=True, shadow=True)
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
     
 def mes2DPlt(toPlot,mode):
@@ -188,6 +199,7 @@ def mes2DPlt(toPlot,mode):
     plt.clf()#clear plot
     if mode == "IOPS":
         x = getBS(pT.SsdTest.SsdTest.bsLabels)
+        #x = range(len(pT.SsdTest.SsdTest.bsLabels   ))
     if mode == "avg-LAT" or mode == "max-LAT":
         x = getBS(pT.SsdTest.SsdTest.latBsLabels)
     for i in range(len(mixWLds)):
@@ -195,10 +207,13 @@ def mes2DPlt(toPlot,mode):
         plt.plot(x,mixWLds[i],'o-',
                   label=str(wlds[i])+'/'+str(100-wlds[i]))
      
-    #TODO Scale axes log   
-    plt.xticks(x)
+    
     plt.title(mode+" Measurement Plot")
-    plt.xlabel("Block Size (KB)")
+    plt.xlabel("Block Size (Byte)")
+    plt.yscale('log')
+    plt.xscale('log')
+    
+    plt.xticks(x,bsLabels)
     if mode == "avg-LAT" or mode == "max-LAT":
         plt.ylabel("Avg latency (us)")
     if mode == "IOPS":
@@ -215,6 +230,34 @@ def getBS(bsLabels):
         s = b[0:-1]
         bs.append(int(s))
     return bs
+
+def getMinMax(values, currMin, currMax):
+    '''
+    Returns the minimum and maximum of a sequence of values.
+    @param values Squence to calculate min and max for
+    @param currMin Current minimum to compare to.
+    @param currMax Current maximum to compare to.
+    @return [newMin,newMax] if newMin is smaller than currMin,
+    newMax if it is greater than currMax.
+    '''
+    #TODO Testing for 0 can be a problem if minimum is really 0
+    # This should not happen for performance tests under normal circumstances
+    newMin = 0
+    newMax = 0
+    curr = max(values)
+    if curr > currMax:
+        newMax = curr
+    else:
+        newMax = currMax
+    curr = min(values)
+    if currMin == 0:
+        newMin = curr
+    else:
+        if curr < currMin:
+            newMin = curr
+        else:
+            newMin = currMin
+    return [newMin,newMax]
     
 def writeSatIOPSPlt(toPlot):
     #fetch number of rounds, we want to include all rounds
