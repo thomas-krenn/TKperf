@@ -10,6 +10,8 @@ import logging
 
 from fio.FioJob import FioJob
 from perfTest.SsdTest import SsdTest
+from perfTest.DeviceTest import DeviceTest
+from perfTest.HddTest import HddTest
 
 
 if __name__ == '__main__':
@@ -34,28 +36,33 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(filename=args.testname+'.log',level=logging.INFO)
     
-    if args.mode == "hdd":
-        print "hdd on"
-    if args.mode == "ssd":
-        myTest = SsdTest(args.testname,args.filename)
-        if myTest.checkDevIsMounted() == True:
-            print "!!!WARNING!!!"
-            print "You are writing to a mounted device, this is highly dangerous!"
+    toTest = DeviceTest(args.testname,args.filename)
+    if toTest.checkDevIsMounted() == True:
+        print "!!!WARNING!!!"
+        print "You are writing to a mounted device, this is highly dangerous!"
+        exit(0)
+    if toTest.checkDevIsAvbl() == True:
+        print "!!!Attention!!!"
+        print "All data on " + args.filename + " will be lost!"
+        print "Are you sure you want to continue? (In case you really know what you are doing.)"
+        print "Press 'y' to continue, any key to stop:"
+        key = raw_input()
+        if key != 'y':
             exit(0)
-        if myTest.checkDevIsAvbl() == True:
-            print "!!!Attention!!!"
-            print "All data on " + args.filename + " will be lost!"
-            print "Are you sure you want to continue? (In case you really know what you are doing.)"
-            print "Press 'y' to continue, any key to stop:"
-            key = raw_input()
-            if key != 'y':
-                exit(0)
-        else:
-            print "You are not using a valid device or partition!"
-            exit(1)        
-        #myTest.runIOPSTest()
+    else:
+        print "You are not using a valid device or partition!"
+        exit(1)    
+    
+    if args.mode == "hdd":
+        print "Starting HDD mode..."
+        myTest = HddTest(args.testname,args.filename)
+        myTest.runTpTest()
+    if args.mode == "ssd":
+        print "Starting SSD mode..."
+        myTest = SsdTest(args.testname,args.filename)
+        myTest.runIOPSTest()
         #myTest.runWriteSatTest()
-        myTest.runLatsTest()
+        #myTest.runLatsTest()
         #myTest.runTpTest()
         print myTest.getTestname()
         print myTest.getFilename()

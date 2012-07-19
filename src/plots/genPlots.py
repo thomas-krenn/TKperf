@@ -202,7 +202,11 @@ def mes2DPlt(toPlot,mode):
         #x = range(len(pT.SsdTest.SsdTest.bsLabels   ))
     if mode == "avg-LAT" or mode == "max-LAT":
         x = getBS(pT.SsdTest.SsdTest.latBsLabels)
+        
+    max_y = 0
+    min_y = 0
     for i in range(len(mixWLds)):
+        min_y,max_y = getMinMax(mixWLds[i], min_y, max_y)
         #the labels are r/w percentage of mixed workload
         plt.plot(x,mixWLds[i],'o-',
                   label=str(wlds[i])+'/'+str(100-wlds[i]))
@@ -212,7 +216,8 @@ def mes2DPlt(toPlot,mode):
     plt.xlabel("Block Size (Byte)")
     plt.yscale('log')
     plt.xscale('log')
-    
+    #scale axis to min and max +- 25%
+    plt.ylim((min_y*0.75,max_y*1.25))
     plt.xticks(x,bsLabels)
     if mode == "avg-LAT" or mode == "max-LAT":
         plt.ylabel("Avg latency (us)")
@@ -299,7 +304,7 @@ def writeSatLatPlt(toPlot):
     plt.legend()
     plt.savefig(toPlot.getTestname()+'-writeSatLatPlt.png',dpi=300)
     
-def tpStdyStConvPlt(toPlot,mode):
+def tpStdyStConvPlt(toPlot,mode,dev):
     '''
     Generate a steady state convergence plot for throughput measurements.
     The plot consists of:
@@ -309,11 +314,17 @@ def tpStdyStConvPlt(toPlot,mode):
     -y axes is the bw of the corresponding round
     The figure is saved as SsdTest.Testname-bw-stdyStConvPlt.png.
     @param toPlot A SsdTest object.
-    @param mode String "read" or "write"
+    @param mode String "read|write|rw"
+    @param dev String "ssd|hdd"
     '''
     matrices = toPlot.getTPRndMatrices()
     rnds = len(matrices[0][0])#fetch the number of total rounds
     bsLens = len(matrices)#fetch the number of bs, each row is a bs in the matrix
+    
+    if dev == "hdd":
+        bsLabels = pT.HddTest.HddTest.tpBsLabels
+    else:
+        bsLabels = pT.SsdTest.SsdTest.tpBsLabels
     
     #initialize matrix for plotting
     lines = []
@@ -323,18 +334,37 @@ def tpStdyStConvPlt(toPlot,mode):
     plt.clf()#clear
     x = range(rnds)#determined by len of matrix
     for i,rndMat in enumerate(matrices):
-        if mode == "read":
-            row = rndMat[0]#plot the read row
+        if dev == "hdd" and mode == "rw":
+            plt.plot(x,rndMat[0],'o-',label='read bs='+bsLabels[i])
+            plt.plot(x,rndMat[1],'o-',label='write bs='+bsLabels[i])
         else:
-            row = rndMat[1]#plot the write row
-        plt.plot(x,row,'o-',label='bs='+pT.SsdTest.SsdTest.tpBsLabels[i])
+            if mode == "read":
+                row = rndMat[0]#plot the read row
+            if mode == "write":
+                row = rndMat[1]#plot the write row
+            plt.plot(x,row,'o-',label='bs='+bsLabels[i])
     
-    plt.xticks(x)
-    plt.title("TP "+mode+" Steady State Convergence Plot")
-    plt.xlabel("Round")
+    if dev == "hdd":
+        x = range(0,pT.HddTest.HddTest.tpTestRnds+1,16)
+        plt.xticks(x)
+    else:
+        x = range(rnds)
+        plt.xticks(x)
+    #TODO Scale axis with minimum and maximum
+    if dev == "hdd":
+        plt.suptitle("TP "+mode+" Plot",fontweight='bold')    
+        plt.xlabel("Number of Area of Device")
+    else:
+        plt.suptitle("TP "+mode+" Steady State Convergence Plot",fontweight='bold')
+        plt.xlabel("Round")
     plt.ylabel("BW KB/s")
-    plt.legend()
-    plt.savefig(toPlot.getTestname()+'-bw-'+mode+'-stdyStConvPlt.png',dpi=300)
+    #plt.legend()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
+               ncol=2, fancybox=True, shadow=True)
+    if dev == "hdd":
+        plt.savefig(toPlot.getTestname()+'-'+mode+'-TpPlt.png',dpi=300)
+    else:
+        plt.savefig(toPlot.getTestname()+'-bw-'+mode+'-stdyStConvPlt.png',dpi=300)
     
 def tpMes2DPlt(toPlot):
     '''

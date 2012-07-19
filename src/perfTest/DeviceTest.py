@@ -54,11 +54,46 @@ class DeviceTest(object):
                 return [False,0]
             else:
                 sectorCount = long(stdout)
+                if ((sectorCount * sectorSize) % 1024) != 0:
+                        logging.error("blockdev sector count cannot be divided by 1024")
+                        return [False,0]
                 devSzKB = (sectorCount * sectorSize) / 1024
                 logging.info("#Device" + self.__filename + " sector count: " + str(sectorCount))
                 logging.info("#Device" + self.__filename + " sector size: " + str(sectorSize))
                 logging.info("#Device" + self.__filename + " size in KB: " + str(devSzKB))
                 return [True,devSzKB]
+            
+    def getNumSecKB(self):
+        '''
+        Get the number of 1024 Byte sectors
+        The function calls 'blockdev' to determine device sector size
+        and sector count.
+        @return [True,num] on success, [False,0] if an error occured.
+        '''
+        out = subprocess.Popen(['blockdev','--getss',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("blockdev --getss encountered an error: " + stderr)
+            return [False,0]
+        else:
+            sectorSize = int(stdout)
+            out = subprocess.Popen(['blockdev','--getsz',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if stderr != '':
+                logging.error("blockdev --getsz encountered an error: " + stderr)
+                return [False,0]
+            else:
+                sectorCount = long(stdout)
+                if sectorSize == 512:
+                    if (sectorCount % 2) != 0:
+                        logging.error("blockdev sector count cannot be divided by 2")
+                        return [False,0]
+                    num = sectorCount / 2
+                    logging.info("#Device" + self.__filename + " sector count in 1024 Byte: " + str(num))
+                    return [True,num]
+                else:
+                    logging.error("blockdev --getss returned block size not equal to 512")
+                    return [False,0]
     
     def checkDevIsMounted(self):
         '''

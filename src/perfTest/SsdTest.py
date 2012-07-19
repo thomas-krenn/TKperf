@@ -21,25 +21,25 @@ class SsdTest(DeviceTest):
     wlIndPrecRnds = 2
     
     ## Max number of test rounds for the IOPS test.
-    IOPSTestRnds = 5 #FIXME: Change to 25
+    IOPSTestRnds = 25
     
     ## Always use a sliding window of 4 to measure performance values.
     testMesWindow = 4
     
     ##Labels of block sizes for IOPS test
-    bsLabels = ["8k","4k","512"]#FIXME: [1024,128,64,32,16,8,4,0.5]
+    bsLabels = ["1024k","128k","64k","32k","16k","8k","4k","512"]#FIXME: [1024,128,64,32,16,8,4,0.5]
     
     ##Percentages of mixed workloads for IOPS test.
-    mixWlds = [5,0]#FIXME: [100,95,65,50,35,5,0] #Start with 100% reads
+    mixWlds = [100,95,65,50,35,5,0]#FIXME: [100,95,65,50,35,5,0] #Start with 100% reads
 
     ##Percentages of mixed workloads for latency test.
     latMixWlds = [100,65,0]
 
     ##Labels of block sizes for latency test.
-    latBsLabels = ["4k","512"]#FIXMW: ["8k","4k","512"]
+    latBsLabels = ["8k","4k","512"]#FIXMW: ["8k","4k","512"]
     
     ##Labels of block sizes for throughput test
-    tpBsLabels = ["1024k","64k"]#FIXME: ["1024k","64k","8k","4k","512"]
+    tpBsLabels = ["1024k","64k","8k","4k","512"]#FIXME: ["1024k","64k","8k","4k","512"]
     
     def __init__(self,testname,filename):
         '''
@@ -92,7 +92,18 @@ class SsdTest(DeviceTest):
         return self.__writeSatMatrix
     def getTPRndMatrices(self):
         return self.__tpRoundMatrices
-        
+    
+    def resetTestData(self):
+        self.__roundMatrices = []
+        self.__rounds = 0
+        self.__stdyRnds = []
+        self.__stdyValues = []
+        self.__stdyAvg = 0
+        self.__stdySlope = []
+        self.__writeSatRnds = 0
+        self.__writeSatMatrix = []
+        self.__tpRoundMatrices = []
+    
     def printMatrix(self,mode):
         
         if mode == "LAT":
@@ -118,7 +129,42 @@ class SsdTest(DeviceTest):
             job.addKVArg("name", self.getTestname() + '-run' + str(i))
             job.start()
         logging.info("# Finished workload independent preconditioning")
-            
+
+    def checkSteadyState(self,xs,ys):
+        '''
+        Checks if the steady is reached for the given values.
+        The steady state is defined by the allowed data excursion from the average (+-10%), and
+        the allowed slope excursion of the linear regression best fit line (+-5%).
+        @return [True,avg,k,d] (k*x+d is slope line) if steady state is reached, [False,0,0,0] if not
+        '''
+        maxY = max(ys)
+        minY = min(ys)
+        avg = sum(ys)/len(ys)#calc average of values
+        avgLowLim = avg * 0.9
+        avgUppLim = avg * 1.10#calc limits where avg must be in
+        #given min and max are out of allowed range
+        #FIXME Is this OK for the steady state?
+        if minY < avgLowLim and maxY > avgUppLim:
+            return [False,0,0,0]
+        
+        #do linear regression to calculate slope of linear best fit
+        y = np.array(ys)
+        x = np.array(xs)
+        A = np.vstack([x, np.ones(len(x))]).T
+        #calculate k*x+d
+        k, d = np.linalg.lstsq(A, y)[0]
+        
+        #as we have a measurement window of 4, we double the slope 
+        #to get the maximum slope excursion
+        slopeExc = k * (self.testMesWindow / 2)
+        if slopeExc < 0:
+            slopeExc *= -1
+        maxSlopeExc = avg * 0.10 #allowed are 10% of avg
+        if slopeExc > maxSlopeExc:
+            return [False,0,0,0]
+        
+        return [True,avg,k,d]
+    
     def testLoop(self,mode):
         '''
         Carry out one test round of a test.
@@ -134,7 +180,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("name",self.getTestname())
         job.addKVArg("rw","randrw")
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","20")#FIXME Change to 60 seconds
+        job.addKVArg("runtime","10")#FIXME Change to 60 seconds
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")     
@@ -173,46 +219,13 @@ class SsdTest(DeviceTest):
                         l[0] /= 2
                         l[1] /= 2
                         l[2] /= 2
+                    print l
                     rwRow.append(l)
                     
             rndMatrix.append(rwRow)
+        print rndMatrix
         return rndMatrix
     
-    def checkSteadyState(self,xs,ys):
-        '''
-        Checks if the steady is reached for the given values.
-        The steady state is defined by the allowed data excursion from the average (+-10%), and
-        the allowed slope excursion of the linear regression best fit line (+-5%).
-        @return [True,avg,k,d] (k*x+d is slope line) if steady state is reached, [False,0,0,0] if not
-        '''
-        maxY = max(ys)
-        minY = min(ys)
-        avg = sum(ys)/len(ys)#calc average of values
-        avgLowLim = avg * 0.9
-        avgUppLim = avg * 1.10#calc limits where avg must be in
-        #given min and max are out of allowed range
-        #FIXME Is this OK for the steady state?
-        if minY < avgLowLim and maxY > avgUppLim:
-            return [False,0,0,0]
-        
-        #do linear regression to calculate slope of linear best fit
-        y = np.array(ys)
-        x = np.array(xs)
-        A = np.vstack([x, np.ones(len(x))]).T
-        #calculate k*x+d
-        k, d = np.linalg.lstsq(A, y)[0]
-        
-        #as we have a measurement window of 4, we double the slope 
-        #to get the maximum slope excursion
-        slopeExc = k * (self.testMesWindow / 2)
-        if slopeExc < 0:
-            slopeExc *= -1
-        maxSlopeExc = avg * 0.10 #allowed are 10% of avg
-        if slopeExc > maxSlopeExc:
-            return [False,0,0,0]
-        
-        return [True,avg,k,d]
-          
     def runLoops(self,mode):
         '''
         Carry out the IOPS or Latencies test rounds and check if the steady state is reached.
@@ -228,6 +241,9 @@ class SsdTest(DeviceTest):
         rndMatrix = []
         steadyValues = deque([])#List of 4k random writes IOPS
         xranges = deque([])#Rounds of current measurement window
+        
+        #FIXME Purge the device here
+        #self.wlIndPrec()#FIXME Remove the comment
         
         for i in range(self.IOPSTestRnds):
             logging.info("#################")
@@ -268,7 +284,10 @@ class SsdTest(DeviceTest):
         Moreover call the functions to plot the results.
         @return True if steady state was reached and plots were generated, False if not.
         '''
-        #self.wlIndPrec()
+      
+        #ensure to start at initialization state
+        self.resetTestData()
+        logging.info("########### Starting IOPS Test ###########")
         steadyState = self.runLoops("IOPS")
         if steadyState == False:
             logging.warn("Not reached Steady State")
@@ -289,7 +308,7 @@ class SsdTest(DeviceTest):
             #call plotting functions
             pgp.stdyStVerPlt(self,"IOPS")
             pgp.stdyStConvPlt(self,"IOPS")
-            pgp.mes2DPlt(self)
+            pgp.mes2DPlt(self,"IOPS")
             return True
 
     def runLatsTest(self):
@@ -298,7 +317,9 @@ class SsdTest(DeviceTest):
         Moreover call the functions to plot the results.
         @return True if steady state was reached and plots were generated, False if not.
         '''
-        self.wlIndPrec()
+        #ensure to start at initialization state
+        self.resetTestData()
+        logging.info("########### Starting Latency Test ###########")
         steadyState = self.runLoops("LAT")
         if steadyState == False:
             logging.warn("Not reached Steady State")
@@ -336,7 +357,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("rw","randwrite")
         job.addKVArg("bs","4k")
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","20")#FIXME Change to 60 seconds
+        job.addKVArg("runtime","10")#FIXME Change to 60 seconds
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")     
@@ -357,6 +378,7 @@ class SsdTest(DeviceTest):
         return [writeIO,iops,lats]
         
     def writeSatTest(self):
+        #FIXME Add purging the device here
         (call,devSzKB) = self.getDevSizeKB()
         if call == False:
             logging.error("#Could not get size of device.")
@@ -371,7 +393,8 @@ class SsdTest(DeviceTest):
         lats_l = []#overall list of latencies
         lats = []#latencies per round
         
-        self.__writeSatRnds = maxRounds#assume all rounds must be carried out            
+        self.__writeSatRnds = maxRounds
+        #assume all rounds must be carried out            
         for i in range(maxRounds):
             writeIO,iops,lats = self.writeSatTestRnd()
             iops_l.append(iops)
@@ -388,9 +411,12 @@ class SsdTest(DeviceTest):
         logging.info("#Write saturation has written " + str(totWriteIO) + "KB")
         
     def runWriteSatTest(self):
-        
-        #TODO purge the device
+        #ensure to start at initialization state
+        self.resetTestData()
+        logging.info("########### Starting Write Saturation Test ###########")
         self.writeSatTest()
+        logging.info("Round Write Saturation results: ")
+        logging.info(self.__writeSatMatrix)
         pgp.writeSatIOPSPlt(self)
         pgp.writeSatLatPlt(self)
         
@@ -408,7 +434,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("filename",self.getFilename())
         job.addKVArg("name",self.getTestname())
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","20")#FIXME Change to 60 seconds
+        job.addKVArg("runtime","10")#FIXME Change to 60 seconds
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")  
@@ -510,6 +536,9 @@ class SsdTest(DeviceTest):
         Moreover call the functions to plot the results.
         @return True if steady state was reached and plots were generated, False if not.
         '''
+        #ensure to start at initialization state
+        self.resetTestData()
+        logging.info("########### Starting Throughput Test ###########")
         steadyState = self.tpTest()
         if steadyState == False:
             logging.warn("Not reached Steady State")
@@ -529,8 +558,8 @@ class SsdTest(DeviceTest):
             logging.info(self.__rounds)
             #call plotting functions
             pgp.stdyStVerPlt(self,"TP")
-            pgp.tpStdyStConvPlt(self, "read")
-            pgp.tpStdyStConvPlt(self, "write")
+            pgp.tpStdyStConvPlt(self, "read","ssd")
+            pgp.tpStdyStConvPlt(self, "write","ssd")
             pgp.tpMes2DPlt(self)
 
             return True
