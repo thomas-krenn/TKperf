@@ -5,7 +5,6 @@ Created on 09.07.2012
 '''
 from __future__ import division
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 import numpy as np
 
 import perfTest as pT
@@ -134,6 +133,59 @@ def stdyStConvPlt(toPlot,mode):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
                ncol=3, fancybox=True, shadow=True)
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
+
+def IOPSplot(toPlot):
+    rnds = pT.HddTest.HddTest.tpTestRnds
+    matrices = toPlot.getRndMatrices()
+    
+    wlds = pT.HddTest.HddTest.mixWlds
+    bsLabels = pT.HddTest.HddTest.bsLabels
+    
+    #each row will be a workload percentage
+    mixWLds = []
+    for i in range(len(wlds)):
+        mixWLds.append([])
+        #in each row will be the different block sizes
+        for bs in range(len(bsLabels)):
+            mixWLds[i].append([])
+            
+    for rnd in matrices:
+        #each round has its workloads
+        for i,row in enumerate(rnd):
+            #each workload has its block sizes
+            for j,bs in enumerate(row):
+                mixWLds[i][j].append(bs)
+
+    plt.clf()#clear
+    x = range(rnds)
+    max_y = 0
+    min_y = 0
+    for i in range(len(mixWLds)):
+        if i == 0:
+            lc = 'blue'
+        if i == 1:
+            lc = 'green'
+        if i == 2:
+            lc = 'red'
+        for j in range(len(mixWLds[i])):
+            if j == 0:
+                ls = 's-'
+            if j == 1:
+                ls = 'o-'
+            if j == 2:
+                ls = '^-'
+            min_y,max_y = getMinMax(mixWLds[i][j], min_y, max_y)
+            plt.plot(x,mixWLds[i][j],ls,color=lc,
+                  label=str(wlds[i])+'/bs=' + bsLabels[j])
+    plt.xticks(x)
+    plt.suptitle("HDD IOPS plot",fontweight='bold')
+    plt.xlabel("Number of Area of Device")
+    plt.ylabel("IOPS")
+    #plt.yscale('log')
+    plt.ylim((min_y*0.75,max_y*1.25))
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
+               ncol=3, fancybox=True, shadow=True)
+    plt.savefig(toPlot.getTestname()+'-IOPSPlt.png',dpi=300)
     
 def mes2DPlt(toPlot,mode):
     '''
@@ -364,7 +416,7 @@ def tpStdyStConvPlt(toPlot,mode,dev):
     if dev == "hdd":
         plt.savefig(toPlot.getTestname()+'-'+mode+'-TpPlt.png',dpi=300)
     else:
-        plt.savefig(toPlot.getTestname()+'-bw-'+mode+'-stdyStConvPlt.png',dpi=300)
+        plt.savefig(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png',dpi=300)
     
 def tpMes2DPlt(toPlot):
     '''
@@ -395,13 +447,12 @@ def tpMes2DPlt(toPlot):
             #read and write have their round values
             for rnd in toPlot.getStdyRnds():
                 #calculate average iteratively
-                if wlds[j][i] != 0:
-                    wlds[j][i] *= rnd
-                    wlds[j][i] += row[rnd]
-                    wlds[j][i] = (wlds[j][i]) / (rnd+1)
+                if wlds[i][j] != 0:
+                    wlds[i][j] *= rnd
+                    wlds[i][j] += row[rnd]
+                    wlds[i][j] = (wlds[i][j]) / (rnd+1)
                 else:
-                    wlds[j][i] = row[rnd]
-    print wlds
+                    wlds[i][j] = row[rnd]
     plt.clf()#clear
     x = getBS(pT.SsdTest.SsdTest.tpBsLabels)
     for i in range(len(wlds)):
@@ -411,12 +462,15 @@ def tpMes2DPlt(toPlot):
             label = "write"
         plt.plot(x,wlds[i],'o-',label=label)
     
-    plt.xticks(x)
-    plt.title("TP Measurement Plot")
+    plt.xscale('log')
+    plt.suptitle("TP Measurement Plot",fontweight='bold')
     plt.xlabel("Block Size (KB)")
     plt.ylabel("BW KB/s")
-    plt.legend()
-    plt.savefig(toPlot.getTestname()+'-bw-mes2DPlt.png',dpi=300)
+    plt.xticks(x,pT.SsdTest.SsdTest.tpBsLabels)
+    #plt.legend()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
+               ncol=2, fancybox=True, shadow=True)
+    plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     
     
     
