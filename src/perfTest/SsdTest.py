@@ -39,7 +39,7 @@ class SsdTest(DeviceTest):
     latBsLabels = ["8k","4k","512"]#FIXMW: ["8k","4k","512"]
     
     ##Labels of block sizes for throughput test
-    tpBsLabels = ["1024k","64k","8k","4k","512"]#FIXME: ["1024k","64k","8k","4k","512"]
+    tpBsLabels = ["1024k","64k","8k","4k","512",]
     
     def __init__(self,testname,filename):
         '''
@@ -180,7 +180,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("name",self.getTestname())
         job.addKVArg("rw","randrw")
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","10")#FIXME Change to 60 seconds
+        job.addKVArg("runtime","60")#FIXME Change to 60 seconds
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")     
@@ -243,7 +243,7 @@ class SsdTest(DeviceTest):
         xranges = deque([])#Rounds of current measurement window
         
         #FIXME Purge the device here
-        #self.wlIndPrec()#FIXME Remove the comment
+        self.wlIndPrec()#FIXME Remove the comment
         
         for i in range(self.IOPSTestRnds):
             logging.info("#################")
@@ -357,7 +357,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("rw","randwrite")
         job.addKVArg("bs","4k")
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","10")#FIXME Change to 60 seconds
+        job.addKVArg("runtime","60")#FIXME Change to 60 seconds
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")     
@@ -402,7 +402,7 @@ class SsdTest(DeviceTest):
             totWriteIO += writeIO
             
             #Check if 4 times the device size has been reached
-            if totWriteIO >= (devSzKB / 5):#FIXME: Change to *4
+            if totWriteIO >= (devSzKB * 4):#FIXME: Change to *4
                 self.__writeSatRnds = i
                 break
         self.__writeSatMatrix.append(iops_l)
@@ -415,6 +415,8 @@ class SsdTest(DeviceTest):
         self.resetTestData()
         logging.info("########### Starting Write Saturation Test ###########")
         self.writeSatTest()
+        logging.info("Write Sat rounds: ")
+        logging.info(self.__writeSatRnds)
         logging.info("Round Write Saturation results: ")
         logging.info(self.__writeSatMatrix)
         pgp.writeSatIOPSPlt(self)
@@ -560,9 +562,9 @@ class SsdTest(DeviceTest):
             pgp.stdyStVerPlt(self,"TP")
             pgp.tpStdyStConvPlt(self, "read","ssd")
             pgp.tpStdyStConvPlt(self, "write","ssd")
-            pgp.tpMes2DPlt(self)
+    
 
-            return True
+        return True
     
 
     

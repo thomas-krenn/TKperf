@@ -1,3 +1,6 @@
+INSTALL Requirements
+sudo apt-get install python-argparse
+
 To use fio with a device root privileges are required.
 -Add the modules to the PYTHONPATH to run 'runTest.py' from command line:
   export PYTHONPATH=/home/gschoenb/repos/io_perf_test/src/

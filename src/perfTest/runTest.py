@@ -57,12 +57,16 @@ if __name__ == '__main__':
         print "Starting HDD mode..."
         myTest = HddTest(args.testname,args.filename)
         myTest.runTpTest()
+        myTest.runIOPSTest()
+        print myTest.getTestname()
+        print myTest.getFilename()
+        
     if args.mode == "ssd":
         print "Starting SSD mode..."
         myTest = SsdTest(args.testname,args.filename)
         myTest.runIOPSTest()
-        #myTest.runWriteSatTest()
-        #myTest.runLatsTest()
-        #myTest.runTpTest()
+        myTest.runWriteSatTest()
+        myTest.runLatsTest()
+        myTest.runTpTest()
         print myTest.getTestname()
         print myTest.getFilename()

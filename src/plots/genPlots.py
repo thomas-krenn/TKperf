@@ -327,8 +327,10 @@ def writeSatIOPSPlt(toPlot):
     plt.clf()#clear plot        
     plt.plot(x,iops_l,'-',label='Avg IOPS')
     plt.ylim(min(iops_l)*0.75,max(iops_l)*1.25)
+    #every 10 rounds print the round number
+    x = range(0,rnds + 1,10)
     plt.xticks(x)
-    plt.title("Write Saturation Test")
+    plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
     plt.ylabel("IOPS")
     plt.legend()
@@ -349,8 +351,10 @@ def writeSatLatPlt(toPlot):
     plt.plot(x,av_lats,'-',label='Avg latency')
     #set the y axes to start at 3/4 of mininum
     plt.ylim(min(av_lats)*0.75,max(av_lats)*1.25)
+    #every 10 rounds print the round number
+    x = range(0,rnds + 1,10)
     plt.xticks(x)
-    plt.title("Write Saturation Test")
+    plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
     plt.ylabel("Latency ms")
     plt.legend()
@@ -383,17 +387,24 @@ def tpStdyStConvPlt(toPlot,mode,dev):
     for i in range(bsLens):
         lines.append([])
     
+    #values for scaling the axes
+    max_y = 0
+    min_y = 0
+    
     plt.clf()#clear
     x = range(rnds)#determined by len of matrix
     for i,rndMat in enumerate(matrices):
         if dev == "hdd" and mode == "rw":
+            min_y,max_y = getMinMax(rndMat[0], min_y, max_y)
             plt.plot(x,rndMat[0],'o-',label='read bs='+bsLabels[i])
+            min_y,max_y = getMinMax(rndMat[1], min_y, max_y)
             plt.plot(x,rndMat[1],'o-',label='write bs='+bsLabels[i])
         else:
             if mode == "read":
                 row = rndMat[0]#plot the read row
             if mode == "write":
                 row = rndMat[1]#plot the write row
+            min_y,max_y = getMinMax(row, min_y, max_y)
             plt.plot(x,row,'o-',label='bs='+bsLabels[i])
     
     if dev == "hdd":
@@ -402,7 +413,6 @@ def tpStdyStConvPlt(toPlot,mode,dev):
     else:
         x = range(rnds)
         plt.xticks(x)
-    #TODO Scale axis with minimum and maximum
     if dev == "hdd":
         plt.suptitle("TP "+mode+" Plot",fontweight='bold')    
         plt.xlabel("Number of Area of Device")
@@ -410,7 +420,8 @@ def tpStdyStConvPlt(toPlot,mode,dev):
         plt.suptitle("TP "+mode+" Steady State Convergence Plot",fontweight='bold')
         plt.xlabel("Round")
     plt.ylabel("BW KB/s")
-    #plt.legend()
+    #scale axis to min and max +- 25%
+    plt.ylim((min_y*0.6,max_y*1.15))
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
                ncol=2, fancybox=True, shadow=True)
     if dev == "hdd":
