@@ -41,6 +41,15 @@ class SsdTest(DeviceTest):
     ##Labels of block sizes for throughput test
     tpBsLabels = ["1024k","64k","8k","4k","512",]
     
+    ##RW modes for io depth test
+    iodRW = ["read","write","randread","randwrite"]
+    
+    ##Labels of block sizes for io depth test
+    iodBsLabels = ["1024k","64k","4k","512"]
+    
+    ##Io depths for libaio
+    iodDepths = [1,4,16,64]
+    
     def __init__(self,testname,filename):
         '''
         Constructor
@@ -73,6 +82,11 @@ class SsdTest(DeviceTest):
         
         ## A list of matrices with the throughput data.
         self.__tpRoundMatrices = []
+        
+        ## IO depth test matrix results
+        self.__iodMatrices = []
+        
+        self.__iodRnds = 0
     
     def getRndMatrices(self):
         return self.__roundMatrices
@@ -103,6 +117,8 @@ class SsdTest(DeviceTest):
         self.__writeSatRnds = 0
         self.__writeSatMatrix = []
         self.__tpRoundMatrices = []
+        self.__iodMatrices = []
+        self.__iodRnds = 0
     
     def printMatrix(self,mode):
         
@@ -565,9 +581,97 @@ class SsdTest(DeviceTest):
     
 
         return True
-    
 
-    
+    def ioDepthTestRnd(self):
+        '''
+        Carry out one test round of the io depth test.
+        The round consists of read, writing, rand read, rand write
+        with different block sizes and io depths (libaio).
+        @return [writeIO,roundMatrix] Total written IO in KB while write test
+        and a Matrix of rw,bs,iodepth
+        '''
+        job = FioJob()
+        job.addKVArg("filename",self.getFilename())
+        job.addKVArg("name",self.getTestname())
+        job.addKVArg("direct","1")
+        job.addKVArg("runtime","20")#FIXME Change to 60 seconds or remove
+        job.addKVArg("minimal","1")
+        job.addSglArg("group_reporting")     
+        job.addKVArg("ioengine","libaio")
+        
+        #start the fio job rounds with the given static
+        #parameters
+        writeIO = 0
+        roundMatrix = []
+        for rw in self.iodRW:
+            rwRow = []
+            for bs in self.iodBsLabels:
+                bsRow = []
+                for iod in self.iodDepths:
+                    job.addKVArg("rw",rw)
+                    job.addKVArg("bs",bs)
+                    job.addKVArg("iodepth",str(iod))
+                    
+                    (call,jobOut) = job.start()
+                    if call == False:
+                        exit(1)
+                    logging.info("rw: " +rw)
+                    logging.info("bs: "+bs)
+                    logging.info("iodepth: "+str(iod))
+                    logging.info(jobOut)
+                    logging.info("######")
+                    if rw == "read":
+                        bsRow.append(job.getTPRead(jobOut))
+                    if rw == "write":
+                        bsRow.append(job.getTPWrite(jobOut))
+                        #we keep the written IO to know if we should stop
+                        #FIXME Currently it is summed up for all block sizes
+                        writeIO += job.getTotIOWrite(jobOut)
+                    if rw == "randread":
+                        bsRow.append(job.getIOPSRead(jobOut))
+                    if rw == "randwrite":
+                        bsRow.append(job.getIOPSWrite(jobOut))
+                rwRow.append(bsRow)
+            roundMatrix.append(rwRow)
+        logging.info("#Tot Write IO: " + str(writeIO))
+        return [writeIO,roundMatrix]
+        
+    def ioDepthTest(self):
+        #FIXME Add purging the device here
+        (call,devSzKB) = self.getDevSizeKB()
+        if call == False:
+            logging.error("#Could not get size of device.")
+            exit(1)
+        totWriteIO = 0 #total written IO in KB, must be greater than 4xDevice 
+        #carry out the test for a maximum of 24h, one round runs for 1 minute
+        maxRounds = 60*24
+        
+        self.__iodRnds = maxRounds
+        roundMatrix = []
+        #assume all rounds must be carried out            
+        for i in range(maxRounds):
+            logging.info("######")
+            logging.info("Round nr. "+str(i))
+            writeIO,roundMatrix = self.ioDepthTestRnd()
+            self.__iodMatrices.append(roundMatrix)
+            totWriteIO += writeIO
+            
+            #Check if 4 times the device size has been reached
+            if totWriteIO >= (devSzKB / 5):#FIXME: Change to *4
+                self.__iodRnds = i
+                break
+        
+        logging.info("#IO depth test has written " + str(totWriteIO) + "KB")
+
+    def runIoDepthTest(self):
+        #ensure to start at initialization state
+        self.resetTestData()
+        logging.info("########### Starting IO Depth Test ###########")
+        self.ioDepthTest()
+        logging.info("IO Depth rounds: ")
+        logging.info(self.__iodRnds)
+        logging.info("Round IO Depth results: ")
+        logging.info(self.__iodMatrices)
     
     
     
