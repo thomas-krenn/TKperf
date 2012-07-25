@@ -4,7 +4,10 @@ Created on 09.07.2012
 @author: gschoenb
 '''
 from __future__ import division
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 import perfTest as pT
@@ -483,6 +486,55 @@ def tpMes2DPlt(toPlot):
                ncol=2, fancybox=True, shadow=True)
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     
+def ioDepthMes3DPlt(toPlot):
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    
+    matrices = toPlot.getIodMatrices()
+    
+  
+                 
+    xpos = np.array([0.25,0.25,0.25,0.25]) # Set up a mesh of positions
+    ypos = np.array([0.25,1.25,2.25,3.25])
+    zpos = np.array([0,0,0,0])
+    
+    dx = [0.5,0.5,0.5,0.5]
+    dy = [0.5,0.5,0.5,0.5]
+    #dz = data.flatten()
+    matrices = matrices[0]
+    for i in range(1):
+        rwRow = matrices[i]
+        for j,bs in enumerate(rwRow):
+            print bs
+            if j == 0: bcolor = 'b'
+            if j == 1: bcolor = 'g'
+            if j == 2: bcolor = 'r'
+            if j == 3: bcolor = 'y'
+            ax.bar3d(xpos,ypos,zpos, dx, dy, bs,color = bcolor)
+            for pos in range(len(xpos)):
+                xpos[pos] += 1
+#    for i,bar in enumerate(data):
+#        print bar
+#        dz = bar
+#        
+#        ax.bar3d(xpos,ypos,zpos, dx, dy, dz,)
+#        for pos in range(len(xpos)):
+#            ypos[pos] += 1
+
+    #ax.w_xaxis.set_ticklabels(pT.SsdTest.SsdTest.iodBsLabels)
+    #ax.w_yaxis.set_ticklabels(pT.SsdTest.SsdTest.iodDepths)
+    ticksx = np.arange(0.5, 4, 1)
+    plt.xticks(ticksx, pT.SsdTest.SsdTest.iodBsLabels)
+
+    ticksy = np.arange(0.5, 4, 1)
+    plt.yticks(ticksy,pT.SsdTest.SsdTest.iodDepths)
+    ax.set_xlabel('BS')
+    ax.set_ylabel('IO Depth')
+    ax.set_zlabel('BW')
+    
+    plt.savefig(toPlot.getTestname()+'-IOD-mes3DPlt.png',dpi=300)
+
+
     
     
     

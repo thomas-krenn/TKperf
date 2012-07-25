@@ -27,16 +27,16 @@ class SsdTest(DeviceTest):
     testMesWindow = 4
     
     ##Labels of block sizes for IOPS test
-    bsLabels = ["1024k","128k","64k","32k","16k","8k","4k","512"]#FIXME: [1024,128,64,32,16,8,4,0.5]
+    bsLabels = ["1024k","128k","64k","32k","16k","8k","4k","512"]
     
     ##Percentages of mixed workloads for IOPS test.
-    mixWlds = [100,95,65,50,35,5,0]#FIXME: [100,95,65,50,35,5,0] #Start with 100% reads
+    mixWlds = [100,95,65,50,35,5,0]
 
     ##Percentages of mixed workloads for latency test.
     latMixWlds = [100,65,0]
 
     ##Labels of block sizes for latency test.
-    latBsLabels = ["8k","4k","512"]#FIXMW: ["8k","4k","512"]
+    latBsLabels = ["8k","4k","512"]
     
     ##Labels of block sizes for throughput test
     tpBsLabels = ["1024k","64k","8k","4k","512",]
@@ -106,6 +106,8 @@ class SsdTest(DeviceTest):
         return self.__writeSatMatrix
     def getTPRndMatrices(self):
         return self.__tpRoundMatrices
+    def getIodMatrices(self):
+        return self.__iodMatrices
     
     def resetTestData(self):
         self.__roundMatrices = []
@@ -143,8 +145,12 @@ class SsdTest(DeviceTest):
         for i in range(SsdTest.wlIndPrecRnds):
             logging.info("# Starting preconditioning round "+str(i))
             job.addKVArg("name", self.getTestname() + '-run' + str(i))
-            job.start()
+            call,out = job.start()
+            if call == False:
+                logging.error("# Could not carry out workload independent preconditioning")
+                return False
         logging.info("# Finished workload independent preconditioning")
+        return True
 
     def checkSteadyState(self,xs,ys):
         '''
@@ -194,7 +200,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("name",self.getTestname())
         job.addKVArg("rw","randrw")
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","60")#FIXME Change to 60 seconds
+        job.addKVArg("runtime","60")
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")     
@@ -256,8 +262,13 @@ class SsdTest(DeviceTest):
         steadyValues = deque([])#List of 4k random writes IOPS
         xranges = deque([])#Rounds of current measurement window
         
-        #FIXME Purge the device here
-        self.wlIndPrec()#FIXME Remove the comment
+        if self.makeSecureErase() == False:
+            logging.error("# Could not carry out secure erase.")
+            exit(1)
+        
+        if self.wlIndPrec() == False:
+            logging.error("# Could not carry out preconditioning.")
+            exit(1)
         
         for i in range(self.IOPSTestRnds):
             logging.info("#################")
@@ -298,7 +309,6 @@ class SsdTest(DeviceTest):
         Moreover call the functions to plot the results.
         @return True if steady state was reached and plots were generated, False if not.
         '''
-      
         #ensure to start at initialization state
         self.resetTestData()
         logging.info("########### Starting IOPS Test ###########")
@@ -371,7 +381,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("rw","randwrite")
         job.addKVArg("bs","4k")
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","60")#FIXME Change to 60 seconds
+        job.addKVArg("runtime","60")
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")     
@@ -392,7 +402,9 @@ class SsdTest(DeviceTest):
         return [writeIO,iops,lats]
         
     def writeSatTest(self):
-        #FIXME Add purging the device here
+        if self.makeSecureErase() == False:
+            logging.error("# Could not carry out secure erase.")
+            exit(1)
         (call,devSzKB) = self.getDevSizeKB()
         if call == False:
             logging.error("#Could not get size of device.")
@@ -416,7 +428,7 @@ class SsdTest(DeviceTest):
             totWriteIO += writeIO
             
             #Check if 4 times the device size has been reached
-            if totWriteIO >= (devSzKB * 4):#FIXME: Change to *4
+            if totWriteIO >= (devSzKB * 4):
                 self.__writeSatRnds = i
                 break
         self.__writeSatMatrix.append(iops_l)
@@ -450,7 +462,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("filename",self.getFilename())
         job.addKVArg("name",self.getTestname())
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","10")#FIXME Change to 60 seconds
+        job.addKVArg("runtime","60")
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")  
@@ -492,7 +504,10 @@ class SsdTest(DeviceTest):
         
         #rounds are the same for IOPS and throughput
         for j in SsdTest.tpBsLabels:
-            #FIXME Add purging the device here
+            if self.makeSecureErase() == False:
+                logging.error("# Could not carry out secure erase.")
+                exit(1)
+
             tpRead_l = []
             tpWrite_l = []
             logging.info("#################")
@@ -576,8 +591,8 @@ class SsdTest(DeviceTest):
             pgp.stdyStVerPlt(self,"TP")
             pgp.tpStdyStConvPlt(self, "read","ssd")
             pgp.tpStdyStConvPlt(self, "write","ssd")
+            pgp.tpMes2DPlt(self)
     
-
         return True
 
     def ioDepthTestRnd(self):
@@ -592,7 +607,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("filename",self.getFilename())
         job.addKVArg("name",self.getTestname())
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","20")#FIXME Change to 60 seconds or remove
+        job.addKVArg("runtime","10")#FIXME Change to 60 seconds or remove
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")     
         job.addKVArg("ioengine","libaio")
@@ -623,7 +638,8 @@ class SsdTest(DeviceTest):
                     if rw == "write":
                         bsRow.append(job.getTPWrite(jobOut))
                         #we keep the written IO to know if we should stop
-                        #FIXME Currently it is summed up for all block sizes
+                    #Sum up the write IO for 1M block size
+                    if rw == "write" and bs == "1024k":
                         writeIO += job.getTotIOWrite(jobOut)
                     if rw == "randread":
                         bsRow.append(job.getIOPSRead(jobOut))
@@ -655,7 +671,7 @@ class SsdTest(DeviceTest):
             totWriteIO += writeIO
             
             #Check if 4 times the device size has been reached
-            if totWriteIO >= (devSzKB / 5):#FIXME: Change to *4
+            if totWriteIO >= (devSzKB / 2):#FIXME: Change to *4
                 self.__iodRnds = i
                 break
         
@@ -663,13 +679,15 @@ class SsdTest(DeviceTest):
 
     def runIoDepthTest(self):
         #ensure to start at initialization state
-        self.resetTestData()
-        logging.info("########### Starting IO Depth Test ###########")
-        self.ioDepthTest()
-        logging.info("IO Depth rounds: ")
-        logging.info(self.__iodRnds)
-        logging.info("Round IO Depth results: ")
-        logging.info(self.__iodMatrices)
+#        self.resetTestData()
+#        logging.info("########### Starting IO Depth Test ###########")
+#        self.ioDepthTest()
+#        logging.info("IO Depth rounds: ")
+#        logging.info(self.__iodRnds)
+#        logging.info("Round IO Depth results: ")
+#        logging.info(self.__iodMatrices)
+        self.__iodMatrices = [[[[20665, 20665, 20749, 20624], [19467, 20039, 20098, 20137], [7831, 9678, 16911, 20177], [1310, 1725, 5302, 12270]], [[4991, 4990, 4894, 4984], [4829, 4892, 4898, 4826], [420, 1635, 4320, 4722], [51, 67, 1105, 3208]], [[19, 20, 20, 20], [298, 307, 309, 315], [1971, 1996, 2003, 2035], [2581, 2620, 2620, 2662]], [[3, 2, 2, 2], [6, 6, 7, 9], [9, 9, 10, 14], [9, 8, 9, 14]]]]
+        pgp.ioDepthMes3DPlt(self)
     
     
     

@@ -117,6 +117,26 @@ class FioJob(object):
         fioTerse = fioOut.split(';')
         return int(fioTerse[FioJob.terseIOPSReadPos]) + int(fioTerse[FioJob.terseIOPSWritePos])
        
+    def getIOPSRead(self,fioOut):
+        '''
+        Parses the average read IOPS out of the fio result output.
+        @param fioOut The output of the fio performance test.
+        @return Read IOPS
+        '''
+        #index 7 iops read
+        fioTerse = fioOut.split(';')
+        return int(fioTerse[FioJob.terseIOPSReadPos])
+    
+    def getIOPSWrite(self,fioOut):
+        '''
+        Parses the average write IOPS out of the fio result output.
+        @param fioOut The output of the fio performance test.
+        @return Write IOPS
+        '''
+        #index 48 iops write
+        fioTerse = fioOut.split(';')
+        return int(fioTerse[FioJob.terseIOPSWritePos])
+       
     def getTotIOWrite(self,fioOut):
         '''
         Parses the write total IO out of the fio result output.
