@@ -156,11 +156,9 @@ class SsdTest(DeviceTest):
         maxY = max(ys)
         minY = min(ys)
         avg = sum(ys)/len(ys)#calc average of values
-        avgLowLim = avg * 0.9
-        avgUppLim = avg * 1.10#calc limits where avg must be in
-        #given min and max are out of allowed range
-        #FIXME Is this OK for the steady state?
-        if minY < avgLowLim and maxY > avgUppLim:
+        #allow max excursion of 20% of average
+        avgRange = avg * 0.20
+        if (maxY - minY) > avgRange:
             return [False,0,0,0]
         
         #do linear regression to calculate slope of linear best fit
@@ -170,9 +168,9 @@ class SsdTest(DeviceTest):
         #calculate k*x+d
         k, d = np.linalg.lstsq(A, y)[0]
         
-        #as we have a measurement window of 4, we double the slope 
-        #to get the maximum slope excursion
-        slopeExc = k * (self.testMesWindow / 2)
+        #as we have a measurement window of 4, we calculate
+        #the slope excursion in  the window
+        slopeExc = k * self.testMesWindow
         if slopeExc < 0:
             slopeExc *= -1
         maxSlopeExc = avg * 0.10 #allowed are 10% of avg
