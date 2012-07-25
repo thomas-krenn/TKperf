@@ -226,18 +226,18 @@ class SsdTest(DeviceTest):
                 if mode == "IOPS":
                     rwRow.append(job.getIOPS(jobOut))
                 if mode == "LAT":
-                    #FIXME: Are the total latencies here correct?
-                    l = job.getTotLats(jobOut)
-                    #if we have a mixed workload divide the latency
                     if i == 65:
-                        l[0] /= 2
-                        l[1] /= 2
-                        l[2] /= 2
-                    print l
+                        #if we have a mixed workload weight the latencies
+                        l = [0,0,0]
+                        r = job.getReadLats(jobOut)
+                        w = job.getWriteLats(jobOut)
+                        l[0] = (0.65 * r[0]) + (0.35 * w[0])
+                        l[1] = (0.65 * r[1]) + (0.35 * w[1])
+                        l[2] = (0.65 * r[2]) + (0.35 * w[2])
+                    else:
+                        l = job.getTotLats(jobOut)
                     rwRow.append(l)
-                    
             rndMatrix.append(rwRow)
-        print rndMatrix
         return rndMatrix
     
     def runLoops(self,mode):
