@@ -153,6 +153,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("bs","128k")
         job.addKVArg("rw","write")
         job.addKVArg("direct","1")
+        job.addKVArg("minimal","1")
         job.addKVArg("numjobs",str(self.__numJobs))
         job.addKVArg("ioengine","libaio")
         job.addKVArg("iodepth",str(self.__ioDepth))
@@ -698,8 +699,8 @@ class SsdTest(DeviceTest):
             self.__iodMatrices.append(roundMatrix)
             totWriteIO += writeIO
             
-            #Check if 4 times the device size has been reached
-            if totWriteIO >= (devSzKB / 2):#FIXME: Change to *4
+            #Check if 2 times the device size has been reached
+            if totWriteIO >= (devSzKB * 2):
                 self.__iodRnds = i
                 break
         
@@ -714,8 +715,10 @@ class SsdTest(DeviceTest):
         logging.info(self.__iodRnds)
         logging.info("Round IO Depth results: ")
         logging.info(self.__iodMatrices)
-        
-        pgp.ioDepthMes3DPlt(self)
+        pgp.ioDepthMes3DPlt(self,"read")
+        pgp.ioDepthMes3DPlt(self,"write")
+        pgp.ioDepthMes3DPlt(self,"randread")
+        pgp.ioDepthMes3DPlt(self,"randwrite")
     
     
     

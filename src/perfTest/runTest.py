@@ -75,10 +75,10 @@ if __name__ == '__main__':
         else:
             iod = args.iodepth
         myTest = SsdTest(args.testname,args.filename,nj,iod)
-        myTest.runIOPSTest()
-        myTest.runWriteSatTest()
-        myTest.runLatsTest()
-        myTest.runTpTest()
+        #myTest.runIOPSTest()
+        #myTest.runWriteSatTest()
+        #myTest.runLatsTest()
+        #myTest.runTpTest()
         myTest.runIoDepthTest()
         print myTest.getTestname()
         print myTest.getFilename()

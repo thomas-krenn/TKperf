@@ -486,53 +486,57 @@ def tpMes2DPlt(toPlot):
                ncol=2, fancybox=True, shadow=True)
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     
-def ioDepthMes3DPlt(toPlot):
+def ioDepthMes3DPlt(toPlot,rw):
     fig = plt.figure()
     ax = Axes3D(fig)
     
     matrices = toPlot.getIodMatrices()
-    
-  
-                 
+     
+    #define positions for bars
     xpos = np.array([0.25,0.25,0.25,0.25]) # Set up a mesh of positions
     ypos = np.array([0.25,1.25,2.25,3.25])
     zpos = np.array([0,0,0,0])
     
     dx = [0.5,0.5,0.5,0.5]
     dy = [0.5,0.5,0.5,0.5]
-    #dz = data.flatten()
-    matrices = matrices[0]
-    for i in range(1):
-        rwRow = matrices[i]
-        for j,bs in enumerate(rwRow):
-            print bs
-            if j == 0: bcolor = 'b'
-            if j == 1: bcolor = 'g'
-            if j == 2: bcolor = 'r'
-            if j == 3: bcolor = 'y'
-            ax.bar3d(xpos,ypos,zpos, dx, dy, bs,color = bcolor)
-            for pos in range(len(xpos)):
-                xpos[pos] += 1
-#    for i,bar in enumerate(data):
-#        print bar
-#        dz = bar
-#        
-#        ax.bar3d(xpos,ypos,zpos, dx, dy, dz,)
-#        for pos in range(len(xpos)):
-#            ypos[pos] += 1
 
-    #ax.w_xaxis.set_ticklabels(pT.SsdTest.SsdTest.iodBsLabels)
-    #ax.w_yaxis.set_ticklabels(pT.SsdTest.SsdTest.iodDepths)
+    #FIXME Currently we use only the first round
+    if rw == "read": matrix = list(matrices[0][0])
+    if rw == "write": matrix = list(matrices[0][1])
+    if rw == "randread": matrix = list(matrices[0][2])
+    if rw == "randwrite": matrix = list(matrices[0][3])
+    
+    #as IOPS are the mos for small sizes we revers the block sizes
+    if rw == "randread" or rw == "randwrite":
+        matrix.reverse()
+    for j,bs in enumerate(matrix):
+        print bs
+        if j == 0: bcolor = 'b'
+        if j == 1: bcolor = 'g'
+        if j == 2: bcolor = 'r'
+        if j == 3: bcolor = 'y'
+        ax.bar3d(xpos,ypos,zpos, dx, dy, bs,color = bcolor)
+        for pos in range(len(xpos)):
+            xpos[pos] += 1
+            
+    print matrices[0][2]
     ticksx = np.arange(0.5, 4, 1)
-    plt.xticks(ticksx, pT.SsdTest.SsdTest.iodBsLabels)
-
+    if rw == "randread" or rw == "randwrite":
+        labels = list(pT.SsdTest.SsdTest.iodBsLabels)
+        labels.reverse()
+        plt.xticks(ticksx, labels)
+    else:
+        plt.xticks(ticksx, pT.SsdTest.SsdTest.iodBsLabels)
     ticksy = np.arange(0.5, 4, 1)
     plt.yticks(ticksy,pT.SsdTest.SsdTest.iodDepths)
-    ax.set_xlabel('BS')
+    plt.suptitle("IOD "+rw+" Measurement Plot",fontweight='bold')
+    ax.set_xlabel('Block Size (Byte)')
     ax.set_ylabel('IO Depth')
-    ax.set_zlabel('BW')
-    
-    plt.savefig(toPlot.getTestname()+'-IOD-mes3DPlt.png',dpi=300)
+    if rw == "read" or rw == "write":
+        ax.set_zlabel('BW')
+    if rw == "randread" or rw == "randwrite":
+        ax.set_zlabel('IOPS')
+    plt.savefig(toPlot.getTestname()+'-IOD-'+rw+'-mes3DPlt.png',dpi=300)
 
 
     
