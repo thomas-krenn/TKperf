@@ -50,11 +50,19 @@ class SsdTest(DeviceTest):
     ##Io depths for libaio
     iodDepths = [1,4,16,64]
     
-    def __init__(self,testname,filename):
+    def __init__(self,testname,filename,nj,iod):
         '''
         Constructor
+        @param nj Number of jobs for Fio.
+        @param iod IO depth for libaio used by Fio. 
         '''
         super(SsdTest,self).__init__(testname,filename)
+        
+        ##Number of jobs started by fio
+        self.__numJobs = nj
+        
+        ##IO depth for libaio used by fio
+        self.__ioDepth = iod
         
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
@@ -87,7 +95,10 @@ class SsdTest(DeviceTest):
         self.__iodMatrices = []
         
         self.__iodRnds = 0
-    
+    def getNumJobs(self):
+        return self.__numJobs
+    def getIoDepth(self):
+        return self.__ioDepth
     def getRndMatrices(self):
         return self.__roundMatrices
     def getRnds(self):
@@ -142,6 +153,11 @@ class SsdTest(DeviceTest):
         job.addKVArg("bs","128k")
         job.addKVArg("rw","write")
         job.addKVArg("direct","1")
+        job.addKVArg("numjobs",str(self.__numJobs))
+        job.addKVArg("ioengine","libaio")
+        job.addKVArg("iodepth",str(self.__ioDepth))
+        job.addSglArg("group_reporting")
+        
         for i in range(SsdTest.wlIndPrecRnds):
             logging.info("# Starting preconditioning round "+str(i))
             job.addKVArg("name", self.getTestname() + '-run' + str(i))
@@ -149,6 +165,8 @@ class SsdTest(DeviceTest):
             if call == False:
                 logging.error("# Could not carry out workload independent preconditioning")
                 return False
+            else:
+                logging.info(out)
         logging.info("# Finished workload independent preconditioning")
         return True
 
@@ -203,6 +221,9 @@ class SsdTest(DeviceTest):
         job.addKVArg("runtime","60")
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
+        job.addKVArg("numjobs",str(self.__numJobs))
+        job.addKVArg("ioengine","libaio")
+        job.addKVArg("iodepth",str(self.__ioDepth))
         job.addSglArg("group_reporting")     
         
         #iterate over mixed rand read and write and vary block size
@@ -384,6 +405,9 @@ class SsdTest(DeviceTest):
         job.addKVArg("runtime","60")
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
+        job.addKVArg("numjobs",str(self.__numJobs))    
+        job.addKVArg("ioengine","libaio")
+        job.addKVArg("iodepth",str(self.__ioDepth))
         job.addSglArg("group_reporting")     
         
         (call,jobOut) = job.start()
@@ -465,8 +489,11 @@ class SsdTest(DeviceTest):
         job.addKVArg("runtime","60")
         job.addSglArg("time_based")
         job.addKVArg("minimal","1")
-        job.addSglArg("group_reporting")  
-        job.addKVArg("bs",bs)   
+        job.addKVArg("bs",bs)
+        job.addKVArg("numjobs",str(self.__numJobs))
+        job.addKVArg("ioengine","libaio")
+        job.addKVArg("iodepth",str(self.__ioDepth))
+        job.addSglArg("group_reporting")   
       
         jobOut = ''
         tpRead = 0 #read bandwidth
@@ -609,7 +636,8 @@ class SsdTest(DeviceTest):
         job.addKVArg("direct","1")
         job.addKVArg("runtime","10")#FIXME Change to 60 seconds or remove
         job.addKVArg("minimal","1")
-        job.addSglArg("group_reporting")     
+        job.addSglArg("group_reporting")
+        job.addKVArg("numjobs",str(self.__numJobs))
         job.addKVArg("ioengine","libaio")
         
         #start the fio job rounds with the given static
@@ -679,14 +707,14 @@ class SsdTest(DeviceTest):
 
     def runIoDepthTest(self):
         #ensure to start at initialization state
-#        self.resetTestData()
-#        logging.info("########### Starting IO Depth Test ###########")
-#        self.ioDepthTest()
-#        logging.info("IO Depth rounds: ")
-#        logging.info(self.__iodRnds)
-#        logging.info("Round IO Depth results: ")
-#        logging.info(self.__iodMatrices)
-        self.__iodMatrices = [[[[20665, 20665, 20749, 20624], [19467, 20039, 20098, 20137], [7831, 9678, 16911, 20177], [1310, 1725, 5302, 12270]], [[4991, 4990, 4894, 4984], [4829, 4892, 4898, 4826], [420, 1635, 4320, 4722], [51, 67, 1105, 3208]], [[19, 20, 20, 20], [298, 307, 309, 315], [1971, 1996, 2003, 2035], [2581, 2620, 2620, 2662]], [[3, 2, 2, 2], [6, 6, 7, 9], [9, 9, 10, 14], [9, 8, 9, 14]]]]
+        self.resetTestData()
+        logging.info("########### Starting IO Depth Test ###########")
+        self.ioDepthTest()
+        logging.info("IO Depth rounds: ")
+        logging.info(self.__iodRnds)
+        logging.info("Round IO Depth results: ")
+        logging.info(self.__iodMatrices)
+        
         pgp.ioDepthMes3DPlt(self)
     
     

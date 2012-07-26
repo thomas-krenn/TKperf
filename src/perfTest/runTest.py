@@ -27,6 +27,8 @@ if __name__ == '__main__':
     parser.add_argument("-v","--version", help="get the version information", action='version',version=fioVersion)
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
+    parser.add_argument("-nj","--numjobs",help="specify number of jobs for fio",type=int)
+    parser.add_argument("-iod","--iodepth",help="specify iodepth for libaio used by fio",type=int)
     
     args = parser.parse_args()
     if args.debug == True:
@@ -63,10 +65,20 @@ if __name__ == '__main__':
         
     if args.mode == "ssd":
         print "Starting SSD mode..."
-        myTest = SsdTest(args.testname,args.filename)
+        #of jobs and io depth is not given we use 1 for it
+        if args.numjobs == None:
+            nj = 1
+        else:
+            nj = args.numjobs
+        if args.iodepth == None:
+            iod = 1
+        else:
+            iod = args.iodepth
+        myTest = SsdTest(args.testname,args.filename,nj,iod)
         myTest.runIOPSTest()
         myTest.runWriteSatTest()
         myTest.runLatsTest()
         myTest.runTpTest()
+        myTest.runIoDepthTest()
         print myTest.getTestname()
         print myTest.getFilename()
