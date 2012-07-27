@@ -483,7 +483,7 @@ def tpMes2DPlt(toPlot):
     plt.xticks(x,pT.SsdTest.SsdTest.tpBsLabels)
     #plt.legend()
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
-               ncol=2, fancybox=True, shadow=True)
+               ncol=3, fancybox=True, shadow=True)
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     
 def ioDepthMes3DPlt(toPlot,rw):
@@ -500,7 +500,7 @@ def ioDepthMes3DPlt(toPlot,rw):
     dx = [0.5,0.5,0.5,0.5]
     dy = [0.5,0.5,0.5,0.5]
 
-    #FIXME Currently we use only the first round
+    #FIXME Currently we use only the first round    
     if rw == "read": matrix = list(matrices[0][0])
     if rw == "write": matrix = list(matrices[0][1])
     if rw == "randread": matrix = list(matrices[0][2])
