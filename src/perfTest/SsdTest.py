@@ -447,10 +447,15 @@ class SsdTest(DeviceTest):
         self.__writeSatRnds = maxRounds
         #assume all rounds must be carried out            
         for i in range(maxRounds):
+            logging.info("#################")
+            logging.info("Round nr. "+str(i))
             writeIO,iops,lats = self.writeSatTestRnd()
             iops_l.append(iops)
             lats_l.append(lats)
             totWriteIO += writeIO
+            if i == 0:
+                logging.info("#If write IO stays steady, it will take "
+                             +str((devSzKB*4)/writeIO)+" rounds to complete.")
             
             #Check if 4 times the device size has been reached
             if totWriteIO >= (devSzKB * 4):
