@@ -640,7 +640,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("filename",self.getFilename())
         job.addKVArg("name",self.getTestname())
         job.addKVArg("direct","1")
-        job.addKVArg("runtime","10")#FIXME Change to 60 seconds or remove
+        job.addKVArg("runtime","60")
         job.addKVArg("minimal","1")
         job.addSglArg("group_reporting")
         job.addKVArg("numjobs",str(self.__numJobs))
@@ -685,7 +685,9 @@ class SsdTest(DeviceTest):
         return [writeIO,roundMatrix]
         
     def ioDepthTest(self):
-        #FIXME Add purging the device here
+        if self.makeSecureErase() == False:
+            logging.error("# Could not carry out secure erase.")
+            exit(1)
         (call,devSzKB) = self.getDevSizeKB()
         if call == False:
             logging.error("#Could not get size of device.")
