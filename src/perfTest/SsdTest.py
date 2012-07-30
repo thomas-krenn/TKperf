@@ -705,7 +705,7 @@ class SsdTest(DeviceTest):
             totWriteIO += writeIO
             
             #Check if 2 times the device size has been reached
-            if totWriteIO >= (devSzKB * 2):
+            if totWriteIO >= (devSzKB):
                 self.__iodRnds = i
                 break
         

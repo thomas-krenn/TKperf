@@ -331,7 +331,7 @@ def writeSatIOPSPlt(toPlot):
     plt.plot(x,iops_l,'-',label='Avg IOPS')
     plt.ylim(min(iops_l)*0.75,max(iops_l)*1.25)
     #every 10 rounds print the round number
-    x = range(0,rnds + 1,10)
+    x = range(0,rnds + 1,50)
     plt.xticks(x)
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
