@@ -336,7 +336,8 @@ def writeSatIOPSPlt(toPlot):
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
     plt.ylabel("IOPS")
-    plt.legend()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
+               ncol=1, fancybox=True, shadow=True)
     plt.savefig(toPlot.getTestname()+'-writeSatIOPSPlt.png',dpi=300)
     
 def writeSatLatPlt(toPlot):
@@ -355,12 +356,13 @@ def writeSatLatPlt(toPlot):
     #set the y axes to start at 3/4 of mininum
     plt.ylim(min(av_lats)*0.75,max(av_lats)*1.25)
     #every 10 rounds print the round number
-    x = range(0,rnds + 1,10)
+    x = range(0,rnds + 1,50)
     plt.xticks(x)
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
     plt.ylabel("Latency ms")
-    plt.legend()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
+               ncol=1, fancybox=True, shadow=True)
     plt.savefig(toPlot.getTestname()+'-writeSatLatPlt.png',dpi=300)
     
 def tpStdyStConvPlt(toPlot,mode,dev):
