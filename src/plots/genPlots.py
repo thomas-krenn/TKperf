@@ -112,17 +112,17 @@ def stdyStConvPlt(toPlot,mode):
     if mode == "IOPS":
         for i in range(len(lines)):
             min_y,max_y = getMinMax(lines[i], min_y, max_y)
-            plt.plot(x,lines[i],'o-',label='bs='+pT.SsdTest.SsdTest.bsLabels[i])
+            plt.plot(x,lines[i],'o-',label='bs='+pT.SsdTest.IopsTest.bsLabels[i])
     if mode == "LAT":
         for i in range(len(readLines)):
             min_y,max_y = getMinMax(readLines[i], min_y, max_y)
-            plt.plot(x,readLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' read')
+            plt.plot(x,readLines[i],'o-',label='bs='+pT.SsdTest.LatencyTest.bsLabels[i]+' read')
         for i in range(len(mixLines)):
             min_y,max_y = getMinMax(mixLines[i], min_y, max_y)
-            plt.plot(x,mixLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' mixed')
+            plt.plot(x,mixLines[i],'o-',label='bs='+pT.SsdTest.LatencyTest.bsLabels[i]+' mixed')
         for i in range(len(writeLines)):
             min_y,max_y = getMinMax(writeLines[i], min_y, max_y)
-            plt.plot(x,writeLines[i],'o-',label='bs='+pT.SsdTest.SsdTest.latBsLabels[i]+' write')
+            plt.plot(x,writeLines[i],'o-',label='bs='+pT.SsdTest.LatencyTest.bsLabels[i]+' write')
     
     #create a subplot with two columns for legend placement
     plt.xticks(x)
@@ -209,11 +209,11 @@ def mes2DPlt(toPlot,mode):
     mesWin = toPlot.getStdyRnds() #get measurement window, only include these values
     
     if mode == "IOPS":
-        wlds = pT.SsdTest.SsdTest.mixWlds
-        bsLabels = pT.SsdTest.SsdTest.bsLabels
+        wlds = pT.SsdTest.IopsTest.mixWlds
+        bsLabels = pT.SsdTest.IopsTest.bsLabels
     if mode == "avg-LAT" or mode == "max-LAT":
-        wlds = pT.SsdTest.SsdTest.latMixWlds
-        bsLabels = pT.SsdTest.SsdTest.latBsLabels
+        wlds = pT.SsdTest.LatencyTest.mixWlds
+        bsLabels = pT.SsdTest.LatencyTest.bsLabels
     
     #each row will be a workload percentage
     for i in range(len(wlds)):
@@ -253,10 +253,10 @@ def mes2DPlt(toPlot,mode):
                         
     plt.clf()#clear plot
     if mode == "IOPS":
-        x = getBS(pT.SsdTest.SsdTest.bsLabels)
+        x = getBS(pT.SsdTest.IopsTest.bsLabels)
         #x = range(len(pT.SsdTest.SsdTest.bsLabels   ))
     if mode == "avg-LAT" or mode == "max-LAT":
-        x = getBS(pT.SsdTest.SsdTest.latBsLabels)
+        x = getBS(pT.SsdTest.LatencyTest.bsLabels)
         
     max_y = 0
     min_y = 0
@@ -322,10 +322,10 @@ def getMinMax(values, currMin, currMax):
 def writeSatIOPSPlt(toPlot):
     #fetch number of rounds, we want to include all rounds
     #as stdy state was reached at rnds, it must be included
-    rnds = toPlot.getWriteSatRnds()
+    rnds = toPlot.getRnds()
     x = range(rnds + 1)
     
-    iops_l = toPlot.getWriteSatMatrix()[0]#first elem in matrix are iops
+    iops_l = toPlot.getRndMatrices()[0]#first elem in matrix are iops
 
     plt.clf()#clear plot        
     plt.plot(x,iops_l,'-',label='Avg IOPS')
@@ -341,10 +341,10 @@ def writeSatIOPSPlt(toPlot):
     plt.savefig(toPlot.getTestname()+'-writeSatIOPSPlt.png',dpi=300)
     
 def writeSatLatPlt(toPlot):
-    rnds = toPlot.getWriteSatRnds()
+    rnds = toPlot.getRnds()
     x = range(rnds + 1)
     
-    lats_l = toPlot.getWriteSatMatrix()[1]#second elem in matrix are latencies
+    lats_l = toPlot.getRndMatrices()[1]#second elem in matrix are latencies
     
     #get the average latencies from the lat list (last elem)
     av_lats = []
@@ -378,14 +378,14 @@ def tpStdyStConvPlt(toPlot,mode,dev):
     @param mode String "read|write|rw"
     @param dev String "ssd|hdd"
     '''
-    matrices = toPlot.getTPRndMatrices()
+    matrices = toPlot.getRndMatrices()
     rnds = len(matrices[0][0])#fetch the number of total rounds
     bsLens = len(matrices)#fetch the number of bs, each row is a bs in the matrix
     
     if dev == "hdd":
         bsLabels = pT.HddTest.HddTest.tpBsLabels
     else:
-        bsLabels = pT.SsdTest.SsdTest.tpBsLabels
+        bsLabels = pT.SsdTest.TPTest.bsLabels
     
     #initialize matrix for plotting
     lines = []
@@ -452,9 +452,9 @@ def tpMes2DPlt(toPlot):
     for i in range(2):
         wlds.append([])
         #in each row will be the different block sizes
-        for bs in range(len(pT.SsdTest.SsdTest.tpBsLabels)):
+        for bs in range(len(pT.SsdTest.TPTest.bsLabels)):
             wlds[i].append(0)
-    matrices = toPlot.getTPRndMatrices()    
+    matrices = toPlot.getRndMatrices()    
     
     #each row of the matrix is a block size
     for j,bs in enumerate(matrices):
@@ -470,7 +470,7 @@ def tpMes2DPlt(toPlot):
                 else:
                     wlds[i][j] = row[rnd]
     plt.clf()#clear
-    x = getBS(pT.SsdTest.SsdTest.tpBsLabels)
+    x = getBS(pT.SsdTest.TPTest.bsLabels)
     for i in range(len(wlds)):
         if i == 0:
             label = "read"
@@ -482,7 +482,7 @@ def tpMes2DPlt(toPlot):
     plt.suptitle("TP Measurement Plot",fontweight='bold')
     plt.xlabel("Block Size (KB)")
     plt.ylabel("BW KB/s")
-    plt.xticks(x,pT.SsdTest.SsdTest.tpBsLabels)
+    plt.xticks(x,pT.SsdTest.TPTest.bsLabels)
     #plt.legend()
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
                ncol=3, fancybox=True, shadow=True)
@@ -524,13 +524,13 @@ def ioDepthMes3DPlt(toPlot,rw):
     print matrices[0][2]
     ticksx = np.arange(0.5, 4, 1)
     if rw == "randread" or rw == "randwrite":
-        labels = list(pT.SsdTest.SsdTest.iodBsLabels)
+        labels = list(pT.SsdTest.IodTest.bsLabels)
         labels.reverse()
         plt.xticks(ticksx, labels)
     else:
-        plt.xticks(ticksx, pT.SsdTest.SsdTest.iodBsLabels)
+        plt.xticks(ticksx, pT.SsdTest.IodTest.bsLabels)
     ticksy = np.arange(0.5, 4, 1)
-    plt.yticks(ticksy,pT.SsdTest.SsdTest.iodDepths)
+    plt.yticks(ticksy,pT.SsdTest.IodTest.iodDepths)
     plt.suptitle("IOD "+rw+" Measurement Plot",fontweight='bold')
     ax.set_xlabel('Block Size (Byte)')
     ax.set_ylabel('IO Depth')
