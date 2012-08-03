@@ -45,8 +45,6 @@ class SsdTest(DeviceTest):
         self.__fioJob.addKVArg("iodepth",str(self.__ioDepth))
         self.__fioJob.addSglArg("group_reporting")   
 
-    def getNumJobs(self):
-        return self.__numJobs
     def getFioJob(self):
         return self.__fioJob
     
@@ -90,7 +88,7 @@ class StdyTest(SsdTest):
     
     def __init__(self):
         
-        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","5")
         self.getFioJob().addSglArg("time_based")
         
         ## A list of matrices with the collected fio measurement values of each round.
@@ -123,6 +121,17 @@ class StdyTest(SsdTest):
         return self.__stdyAvg
     def getStdySlope(self):
         return self.__stdySlope
+    
+    def setRnds(self,r):
+        self.__rounds = r
+    def setStdyRnds(self,r):
+        self.__stdyRnds = r
+    def setStdyValues(self,v):
+        self.__stdyValues = v
+    def setStdyAvg(self,a):
+        self.__stdyAvg = a
+    def setStdySlope(self,s):
+        self.__stdySlope = s
     
     def checkSteadyState(self,xs,ys):
         '''
@@ -188,13 +197,15 @@ class IopsTest(StdyTest):
         '''
         
         SsdTest.__init__(self, testname, filename, nj, iod)
+        StdyTest.__init__(self)
         self.getFioJob().addKVArg("rw","randrw")
-        if self.makeSecureErase() == False:
-            logging.error("# Could not carry out secure erase.")
-            exit(1)
-        if self.wlIndPrec() == False:
-            logging.error("# Could not carry out preconditioning.")
-            exit(1)
+        #FIXME
+#        if self.makeSecureErase() == False:
+#            logging.error("# Could not carry out secure erase.")
+#            exit(1)
+#        if self.wlIndPrec() == False:
+#            logging.error("# Could not carry out preconditioning.")
+#            exit(1)
     
     def testRound(self):
         '''
@@ -238,7 +249,7 @@ class IopsTest(StdyTest):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
             rndMatrix = self.testRound()
-            self.getRoundMatrices.append(rndMatrix)
+            self.getRndMatrices().append(rndMatrix)
             # Use the last row and its next to last value
             #-> 0/100% r/w and 4k for steady state detection
             steadyValues.append(rndMatrix[-1][-2])
@@ -251,11 +262,11 @@ class IopsTest(StdyTest):
                 steadyState,avg,k,d = self.checkSteadyState(xranges,steadyValues)
                 #FIXME also write values if steady state is false
                 if steadyState == True:
-                    self.getRounds = i
-                    self.getStdyRnds = xranges
-                    self.getStdyValues = steadyValues
-                    self.getStdyAvg = avg
-                    self.getStdySlope.extend([k,d])
+                    self.setRnds(i)
+                    self.setStdyRnds(xranges)
+                    self.setStdyValues(steadyValues)
+                    self.setStdyAvg(avg)
+                    self.getStdySlope().extend([k,d])
                     return True
         #TODO How to handle the case if the steady state has not been reached
         return False
@@ -291,6 +302,7 @@ class LatencyTest(StdyTest):
         '''
         
         SsdTest.__init__(self, testname, filename, nj, iod)
+        StdyTest.__init__(self)
         self.getFioJob().addKVArg("rw","randrw")
         if self.makeSecureErase() == False:
             logging.error("# Could not carry out secure erase.")
@@ -351,7 +363,7 @@ class LatencyTest(StdyTest):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
             rndMatrix = self.testRound()
-            self.getRoundMatrices.append(rndMatrix)
+            self.getRndMatrices().append(rndMatrix)
             #Latencies always consist of [min,max,mean] latency
             #Take mean/average for steady state detection
             steadyValues.append(rndMatrix[-1][-2][2])
@@ -363,11 +375,11 @@ class LatencyTest(StdyTest):
             if i >= 4:
                 steadyState,avg,k,d = self.checkSteadyState(xranges,steadyValues)
                 if steadyState == True:
-                    self.getRounds = i
-                    self.getStdyRnds = xranges
-                    self.getStdyValues = steadyValues
-                    self.getStdyAvg = avg
-                    self.getStdySlope.extend([k,d])
+                    self.setRnds(i)
+                    self.setStdyRnds(xranges)
+                    self.setStdyValues(steadyValues)
+                    self.setStdyAvg(avg)
+                    self.getStdySlope().extend([k,d])
                     return True
         #TODO How to handle the case if the steady state has not been reached
         return False
@@ -400,6 +412,7 @@ class TPTest(StdyTest):
         Constructor.
         '''
         SsdTest.__init__(self, testname, filename, nj, iod)
+        StdyTest.__init__(self)
     
     def testRound(self,bs):
         '''    
@@ -464,8 +477,8 @@ class TPTest(StdyTest):
                 #if the rounds have been set by steady state for 1M block size
                 #we need to carry out only i rounds for the other block sizes
                 #as steady state has already been reached
-                if self.getRounds != 0 and self.getRounds == i:
-                    self.getRndMatrices.append([tpRead_l,tpWrite_l])
+                if self.getRnds != 0 and self.getRnds == i:
+                    self.getRndMatrices().append([tpRead_l,tpWrite_l])
                     break
                 
                 # Use 1M block sizes sequential write for steady state detection
@@ -479,14 +492,14 @@ class TPTest(StdyTest):
                     if i >= 4:
                         steadyState,avg,k,d = self.checkSteadyState(xrangesWrite,stdyValsWrite)
                         if steadyState == True:
-                            self.getRounds = i
-                            self.getStdyRnds = xrangesWrite
-                            self.getStdyValues = stdyValsWrite
-                            self.getStdyAvg = avg
-                            self.getStdySlope.extend([k,d])
+                            self.setRnds(i)
+                            self.setStdyRnds(xrangesWrite)
+                            self.setStdyValues(stdyValsWrite)
+                            self.setStdyAvg(avg)
+                            self.getStdySlope().extend([k,d])
                             logging.info("Reached steady state at round %d",i)
                             #as we have reached the steady state we can use the results from the rounds
-                            self.getRndMatrices.append([tpRead_l,tpWrite_l])
+                            self.getRndMatrices().append([tpRead_l,tpWrite_l])
                             break
             #Here we have not reached the steady state after 25 rounds
             #FIXME How to handle the case if steady state is not reached
@@ -501,7 +514,7 @@ class TPTest(StdyTest):
         '''
         logging.info("########### Starting Throughput Test ###########")
         steadyState = self.runRounds()
-        self.logTestData()
+        self.logTestData(self)
         
         pgp.stdyStVerPlt(self,"TP")
         pgp.tpStdyStConvPlt(self, "read","ssd")
@@ -635,10 +648,10 @@ class IodTest(SsdTest):
         self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
         
-        ##Number of rounds until write saturation test ended
+        ##Number of rounds until write saturation test ended.
         self.__rounds = 0
         
-        ##Write saturation results: [iops_l,lats_l]
+        ##Write saturation results: [iops_l,lats_l].
         self.__roundMatrices = []
         
         if self.makeSecureErase() == False:
