@@ -11,6 +11,8 @@ import plots.genPlots as pgp
 import numpy as np
 from collections import deque
 import logging
+import json
+from lxml import etree
 
 class SsdTest(DeviceTest):
     '''
@@ -88,7 +90,7 @@ class StdyTest(SsdTest):
     
     def __init__(self):
         
-        self.getFioJob().addKVArg("runtime","5")
+        self.getFioJob().addKVArg("runtime","2")#FIXME
         self.getFioJob().addSglArg("time_based")
         
         ## A list of matrices with the collected fio measurement values of each round.
@@ -180,6 +182,35 @@ class StdyTest(SsdTest):
         logging.info("Stopped after round number:")
         logging.info(self.__rounds)
         
+    def toXml(self):
+        
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(self.getReport().getXml(),"roundmat")
+        e.text = data
+        
+        data = json.dumps(self.__stdyRnds)
+        e = etree.SubElement(self.getReport().getXml(),"stdyrounds")
+        e.text = data
+        
+        data = json.dumps(self.__stdyValues)
+        e = etree.SubElement(self.getReport().getXml(),"stdyvalues")
+        e.text = data
+        
+        data = json.dumps(self.__stdySlope)
+        e = etree.SubElement(self.getReport().getXml(),"stdyslope")
+        e.text = data
+        
+        data = json.dumps(self.__stdyAvg)
+        e = etree.SubElement(self.getReport().getXml(),"stdyavg")
+        e.text = data
+        
+        data = json.dumps(self.__rounds)
+        e = etree.SubElement(self.getReport().getXml(),"rndnr")
+        e.text = data
+        
+        self.getReport().xmlToFile(self.getTestname())
+        
+        
 class IopsTest(StdyTest):
     '''
     A class to carry out the IOPS test.
@@ -213,7 +244,7 @@ class IopsTest(StdyTest):
         The round consists of two inner loops: one iterating over the
         percentage of random reads/writes in the mixed workload, the other
         over different block sizes.
-        @return A matrix containing the sum of average IOPS
+        @return A matrix containing the sum of average IOPS.
         '''
         jobOut = '' #Fio job output
         rndMatrix = []        
