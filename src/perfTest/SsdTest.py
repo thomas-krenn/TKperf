@@ -668,6 +668,29 @@ class WriteSatTest(SsdTest):
         
         pgp.writeSatIOPSPlt(self)
         pgp.writeSatLatPlt(self)
+    
+    def toXml(self):
+        
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(self.getReport().getXml(),'roundmat')
+        e.text = data
+
+        data = json.dumps(self.__rounds)
+        e = etree.SubElement(self.getReport().getXml(),'rndnr')
+        e.text = data
+        
+        self.getReport().xmlToFile(self.getTestname())
+        
+    def fromXml(self):
+        self.getReport().fileToXml(self.getTestname())
+        
+        self.__roundMatrices = json.loads(self.getReport().getXml().findtext('roundmat'))
+        self.__rounds = json.loads(self.getReport().getXml().findtext('rndnr'))
+        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        logging.info("Write Sat rounds: ")
+        logging.info(self.__rounds)
+        logging.info("Round Write Saturation results: ")
+        logging.info(self.__roundMatrices)
 
 class IodTest(SsdTest):
     
