@@ -185,32 +185,44 @@ class StdyTest(SsdTest):
     def toXml(self):
         
         data = json.dumps(self.__roundMatrices)
-        e = etree.SubElement(self.getReport().getXml(),"roundmat")
+        e = etree.SubElement(self.getReport().getXml(),'roundmat')
         e.text = data
         
-        data = json.dumps(self.__stdyRnds)
-        e = etree.SubElement(self.getReport().getXml(),"stdyrounds")
+        data = json.dumps(list(self.__stdyRnds))
+        e = etree.SubElement(self.getReport().getXml(),'stdyrounds')
         e.text = data
         
-        data = json.dumps(self.__stdyValues)
-        e = etree.SubElement(self.getReport().getXml(),"stdyvalues")
+        data = json.dumps(list(self.__stdyValues))
+        e = etree.SubElement(self.getReport().getXml(),'stdyvalues')
         e.text = data
         
         data = json.dumps(self.__stdySlope)
-        e = etree.SubElement(self.getReport().getXml(),"stdyslope")
+        e = etree.SubElement(self.getReport().getXml(),'stdyslope')
         e.text = data
         
         data = json.dumps(self.__stdyAvg)
-        e = etree.SubElement(self.getReport().getXml(),"stdyavg")
+        e = etree.SubElement(self.getReport().getXml(),'stdyavg')
         e.text = data
         
         data = json.dumps(self.__rounds)
-        e = etree.SubElement(self.getReport().getXml(),"rndnr")
+        e = etree.SubElement(self.getReport().getXml(),'rndnr')
         e.text = data
         
         self.getReport().xmlToFile(self.getTestname())
         
+    def fromXml(self):
+        self.getReport().fileToXml(self.getTestname())
         
+        self.__roundMatrices = json.loads(self.getReport().getXml().findtext('roundmat'))
+        self.__stdyRnds = json.loads(self.getReport().getXml().findtext('stdyrounds'))
+        self.__stdyValues = json.loads(self.getReport().getXml().findtext('stdyvalues'))
+        self.__stdySlope = json.loads(self.getReport().getXml().findtext('stdyslope'))
+        self.__stdyAvg = json.loads(self.getReport().getXml().findtext('stdyavg'))
+        self.__rounds = json.loads(self.getReport().getXml().findtext('rndnr'))
+        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        self.logTestData()
+
+
 class IopsTest(StdyTest):
     '''
     A class to carry out the IOPS test.

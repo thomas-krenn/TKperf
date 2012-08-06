@@ -9,7 +9,7 @@ import argparse
 import logging
 
 from fio.FioJob import FioJob
-from perfTest.SsdTest import SsdTest
+from perfTest.SsdTest import IopsTest
 from perfTest.DeviceTest import DeviceTest
 from perfTest.HddTest import HddTest
 
@@ -74,11 +74,14 @@ if __name__ == '__main__':
             iod = 1
         else:
             iod = args.iodepth
-        myTest = SsdTest(args.testname,args.filename,nj,iod)
-        myTest.runIOPSTest()
-        myTest.runWriteSatTest()
-        myTest.runLatsTest()
-        myTest.runTpTest()
-        myTest.runIoDepthTest()
+        myTest = IopsTest(args.testname,args.filename,nj,iod)
+        #myTest.run()
+        #myTest.toXml()
+        myTest.fromXml()
+        myTest.getReport().printXml()
+#        myTest.runWriteSatTest()
+#        myTest.runLatsTest()
+#        myTest.runTpTest()
+#        myTest.runIoDepthTest()
         print myTest.getTestname()
         print myTest.getFilename()

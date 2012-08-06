@@ -25,7 +25,13 @@ class XmlReport(object):
         return self.__xml
     
     def printXml(self):
-        print(etree.tostring(self.__xml, xml_declaration=True))
+        print(etree.tostring(self.__xml, xml_declaration=True,pretty_print=True))
     
     def xmlToFile(self,testname):
-        self.__xml.write(testname + '.xml')
+        et = etree.ElementTree(self.__xml)
+        et.write(testname + '.xml')
+        
+    def fileToXml(self,testname):
+        et = etree.parse(testname + '.xml')
+        self.__xml = et.getroot()
+        
