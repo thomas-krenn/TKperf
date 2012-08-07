@@ -7,13 +7,14 @@ Created on 04.07.2012
 import logging
 import subprocess
 
-from reports.XmlReport import XmlReport
-
 class DeviceTest(object):
     '''
     A generic class for a performance test.
     '''
 
+    ## Base directory to write output files to
+    baseDir = ''
+    
     def __init__(self,testname,filename):
         '''
         Constructor
@@ -27,10 +28,10 @@ class DeviceTest(object):
         ## The data file for the test, can be a whole device also.
         self.__filename = filename
         
-        ## The xml report for the performance test
-        self.__report = XmlReport(testname)
-        
-        
+    @staticmethod
+    def setBaseDir(bdir):
+        DeviceTest.baseDir = bdir
+    
     def getTestname(self):
         ''' Return the name of the test, is the name of the output file also. '''
         return self.__testname
@@ -41,6 +42,9 @@ class DeviceTest(object):
     
     def getReport(self):
         return self.__report
+    
+    def getPdfPlots(self):
+        return self.__pdfPlots
     
     def getDevSizeKB(self):
         '''
