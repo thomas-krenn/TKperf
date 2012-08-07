@@ -4,8 +4,8 @@ Created on 09.07.2012
 @author: gschoenb
 '''
 from __future__ import division
-import matplotlib
-matplotlib.use('Agg')
+#import matplotlib
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -49,7 +49,7 @@ def stdyStVerPlt(toPlot,mode):
     plt.ylim(min(toPlot.getStdyValues())*0.75,max(toPlot.getStdyValues())*1.25)
     plt.xticks(x)
     title = mode + " Steady State Verification Plot"
-    plt.title(title)
+    plt.suptitle(title,fontweight='bold')
     plt.xlabel("Round")
     if mode == "LAT":
         plt.ylabel("Avg latency (us)")
@@ -57,9 +57,10 @@ def stdyStVerPlt(toPlot,mode):
         plt.ylabel("Avg bandwidth (KB/s)")
     if mode == "IOPS":
         plt.ylabel(mode)
-    plt.legend()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStVerPlt.png',dpi=300)
-    
+
 def stdyStConvPlt(toPlot,mode):
     '''
     Generate a steady state convergence plot.
@@ -133,10 +134,10 @@ def stdyStConvPlt(toPlot,mode):
         plt.ylabel("Avg latency (us)")
     if mode == "IOPS":
         plt.ylabel(mode)
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
-               ncol=3, fancybox=True, shadow=True)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
-
+    
 def IOPSplot(toPlot):
     rnds = pT.HddTest.HddTest.tpTestRnds
     matrices = toPlot.getRndMatrices()
@@ -186,8 +187,8 @@ def IOPSplot(toPlot):
     plt.ylabel("IOPS")
     #plt.yscale('log')
     plt.ylim((min_y*0.75,max_y*1.25))
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
-               ncol=3, fancybox=True, shadow=True)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-IOPSPlt.png',dpi=300)
     
 def mes2DPlt(toPlot,mode):
@@ -267,7 +268,7 @@ def mes2DPlt(toPlot,mode):
                   label=str(wlds[i])+'/'+str(100-wlds[i]))
      
     
-    plt.title(mode+" Measurement Plot")
+    plt.suptitle(mode+" Measurement Plot",fontweight='bold')
     plt.xlabel("Block Size (Byte)")
     plt.yscale('log')
     plt.xscale('log')
@@ -278,9 +279,9 @@ def mes2DPlt(toPlot,mode):
         plt.ylabel("Avg latency (us)")
     if mode == "IOPS":
         plt.ylabel(mode)
-    plt.legend()
+    plt.legend(prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png',dpi=300)
-
+    
 def getBS(bsLabels):
     bs = []
     for b in bsLabels:
@@ -336,8 +337,8 @@ def writeSatIOPSPlt(toPlot):
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
     plt.ylabel("IOPS")
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
-               ncol=1, fancybox=True, shadow=True)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=1, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-writeSatIOPSPlt.png',dpi=300)
     
 def writeSatLatPlt(toPlot):
@@ -361,8 +362,8 @@ def writeSatLatPlt(toPlot):
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
     plt.ylabel("Latency ms")
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
-               ncol=1, fancybox=True, shadow=True)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=1, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-writeSatLatPlt.png',dpi=300)
     
 def tpStdyStConvPlt(toPlot,mode,dev):
@@ -427,8 +428,8 @@ def tpStdyStConvPlt(toPlot,mode,dev):
     plt.ylabel("BW KB/s")
     #scale axis to min and max +- 25%
     plt.ylim((min_y*0.6,max_y*1.15))
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
-               ncol=2, fancybox=True, shadow=True)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=2, fancybox=True, shadow=True,prop={'size':12})
     if dev == "hdd":
         plt.savefig(toPlot.getTestname()+'-'+mode+'-TpPlt.png',dpi=300)
     else:
@@ -484,8 +485,8 @@ def tpMes2DPlt(toPlot):
     plt.ylabel("BW KB/s")
     plt.xticks(x,pT.SsdTest.TPTest.bsLabels)
     #plt.legend()
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
-               ncol=3, fancybox=True, shadow=True)
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     
 def ioDepthMes3DPlt(toPlot,rw):
