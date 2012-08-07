@@ -13,6 +13,39 @@ class HddTest(DeviceTest):
     '''
     A fio performance test for a hard disk.
     '''
+      
+    ##Number of rounds to carry out the tests
+    maxRnds = 128 
+      
+    def __init__(self,testname,filename,iod):
+        '''
+        Constructor
+        '''
+        DeviceTest.__init__(self,testname,filename)
+        
+        ## A list of matrices with the collected fio measurement values of each round.
+        self.__roundMatrices = []
+        
+        ##IO depth for libaio used by fio
+        self.__ioDepth = iod
+        
+        ##The fio job for the current SSD test
+        self.__fioJob = FioJob()
+        self.__fioJob.addKVArg("filename",self.getFilename())
+        self.__fioJob.addKVArg("name",self.getTestname())
+        self.__fioJob.addKVArg("direct","1")
+        self.__fioJob.addKVArg("minimal","1")
+        self.__fioJob.addKVArg("ioengine","libaio")
+        self.__fioJob.addKVArg("iodepth",str(self.__ioDepth))
+        self.__fioJob.addSglArg("group_reporting")   
+
+    def getFioJob(self):
+        return self.__fioJob
+    def getRndMatrices(self):
+        return self.__tpRoundMatrices
+    
+
+class IopsTest(HddTest):
     
     ##Labels of block sizes for IOPS test
     bsLabels = ["64k","16k","4k"]
@@ -20,76 +53,45 @@ class HddTest(DeviceTest):
     ##Percentages of mixed workloads for IOPS test.
     mixWlds = [100,50,0]
     
-    ##Number of rounds to carry out tp tests
-    tpTestRnds = 128
-    
-    ##Labels of block sizes for throughput test
-    tpBsLabels = ["1024k","4k"] 
-    
-    def __init__(self,testname,filename):
+    def __init__(self,testname,filename,iod):
         '''
-        Constructor
+        Constructor.
         '''
-        super(HddTest,self).__init__(testname,filename)
-        
-        ## A list of matrices with the collected fio measurement values of each round.
-        self.__roundMatrices = []
-        
-        ## A list of matrices with the throughput data.
-        self.__tpRoundMatrices = []
-        
-    def getTPRndMatrices(self):
-        return self.__tpRoundMatrices
+
+        HddTest.__init__(self, testname, filename, iod)
+        self.getFioJob().addKVArg("rw","randrw")
+        self.getFioJob().addKVArg("runtime","10")#FIXME Change to 60 seconds
     
-    def getRndMatrices(self):
-        return self.__roundMatrices
-    
-    def resetTestData(self):
-        '''
-        Reset all class attributes. This is necessary if
-        multiple tests are using the same attributes as
-        internal states.
-        '''
-        self.__roundMatrices = []
-        self.__tpRoundMatrices = []
-    
-    def testLoop(self,offset,size):
+    def testRound(self,offset,size):
         '''
         IOPS test round for HDD
         '''
-        job = FioJob()
-        job.addKVArg("filename",self.getFilename())
-        job.addKVArg("name",self.getTestname())
-        job.addKVArg("rw","randrw")
-        job.addKVArg("direct","1")
-        job.addKVArg("runtime","10")#FIXME Change to 60 seconds
-        job.addKVArg("offset", str(offset))
-        job.addKVArg("size", str(size))
-        job.addKVArg("minimal","1")
-        job.addSglArg("group_reporting")     
+        
+        self.getFioJob().addKVArg("offset", str(offset))
+        self.getFioJob().addKVArg("size", str(size))
         
         #iterate over mixed rand read and write and vary block size
         #save the output of fio for parsing and retreiving IOPS
         jobOut = ''
         
         rndMatrix = []        
-        for i in HddTest.mixWlds:
+        for i in IopsTest.mixWlds:
             rwRow = []
-            for j in HddTest.bsLabels:
-                job.addKVArg("rwmixread",str(i))
-                job.addKVArg("bs",j)
-                call,jobOut = job.start()
+            for j in IopsTest.bsLabels:
+                self.getFioJob().addKVArg("rwmixread",str(i))
+                self.getFioJob().addKVArg("bs",j)
+                call,jobOut = self.getFioJob().start()
                 if call == False:
                     exit(1)
                 logging.info("mixLoad: " +str(i))
                 logging.info("bs: "+j)
                 logging.info(jobOut)
                 logging.info("######")
-                rwRow.append(job.getIOPS(jobOut))
+                rwRow.append(self.getFioJob().getIOPS(jobOut))
             rndMatrix.append(rwRow)
         return rndMatrix
     
-    def runLoops(self):
+    def runRounds(self):
         '''
         Run IOPS loops for HDD.
         '''
@@ -104,7 +106,7 @@ class HddTest(DeviceTest):
         
         #rounds are the same as for TP
         offset = 0
-        for i in range(self.tpTestRnds):
+        for i in range(HddTest.maxRnds):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
             logging.info("Offset "+str(offset))
@@ -115,28 +117,40 @@ class HddTest(DeviceTest):
             #currBs = int(j[0:-1])
                 
             #we read and write increment starting at the offset
-            rndMatrix = self.testLoop(offset,increment)
-            self.__roundMatrices.append(rndMatrix)
+            rndMatrix = self.testRound(offset,increment)
+            self.getRoundMatrices.append(rndMatrix)
             offset += increment
     
         return
     
-    def runIOPSTest(self):
+    def run(self):
         '''
         Print various informations about the Throughput test (steady state informations etc.).
         Moreover call the functions to plot the results.
         '''
-        #ensure to start at initialization state
-        self.resetTestData()
         logging.info("########### Starting HDD IOPS Test ###########")
-        self.runLoops()
+        self.runRounds()
         logging.info("Round IOPS results: ")
-        logging.info(self.__roundMatrices)
+        logging.info(self.getRndMatrices())
 
         pgp.IOPSplot(self)
         return True
     
-    def tpTestRnd(self,bs,offset,size):
+class TPTest(HddTest):
+   
+    
+    ##Labels of block sizes for throughput test
+    bsLabels = ["1024k","4k"]
+     
+    def __init__(self,testname,filename,iod):
+        '''
+        Constructor.
+        '''
+        HddTest.__init__(self, testname, filename, iod)
+        self.getFioJob().addKVArg("runtime","60")#FIXME Change to 60 seconds or remove it
+        
+        
+    def testRound(self,bs,offset,size):
         '''
         Carry a read and write test over the whole device.
         This is done with different block sizes.
@@ -145,44 +159,37 @@ class HddTest(DeviceTest):
         @param size The size to read starting from offset.
         @return Read and Write bandwidths [tpRead,tpWrite]
         '''
-        job = FioJob()
-        job.addKVArg("filename",self.getFilename())
-        job.addKVArg("name",self.getTestname())
-        job.addKVArg("direct","1")
-        job.addKVArg("runtime","60")#FIXME Change to 60 seconds or remove it
-        job.addKVArg("offset", str(offset))
-        job.addKVArg("size", str(size))
-        job.addKVArg("minimal","1")
-        job.addSglArg("group_reporting")  
-        job.addKVArg("bs",bs)   
+        self.getFioJob().addKVArg("offset", str(offset))
+        self.getFioJob().addKVArg("size", str(size))
+        self.getFioJob().addKVArg("bs",bs)   
       
         jobOut = ''
         tpRead = 0 #read bandwidth
         tpWrite = 0#write bandwidth
 
         #start read tests
-        job.addKVArg("rw","read")
-        call,jobOut = job.start()
+        self.getFioJob().addKVArg("rw","read")
+        call,jobOut = self.getFioJob().start()
         if call == False:
             exit(1)
         logging.info("Read TP test:")
         logging.info(jobOut)
         logging.info("######")
-        tpRead = job.getTPRead(jobOut)
+        tpRead = self.getFioJob().getTPRead(jobOut)
     
         #start write tests
-        job.addKVArg("rw","write")
-        call,jobOut = job.start()
+        self.getFioJob().addKVArg("rw","write")
+        call,jobOut = self.getFioJob().start()
         if call == False:
             exit(1)
         logging.info("Write TP test:")
         logging.info(jobOut)
         logging.info("######")
-        tpWrite = job.getTPWrite(jobOut)
+        tpWrite = self.getFioJob().getTPWrite(jobOut)
             
         return [tpRead,tpWrite]
     
-    def tpTest(self):
+    def runRounds(self):
         
         (call,devSizeKB) = self.getDevSizeKB()
         if call == False:
@@ -192,18 +199,18 @@ class HddTest(DeviceTest):
         #in each round the offset is incremented
         #the offset has to be in bytes
         #if it can be divided by 1024, we can also divide it by 128
-        increment = (devSizeKB * 1024) / self.tpTestRnds
+        increment = (devSizeKB * 1024) / HddTest.maxRnds
         logging.info("Increment in byte: "+str(increment))
 
         #rounds are the same for IOPS and throughput
-        for j in HddTest.tpBsLabels:
+        for j in TPTest.bsLabels:
             tpRead_l = []
             tpWrite_l = []
             logging.info("#################")
             logging.info("Current block size. "+str(j))
             #set offset back for current bs
             offset = 0
-            for i in range(self.tpTestRnds):
+            for i in range(HddTest.maxRnds):
                 logging.info("######")
                 logging.info("Round nr. "+str(i))
                 logging.info("Offset "+str(offset))
@@ -214,24 +221,22 @@ class HddTest(DeviceTest):
                 #currBs = int(j[0:-1])
                 
                 #we read and write increment starting at the offset
-                tpRead,tpWrite = self.tpTestRnd(j,offset,increment)
+                tpRead,tpWrite = self.testRound(j,offset,increment)
                 tpRead_l.append(tpRead)
                 tpWrite_l.append(tpWrite)
                 offset += increment
             #finished current bs
-            self.__tpRoundMatrices.append([tpRead_l,tpWrite_l])
+            self.getRndMatrices().append([tpRead_l,tpWrite_l])
             
-    def runTpTest(self):
+    def run(self):
         '''
         Print various informations about the Throughput test (steady state informations etc.).
         Moreover call the functions to plot the results.
         '''
-        #ensure to start at initialization state
-        self.resetTestData()
         logging.info("########### Starting HDD Throughput Test ###########")
-        self.tpTest()
+        self.runRounds()
         logging.info("Round TP results: ")
-        logging.info(self.__tpRoundMatrices)
+        logging.info(self.getRndMatrices())
         
         pgp.tpStdyStConvPlt(self, "rw","hdd")
 
