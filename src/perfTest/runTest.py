@@ -11,7 +11,8 @@ import logging
 from fio.FioJob import FioJob
 from perfTest.SsdTest import IopsTest
 from perfTest.DeviceTest import DeviceTest
-from perfTest.HddTest import HddTest
+from perfTest.HddTest import TPTest
+from perfTest.PerfTest import SsdPerfTest
 
 
 if __name__ == '__main__':
@@ -54,31 +55,38 @@ if __name__ == '__main__':
     else:
         print "You are not using a valid device or partition!"
         exit(1)    
-    
+        
+    #check if iodepth is used
+    if args.numjobs == None:
+            nj = 1
+    else:
+        nj = args.numjobs
+    if args.iodepth == None:
+        iod = 1
+    else:
+        iod = args.iodepth
+            
     if args.mode == "hdd":
         print "Starting HDD mode..."
-        myTest = HddTest(args.testname,args.filename)
-        myTest.runTpTest()
-        myTest.runIOPSTest()
+        #num jobs is not used for hdds
+        myTest = TPTest(args.testname,args.filename,iod)
+        myTest.run()
         print myTest.getTestname()
         print myTest.getFilename()
         
     if args.mode == "ssd":
         print "Starting SSD mode..."
         #of jobs and io depth is not given we use 1 for it
-        if args.numjobs == None:
-            nj = 1
-        else:
-            nj = args.numjobs
-        if args.iodepth == None:
-            iod = 1
-        else:
-            iod = args.iodepth
-        myTest = IopsTest(args.testname,args.filename,nj,iod)
+        myTest = SsdPerfTest(args.testname, args.filename, '', nj, iod)
+        #myTest.run()
+        myTest.toXml()
+        myTest.getXmlReport().printXml()
+        #myTest = IopsTest(args.testname,args.filename,nj,iod)
         #myTest.run()
         #myTest.toXml()
-        myTest.fromXml()
-        myTest.getReport().printXml()
+#        myTest.fromXml()
+#        myTest.getReport().printXml()
+#        myTest.run()
 #        myTest.runWriteSatTest()
 #        myTest.runLatsTest()
 #        myTest.runTpTest()

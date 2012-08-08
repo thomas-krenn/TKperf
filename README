@@ -2,7 +2,7 @@ INSTALL Requirements
 On older systems:
 	sudo apt-get install python-argparse
 Normally:
-sudo apt-get install python-matplotlib
+	sudo apt-get install python-matplotlib python-lxml python-numpy
 
 To use fio with a device root privileges are required.
 -Add the modules to the PYTHONPATH to run 'runTest.py' from command line:

@@ -183,23 +183,7 @@ class StdyTest(SsdTest):
         logging.info(self.__rounds)
         
     def toXml(self,root):
-        self.__stdyRnds = [0,1,2,3,4]
-        self.__roundMatrices = [[[988, 1221, 1269], [997, 1237, 1247]],
-                                [[1013, 1265, 1259], [1011, 1277, 1274]],
-                                [[1010, 1235, 1249], [1015, 1226, 1234]],
-                                [[991, 1227, 1234], [998, 1232, 1241]],
-                                [[1006, 1232, 1246], [1012, 1228, 1230]]]
-        self.__rounds = 4
-        self.__stdyAvg = 1264
-        k = -6.3
-        d = 1252.6
-        self.__stdySlope.extend([k,d])
-        self.__stdyValues.append(self.__roundMatrices[0][-1][-2])
-        self.__stdyValues.append(self.__roundMatrices[1][-1][-2])
-        self.__stdyValues.append(self.__roundMatrices[2][-1][-2])
-        self.__stdyValues.append(self.__roundMatrices[3][-1][-2])
-        self.__stdyValues.append(self.__roundMatrices[4][-1][-2])
-
+     
         r = etree.Element(root)
         
         data = json.dumps(self.__roundMatrices)
@@ -682,17 +666,20 @@ class WriteSatTest(SsdTest):
         pgp.writeSatIOPSPlt(self)
         pgp.writeSatLatPlt(self)
     
-    def toXml(self):
+    def toXml(self,root):
+         
+        #root element of current xml child
+        r = etree.Element(root)
         
         data = json.dumps(self.__roundMatrices)
-        e = etree.SubElement(self.getReport().getXml(),'roundmat')
-        e.text = data
-
-        data = json.dumps(self.__rounds)
-        e = etree.SubElement(self.getReport().getXml(),'rndnr')
+        e = etree.SubElement(r,'roundmat')
         e.text = data
         
-        self.getReport().xmlToFile(self.getTestname())
+        data = json.dumps(self.__rounds)
+        e = etree.SubElement(r,'rndnr')
+        e.text = data
+        
+        return r
         
     def fromXml(self):
         self.getReport().fileToXml(self.getTestname())
@@ -819,3 +806,18 @@ class IodTest(SsdTest):
         pgp.ioDepthMes3DPlt(self,"write")
         pgp.ioDepthMes3DPlt(self,"randread")
         pgp.ioDepthMes3DPlt(self,"randwrite")
+        
+    def toXml(self,root):
+         
+        #root element of current xml child
+        r = etree.Element(root)
+        
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(r,'roundmat')
+        e.text = data
+        
+        data = json.dumps(self.__rounds)
+        e = etree.SubElement(r,'rndnr')
+        e.text = data
+        
+        return r

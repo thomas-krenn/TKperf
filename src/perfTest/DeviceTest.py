@@ -40,12 +40,6 @@ class DeviceTest(object):
         ''' Return the name of the data file or device. '''
         return self.__filename
     
-    def getReport(self):
-        return self.__report
-    
-    def getPdfPlots(self):
-        return self.__pdfPlots
-    
     def getDevSizeKB(self):
         '''
         Get the device size in KByte.

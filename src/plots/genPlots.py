@@ -139,11 +139,11 @@ def stdyStConvPlt(toPlot,mode):
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
     
 def IOPSplot(toPlot):
-    rnds = pT.HddTest.HddTest.tpTestRnds
+    rnds = pT.HddTest.HddTest.maxRnds
     matrices = toPlot.getRndMatrices()
     
-    wlds = pT.HddTest.HddTest.mixWlds
-    bsLabels = pT.HddTest.HddTest.bsLabels
+    wlds = pT.HddTest.IopsTest.mixWlds
+    bsLabels = pT.HddTest.IopsTest.bsLabels
     
     #each row will be a workload percentage
     mixWLds = []
@@ -384,7 +384,7 @@ def tpStdyStConvPlt(toPlot,mode,dev):
     bsLens = len(matrices)#fetch the number of bs, each row is a bs in the matrix
     
     if dev == "hdd":
-        bsLabels = pT.HddTest.HddTest.tpBsLabels
+        bsLabels = pT.HddTest.TPTest.bsLabels
     else:
         bsLabels = pT.SsdTest.TPTest.bsLabels
     
@@ -414,7 +414,7 @@ def tpStdyStConvPlt(toPlot,mode,dev):
             plt.plot(x,row,'o-',label='bs='+bsLabels[i])
     
     if dev == "hdd":
-        x = range(0,pT.HddTest.HddTest.tpTestRnds+1,16)
+        x = range(0,pT.HddTest.HddTest.maxRnds+1,16)
         plt.xticks(x)
     else:
         x = range(rnds)
