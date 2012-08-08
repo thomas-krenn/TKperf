@@ -806,7 +806,7 @@ class IodTest(SsdTest):
         logging.info("#IO depth test has written " + str(totWriteIO) + "KB")
         
     def run(self):
-       if self.makeSecureErase() == False:
+        if self.makeSecureErase() == False:
             logging.error("# Could not carry out secure erase.")
             exit(1)
         logging.info("########### Starting IO Depth Test ###########")
