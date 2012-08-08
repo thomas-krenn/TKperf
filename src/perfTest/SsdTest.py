@@ -182,33 +182,52 @@ class StdyTest(SsdTest):
         logging.info("Stopped after round number:")
         logging.info(self.__rounds)
         
-    def toXml(self):
+    def toXml(self,root):
+        self.__stdyRnds = [0,1,2,3,4]
+        self.__roundMatrices = [[[988, 1221, 1269], [997, 1237, 1247]],
+                                [[1013, 1265, 1259], [1011, 1277, 1274]],
+                                [[1010, 1235, 1249], [1015, 1226, 1234]],
+                                [[991, 1227, 1234], [998, 1232, 1241]],
+                                [[1006, 1232, 1246], [1012, 1228, 1230]]]
+        self.__rounds = 4
+        self.__stdyAvg = 1264
+        k = -6.3
+        d = 1252.6
+        self.__stdySlope.extend([k,d])
+        self.__stdyValues.append(self.__roundMatrices[0][-1][-2])
+        self.__stdyValues.append(self.__roundMatrices[1][-1][-2])
+        self.__stdyValues.append(self.__roundMatrices[2][-1][-2])
+        self.__stdyValues.append(self.__roundMatrices[3][-1][-2])
+        self.__stdyValues.append(self.__roundMatrices[4][-1][-2])
+
+        r = etree.Element(root)
         
         data = json.dumps(self.__roundMatrices)
-        e = etree.SubElement(self.getReport().getXml(),'roundmat')
+        e = etree.SubElement(r,'roundmat')
         e.text = data
         
         data = json.dumps(list(self.__stdyRnds))
-        e = etree.SubElement(self.getReport().getXml(),'stdyrounds')
+        e = etree.SubElement(r,'stdyrounds')
         e.text = data
         
         data = json.dumps(list(self.__stdyValues))
-        e = etree.SubElement(self.getReport().getXml(),'stdyvalues')
+        e = etree.SubElement(r,'stdyvalues')
         e.text = data
         
         data = json.dumps(self.__stdySlope)
-        e = etree.SubElement(self.getReport().getXml(),'stdyslope')
+        e = etree.SubElement(r,'stdyslope')
         e.text = data
         
         data = json.dumps(self.__stdyAvg)
-        e = etree.SubElement(self.getReport().getXml(),'stdyavg')
+        e = etree.SubElement(r,'stdyavg')
         e.text = data
         
         data = json.dumps(self.__rounds)
-        e = etree.SubElement(self.getReport().getXml(),'rndnr')
+        e = etree.SubElement(r,'rndnr')
         e.text = data
         
-        self.getReport().xmlToFile(self.getTestname())
+        return r
+        
         
     def fromXml(self):
         self.getReport().fileToXml(self.getTestname())
@@ -243,12 +262,7 @@ class IopsTest(StdyTest):
         StdyTest.__init__(self)
         self.getFioJob().addKVArg("rw","randrw")
         #FIXME
-#        if self.makeSecureErase() == False:
-#            logging.error("# Could not carry out secure erase.")
-#            exit(1)
-#        if self.wlIndPrec() == False:
-#            logging.error("# Could not carry out preconditioning.")
-#            exit(1)
+
     
     def testRound(self):
         '''
@@ -347,12 +361,6 @@ class LatencyTest(StdyTest):
         SsdTest.__init__(self, testname, filename, nj, iod)
         StdyTest.__init__(self)
         self.getFioJob().addKVArg("rw","randrw")
-        if self.makeSecureErase() == False:
-            logging.error("# Could not carry out secure erase.")
-            exit(1)
-        if self.wlIndPrec() == False:
-            logging.error("# Could not carry out preconditioning.")
-            exit(1)    
             
     def testRound(self):
         '''
@@ -432,6 +440,12 @@ class LatencyTest(StdyTest):
         Start the rounds, log the steady state infos and call plot functions.
         @return True if steady state was reached and plots were generated.
         '''
+        if self.makeSecureErase() == False:
+            logging.error("# Could not carry out secure erase.")
+            exit(1) 
+        if self.wlIndPrec() == False:
+            logging.error("# Could not carry out preconditioning.")
+            exit(1)
         logging.info("########### Starting Latency Test ###########")
         steadyState = self.runRounds()
         self.logTestData()
@@ -588,10 +602,6 @@ class WriteSatTest(SsdTest):
         ##Write saturation results: [iops_l,lats_l]
         self.__roundMatrices = []
         
-        if self.makeSecureErase() == False:
-            logging.error("# Could not carry out secure erase.")
-            exit(1)
-    
     def getRnds(self):
         return self.__rounds
     def getRndMatrices(self):
@@ -659,6 +669,9 @@ class WriteSatTest(SsdTest):
         logging.info("#Write saturation has written " + str(totWriteIO) + "KB")
     
     def run(self):
+        if self.makeSecureErase() == False:
+            logging.error("# Could not carry out secure erase.")
+            exit(1)
         logging.info("########### Starting Write Saturation Test ###########")
         self.runRounds()
         logging.info("Write Sat rounds: ")
@@ -719,11 +732,6 @@ class IodTest(SsdTest):
         
         ##Write saturation results: [iops_l,lats_l].
         self.__roundMatrices = []
-        
-        if self.makeSecureErase() == False:
-            logging.error("# Could not carry out secure erase.")
-            exit(1)
-    
     
     def testRnd(self):
         '''
@@ -798,7 +806,9 @@ class IodTest(SsdTest):
         logging.info("#IO depth test has written " + str(totWriteIO) + "KB")
         
     def run(self):
-        #ensure to start at initialization state
+       if self.makeSecureErase() == False:
+            logging.error("# Could not carry out secure erase.")
+            exit(1)
         logging.info("########### Starting IO Depth Test ###########")
         self.runRounds()
         logging.info("IO Depth rounds: ")
