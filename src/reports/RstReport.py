@@ -10,7 +10,6 @@ class RstReport(object):
     A report as restructured text.
     '''
 
-
     def __init__(self,testname):
         '''
         @param testname Name of the test, also the filename. 
@@ -39,6 +38,13 @@ class RstReport(object):
         if str[-1] != '\n':
             str += '\n'
         print >>self.__rst, str
+    
+    def addFigure(self,filename):
+        '''
+        Adds a figure to the restructured text.
+        @param filename The filename of the figure.
+        '''
+        print >>self.__rst,".. image:: "+filename 
     
     def toRstFile(self):
         f = open(self.__testname+'.rst','w')
