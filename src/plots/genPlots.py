@@ -60,6 +60,7 @@ def stdyStVerPlt(toPlot,mode):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStVerPlt.png',dpi=300)
+    toPlot.setFigure(toPlot.getTestname()+'-'+mode+'-stdyStVerPlt.png')
 
 def stdyStConvPlt(toPlot,mode):
     '''
@@ -137,6 +138,7 @@ def stdyStConvPlt(toPlot,mode):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
+    toPlot.setFigure(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png')
     
 def IOPSplot(toPlot):
     rnds = pT.HddTest.HddTest.maxRnds
@@ -190,6 +192,7 @@ def IOPSplot(toPlot):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-IOPSPlt.png',dpi=300)
+    toPlot.setFigure(toPlot.getTestname()+'-IOPSPlt.png')
     
 def mes2DPlt(toPlot,mode):
     '''
@@ -281,6 +284,7 @@ def mes2DPlt(toPlot,mode):
         plt.ylabel(mode)
     plt.legend(prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png',dpi=300)
+    toPlot.setFigure(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png')
     
 def getBS(bsLabels):
     bs = []
@@ -340,6 +344,7 @@ def writeSatIOPSPlt(toPlot):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=1, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-writeSatIOPSPlt.png',dpi=300)
+    toPlot.setFigure(toPlot.getTestname()+'-writeSatIOPSPlt.png')
     
 def writeSatLatPlt(toPlot):
     rnds = toPlot.getRnds()
@@ -365,6 +370,7 @@ def writeSatLatPlt(toPlot):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=1, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-writeSatLatPlt.png',dpi=300)
+    toPlot.setFigure(toPlot.getTestname()+'-writeSatLatPlt.png')
     
 def tpStdyStConvPlt(toPlot,mode,dev):
     '''
@@ -432,8 +438,10 @@ def tpStdyStConvPlt(toPlot,mode,dev):
                ncol=2, fancybox=True, shadow=True,prop={'size':12})
     if dev == "hdd":
         plt.savefig(toPlot.getTestname()+'-'+mode+'-TpPlt.png',dpi=300)
+        toPlot.setFigure(toPlot.getTestname()+'-'+mode+'-TpPlt.png')
     else:
         plt.savefig(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png',dpi=300)
+        toPlot.setFigure(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png')
     
 def tpMes2DPlt(toPlot):
     '''
@@ -488,6 +496,7 @@ def tpMes2DPlt(toPlot):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
+    toPlot.setFigure(toPlot.getTestname()+'-TP-mes2DPlt.png')
     
 def ioDepthMes3DPlt(toPlot,rw):
     fig = plt.figure()
@@ -540,6 +549,7 @@ def ioDepthMes3DPlt(toPlot,rw):
     if rw == "randread" or rw == "randwrite":
         ax.set_zlabel('IOPS')
     plt.savefig(toPlot.getTestname()+'-IOD-'+rw+'-mes3DPlt.png',dpi=300)
+    toPlot.setFigure(toPlot.getTestname()+'-IOD-'+rw+'-mes3DPlt.png')
 
 
     
