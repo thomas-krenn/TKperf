@@ -160,8 +160,9 @@ class SsdPerfTest(PerfTest):
         rst = self.getRstReport()
         rst.addTitle()
         rst.addSetupInfo(tests['iops'].getFioJob().__str__())
-        rst.addChapter("IOPS")
-        rst.addFigure(tests['iops'].getFigure())
+        for k,v in tests.iteritems():
+            rst.addChapter(k)
+            rst.addFigure(v.getFigure())
         rst.toRstFile()
         
     def getPlots(self):

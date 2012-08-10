@@ -700,6 +700,11 @@ class IodTest(SsdTest):
         ##Write saturation results: [iops_l,lats_l].
         self.__roundMatrices = []
     
+    def getRnds(self):
+        return self.__rounds
+    def getRndMatrices(self):
+        return self.__roundMatrices
+    
     def testRnd(self):
         '''
         Carry out one test round of the io depth test.

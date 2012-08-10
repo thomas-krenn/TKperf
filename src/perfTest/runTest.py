@@ -14,6 +14,7 @@ from perfTest.DeviceTest import DeviceTest
 from perfTest.HddTest import TPTest
 from perfTest.PerfTest import SsdPerfTest
 
+from reports.RstReport import RstReport
 
 if __name__ == '__main__':
     vTest = FioJob()
@@ -30,6 +31,7 @@ if __name__ == '__main__':
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
     parser.add_argument("-nj","--numjobs",help="specify number of jobs for fio",type=int)
     parser.add_argument("-iod","--iodepth",help="specify iodepth for libaio used by fio",type=int)
+    parser.add_argument("-xml","--fromxml",help="don't run tests but load test objects from xml file",action='store_true')
     
     args = parser.parse_args()
     if args.debug == True:
@@ -75,13 +77,19 @@ if __name__ == '__main__':
         print myTest.getFilename()
         
     if args.mode == "ssd":
+        
+        #in xml mode only load objects, don't run tests
+        if args.fromxml == True:
+            print "Loading from xml file..."
+            myTest = SsdPerfTest(args.testname, args.filename, '', nj, iod)
+            myTest.fromXml()
+            exit(0)
+        
         print "Starting SSD mode..."
         #of jobs and io depth is not given we use 1 for it
         myTest = SsdPerfTest(args.testname, args.filename, '', nj, iod)
-        #myTest.run()
-        myTest.toXml()
-        myTest.getXmlReport().printXml()
-        #myTest = IopsTest(args.testname,args.filename,nj,iod)
+        myTest.fromXml()
+        #myTest.getXmlReport().printXml()
         #myTest.run()
         #myTest.toXml()
 #        myTest.fromXml()
@@ -91,5 +99,5 @@ if __name__ == '__main__':
 #        myTest.runLatsTest()
 #        myTest.runTpTest()
 #        myTest.runIoDepthTest()
-        print myTest.getTestname()
-        print myTest.getFilename()
+        #print myTest.getTestname()
+        #print myTest.getFilename()

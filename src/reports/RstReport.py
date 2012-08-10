@@ -44,7 +44,7 @@ class RstReport(object):
         Adds a figure to the restructured text.
         @param filename The filename of the figure.
         '''
-        print >>self.__rst,".. image:: "+filename 
+        print >>self.__rst,".. image:: "+filename+'\n' 
     
     def toRstFile(self):
         f = open(self.__testname+'.rst','w')

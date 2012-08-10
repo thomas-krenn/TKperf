@@ -502,7 +502,7 @@ def ioDepthMes3DPlt(toPlot,rw):
     fig = plt.figure()
     ax = Axes3D(fig)
     
-    matrices = toPlot.getIodMatrices()
+    matrices = toPlot.getRndMatrices()
      
     #define positions for bars
     xpos = np.array([0.25,0.25,0.25,0.25]) # Set up a mesh of positions
@@ -522,7 +522,6 @@ def ioDepthMes3DPlt(toPlot,rw):
     if rw == "randread" or rw == "randwrite":
         matrix.reverse()
     for j,bs in enumerate(matrix):
-        print bs
         if j == 0: bcolor = 'b'
         if j == 1: bcolor = 'g'
         if j == 2: bcolor = 'r'
@@ -531,7 +530,6 @@ def ioDepthMes3DPlt(toPlot,rw):
         for pos in range(len(xpos)):
             xpos[pos] += 1
             
-    print matrices[0][2]
     ticksx = np.arange(0.5, 4, 1)
     if rw == "randread" or rw == "randwrite":
         labels = list(pT.SsdTest.IodTest.bsLabels)
