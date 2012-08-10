@@ -8,6 +8,8 @@ from fio.FioJob import FioJob
 import plots.genPlots as pgp
 
 import logging
+import json
+from lxml import etree
 
 class HddTest(DeviceTest):
     '''
@@ -44,6 +46,24 @@ class HddTest(DeviceTest):
     def getRndMatrices(self):
         return self.__tpRoundMatrices
     
+    def toXml(self,root):
+     
+        r = etree.Element(root)
+        
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(r,'roundmat')
+        e.text = data
+        
+        data = json.dumps(HddTest.maxRnds)
+        e = etree.SubElement(r,'rndnr')
+        e.text = data
+        
+    def fromXml(self,root):
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.__rounds = json.loads(root.findtext('rndnr'))
+        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        logging.info(self.__rounds)
+        logging.info(self.__roundMatrices)
 
 class IopsTest(HddTest):
     
@@ -132,8 +152,6 @@ class IopsTest(HddTest):
         self.runRounds()
         logging.info("Round IOPS results: ")
         logging.info(self.getRndMatrices())
-
-        pgp.IOPSplot(self)
         return True
     
 class TPTest(HddTest):
@@ -237,7 +255,4 @@ class TPTest(HddTest):
         self.runRounds()
         logging.info("Round TP results: ")
         logging.info(self.getRndMatrices())
-        
-        pgp.tpStdyStConvPlt(self, "rw","hdd")
-
         return True

@@ -213,15 +213,13 @@ class StdyTest(SsdTest):
         return r
         
         
-    def fromXml(self):
-        self.getReport().fileToXml(self.getTestname())
-        
-        self.__roundMatrices = json.loads(self.getReport().getXml().findtext('roundmat'))
-        self.__stdyRnds = json.loads(self.getReport().getXml().findtext('stdyrounds'))
-        self.__stdyValues = json.loads(self.getReport().getXml().findtext('stdyvalues'))
-        self.__stdySlope = json.loads(self.getReport().getXml().findtext('stdyslope'))
-        self.__stdyAvg = json.loads(self.getReport().getXml().findtext('stdyavg'))
-        self.__rounds = json.loads(self.getReport().getXml().findtext('rndnr'))
+    def fromXml(self,root):
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.__stdyRnds = json.loads(root.findtext('stdyrounds'))
+        self.__stdyValues = json.loads(root.findtext('stdyvalues'))
+        self.__stdySlope = json.loads(root.findtext('stdyslope'))
+        self.__stdyAvg = json.loads(root.findtext('stdyavg'))
+        self.__rounds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
         self.logTestData()
 
@@ -320,10 +318,7 @@ class IopsTest(StdyTest):
         logging.info("########### Starting IOPS Test ###########")
         steadyState = self.runRounds()
         self.logTestData()
-  
-        pgp.stdyStVerPlt(self,"IOPS")
-        pgp.stdyStConvPlt(self,"IOPS")
-        pgp.mes2DPlt(self,"IOPS")
+
         return True
 
 class LatencyTest(StdyTest):
@@ -433,12 +428,6 @@ class LatencyTest(StdyTest):
         logging.info("########### Starting Latency Test ###########")
         steadyState = self.runRounds()
         self.logTestData()
-  
-        #call plotting functions
-        pgp.stdyStVerPlt(self,"LAT")
-        pgp.stdyStConvPlt(self,"LAT")
-        pgp.mes2DPlt(self,"avg-LAT")
-        pgp.mes2DPlt(self,"max-LAT")
         return True
 
 class TPTest(StdyTest):
@@ -557,10 +546,6 @@ class TPTest(StdyTest):
         steadyState = self.runRounds()
         self.logTestData(self)
         
-        pgp.stdyStVerPlt(self,"TP")
-        pgp.tpStdyStConvPlt(self, "read","ssd")
-        pgp.tpStdyStConvPlt(self, "write","ssd")
-        pgp.tpMes2DPlt(self)
         return True
 
 class WriteSatTest(SsdTest):
@@ -663,9 +648,6 @@ class WriteSatTest(SsdTest):
         logging.info("Round Write Saturation results: ")
         logging.info(self.__roundMatrices)
         
-        pgp.writeSatIOPSPlt(self)
-        pgp.writeSatLatPlt(self)
-    
     def toXml(self,root):
          
         #root element of current xml child
@@ -681,11 +663,9 @@ class WriteSatTest(SsdTest):
         
         return r
         
-    def fromXml(self):
-        self.getReport().fileToXml(self.getTestname())
-        
-        self.__roundMatrices = json.loads(self.getReport().getXml().findtext('roundmat'))
-        self.__rounds = json.loads(self.getReport().getXml().findtext('rndnr'))
+    def fromXml(self,root):
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.__rounds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
         logging.info("Write Sat rounds: ")
         logging.info(self.__rounds)
@@ -802,11 +782,8 @@ class IodTest(SsdTest):
         logging.info(self.__rounds)
         logging.info("Round IO Depth results: ")
         logging.info(self.__roundMatrices)
-        pgp.ioDepthMes3DPlt(self,"read")
-        pgp.ioDepthMes3DPlt(self,"write")
-        pgp.ioDepthMes3DPlt(self,"randread")
-        pgp.ioDepthMes3DPlt(self,"randwrite")
         
+        return True
     def toXml(self,root):
          
         #root element of current xml child
@@ -821,3 +798,12 @@ class IodTest(SsdTest):
         e.text = data
         
         return r
+    
+    def fromXml(self,root):
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.__rounds = json.loads(root.findtext('rndnr'))
+        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        logging.info("IO Depth rounds: ")
+        logging.info(self.__rounds)
+        logging.info("Round IO Depth results: ")
+        logging.info(self.__roundMatrices)
