@@ -50,17 +50,17 @@ def stdyStVerPlt(toPlot,mode):
     plt.xticks(x)
     title = mode + " Steady State Verification Plot"
     plt.suptitle(title,fontweight='bold')
-    plt.xlabel("Round")
+    plt.xlabel("Round #")
     if mode == "LAT":
-        plt.ylabel("Avg latency (us)")
+        plt.ylabel("Latency (us)")
     if mode == "TP":
-        plt.ylabel("Avg bandwidth (KB/s)")
+        plt.ylabel("Bandwidth (KB/s)")
     if mode == "IOPS":
         plt.ylabel(mode)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStVerPlt.png',dpi=300)
-    toPlot.setFigure(toPlot.getTestname()+'-'+mode+'-stdyStVerPlt.png')
+    toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-stdyStVerPlt.png')
 
 def stdyStConvPlt(toPlot,mode):
     '''
@@ -101,9 +101,10 @@ def stdyStConvPlt(toPlot,mode):
         for rndMat in matrices:
             #take read mat len, every elem has the same len
             for i in range(len(rndMat[0])):
-                readLines[i].append(rndMat[0][i][2])#mean latency
-                mixLines[i].append(rndMat[1][i][2])#mean latency
-                writeLines[i].append(rndMat[2][i][2])#mean latency
+                #also convert it from us to ms
+                readLines[i].append((rndMat[0][i][2]) / 1000)#mean latency
+                mixLines[i].append((rndMat[1][i][2]) / 1000)#mean latency
+                writeLines[i].append((rndMat[2][i][2]) / 1000)#mean latency
     
     plt.clf()#clear
 
@@ -118,27 +119,26 @@ def stdyStConvPlt(toPlot,mode):
     if mode == "LAT":
         for i in range(len(readLines)):
             min_y,max_y = getMinMax(readLines[i], min_y, max_y)
-            plt.plot(x,readLines[i],'o-',label='bs='+pT.SsdTest.LatencyTest.bsLabels[i]+' read')
+            plt.plot(x,readLines[i],'s-',label='bs='+pT.SsdTest.LatencyTest.bsLabels[i]+' read')
         for i in range(len(mixLines)):
             min_y,max_y = getMinMax(mixLines[i], min_y, max_y)
-            plt.plot(x,mixLines[i],'o-',label='bs='+pT.SsdTest.LatencyTest.bsLabels[i]+' mixed')
+            plt.plot(x,mixLines[i],'^-',label='bs='+pT.SsdTest.LatencyTest.bsLabels[i]+' mixed')
         for i in range(len(writeLines)):
             min_y,max_y = getMinMax(writeLines[i], min_y, max_y)
             plt.plot(x,writeLines[i],'o-',label='bs='+pT.SsdTest.LatencyTest.bsLabels[i]+' write')
     
-    #create a subplot with two columns for legend placement
     plt.xticks(x)
     plt.suptitle(mode+" Steady State Convergence Plot",fontweight='bold')
-    plt.xlabel("Round")
+    plt.xlabel("Round #")
     plt.ylim((min_y*0.75,max_y*1.25))
     if mode == "LAT":
-        plt.ylabel("Avg latency (us)")
+        plt.ylabel("Latency (ms)")
     if mode == "IOPS":
         plt.ylabel(mode)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
-    toPlot.setFigure(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png')
+    toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png')
     
 def IOPSplot(toPlot):
     rnds = pT.HddTest.HddTest.maxRnds
@@ -192,20 +192,20 @@ def IOPSplot(toPlot):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-IOPSPlt.png',dpi=300)
-    toPlot.setFigure(toPlot.getTestname()+'-IOPSPlt.png')
+    toPlot.addFigure(toPlot.getTestname()+'-IOPSPlt.png')
     
 def mes2DPlt(toPlot,mode):
     '''
     Generate a measurement 2D plot.
     The plot includes:
     -Lines of the workloads
-    -Each line consists of the average of IOPS per round
+    -Each line consists of the average of IOPS/Latencies per round
     for each block size in the measurement window!
     Therefore the x axes are the block sizes, the plotted lines
     are the different workloads (from 100% read to 100% write). The
-    y axes is the average of IOPS over the measurement window for each block sizes
+    y axes are the IOPS/Latencies over the measurement window for each block sizes
     and workload.
-    The figure is saved as SsdTest.Testname-mes2DPlt.png.
+    The figure is saved as SsdTest.Testname-mode-mes2DPlt.png.
     @param toPlot A SsdTest object.
     @param mode A string representing the test mode (IOPS|max-LAT|avg-LAT)
     '''
@@ -258,35 +258,47 @@ def mes2DPlt(toPlot,mode):
     plt.clf()#clear plot
     if mode == "IOPS":
         x = getBS(pT.SsdTest.IopsTest.bsLabels)
-        #x = range(len(pT.SsdTest.SsdTest.bsLabels   ))
     if mode == "avg-LAT" or mode == "max-LAT":
         x = getBS(pT.SsdTest.LatencyTest.bsLabels)
         
     max_y = 0
     min_y = 0
     for i in range(len(mixWLds)):
+        #for latency convert to ms
+        if mode == "avg-LAT" or mode == "max-LAT":
+            for v in range(len(mixWLds[i])):
+                mixWLds[i][v] = (mixWLds[i][v]) / 1000
+                
         min_y,max_y = getMinMax(mixWLds[i], min_y, max_y)
         #the labels are r/w percentage of mixed workload
         plt.plot(x,mixWLds[i],'o-',
                   label=str(wlds[i])+'/'+str(100-wlds[i]))
      
     
+    if mode == 'IOPS':
+        plt.yscale('log')
+        plt.xscale('log')
+        plt.ylabel(mode)
+        plt.legend(prop={'size':12})
+    if mode == "avg-LAT" or mode == "max-LAT":
+        plt.ylabel("Latency (ms)")
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.suptitle(mode+" Measurement Plot",fontweight='bold')
     plt.xlabel("Block Size (Byte)")
-    plt.yscale('log')
-    plt.xscale('log')
-    #scale axis to min and max +- 25%
-    plt.ylim((min_y*0.75,max_y*1.25))
+    #scale axis to min and max
+    plt.ylim((min_y*0.75,max_y*1.15))
     plt.xticks(x,bsLabels)
-    if mode == "avg-LAT" or mode == "max-LAT":
-        plt.ylabel("Avg latency (us)")
-    if mode == "IOPS":
-        plt.ylabel(mode)
-    plt.legend(prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png',dpi=300)
-    toPlot.setFigure(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png')
+    toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png')
     
 def getBS(bsLabels):
+    '''
+    Convert a list of string block size labels to a list of integers.
+    This can be handy if the block sizes are needed to be plotted at
+    the x axis.
+    @return A list of integer block sizes.
+    '''
     bs = []
     for b in bsLabels:
         if b == "512":
@@ -344,7 +356,7 @@ def writeSatIOPSPlt(toPlot):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=1, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-writeSatIOPSPlt.png',dpi=300)
-    toPlot.setFigure(toPlot.getTestname()+'-writeSatIOPSPlt.png')
+    toPlot.addFigure(toPlot.getTestname()+'-writeSatIOPSPlt.png')
     
 def writeSatLatPlt(toPlot):
     rnds = toPlot.getRnds()
@@ -361,16 +373,16 @@ def writeSatLatPlt(toPlot):
     plt.plot(x,av_lats,'-',label='Avg latency')
     #set the y axes to start at 3/4 of mininum
     plt.ylim(min(av_lats)*0.75,max(av_lats)*1.25)
-    #every 10 rounds print the round number
+    #every 50 rounds print the round number
     x = range(0,rnds + 1,50)
     plt.xticks(x)
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
-    plt.ylabel("Latency ms")
+    plt.ylabel("Latency (ms)")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=1, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-writeSatLatPlt.png',dpi=300)
-    toPlot.setFigure(toPlot.getTestname()+'-writeSatLatPlt.png')
+    toPlot.addFigure(toPlot.getTestname()+'-writeSatLatPlt.png')
     
 def tpStdyStConvPlt(toPlot,mode,dev):
     '''
@@ -430,18 +442,18 @@ def tpStdyStConvPlt(toPlot,mode,dev):
         plt.xlabel("Number of Area of Device")
     else:
         plt.suptitle("TP "+mode+" Steady State Convergence Plot",fontweight='bold')
-        plt.xlabel("Round")
-    plt.ylabel("BW KB/s")
-    #scale axis to min and max +- 25%
+        plt.xlabel("Round #")
+    plt.ylabel("Bandwidth (KB/s)")
+    #scale axis to min and max +- 15%
     plt.ylim((min_y*0.6,max_y*1.15))
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
-               ncol=2, fancybox=True, shadow=True,prop={'size':12})
+               ncol=3, fancybox=True, shadow=True,prop={'size':12})
     if dev == "hdd":
         plt.savefig(toPlot.getTestname()+'-'+mode+'-TpPlt.png',dpi=300)
-        toPlot.setFigure(toPlot.getTestname()+'-'+mode+'-TpPlt.png')
+        toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-TpPlt.png')
     else:
         plt.savefig(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png',dpi=300)
-        toPlot.setFigure(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png')
+        toPlot.addFigure(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png')
     
 def tpMes2DPlt(toPlot):
     '''
@@ -489,14 +501,13 @@ def tpMes2DPlt(toPlot):
     
     plt.xscale('log')
     plt.suptitle("TP Measurement Plot",fontweight='bold')
-    plt.xlabel("Block Size (KB)")
-    plt.ylabel("BW KB/s")
+    plt.xlabel("Block Size (Byte)")
+    plt.ylabel("Bandwidth (KB/s)")
     plt.xticks(x,pT.SsdTest.TPTest.bsLabels)
-    #plt.legend()
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
-    toPlot.setFigure(toPlot.getTestname()+'-TP-mes2DPlt.png')
+    toPlot.addFigure(toPlot.getTestname()+'-TP-mes2DPlt.png')
     
 def ioDepthMes3DPlt(toPlot,rw):
     fig = plt.figure()
@@ -547,7 +558,7 @@ def ioDepthMes3DPlt(toPlot,rw):
     if rw == "randread" or rw == "randwrite":
         ax.set_zlabel('IOPS')
     plt.savefig(toPlot.getTestname()+'-IOD-'+rw+'-mes3DPlt.png',dpi=300)
-    toPlot.setFigure(toPlot.getTestname()+'-IOD-'+rw+'-mes3DPlt.png')
+    toPlot.addFigure(toPlot.getTestname()+'-IOD-'+rw+'-mes3DPlt.png')
 
 
     
