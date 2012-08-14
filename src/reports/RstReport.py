@@ -12,13 +12,6 @@ class RstReport(object):
     A report as restructured text.
     '''
 
-    iopsFigCaptions = ["The Steady State Convergence Plot shows the reached IOPS for"+
-                       " all block sizes of random writes over all rounds.",
-                       
-                       
-                       
-                       ]
-
     def __init__(self,testname):
         '''
         @param testname Name of the test, also the filename. 
@@ -91,6 +84,20 @@ class RstReport(object):
             if index == 3:
                 caption= "\tThe Measurement Plot shows the average bandwidth of reads and writes in the measurement window. "
                 caption += "For all block sizes the seq. read and write bandwidth is plotted."
+        if type == 'lat':
+            if index == 0:
+                caption= "\tThe Steady State Convergence Plot shows the mean latency for "
+                caption += "all block sizes of random read, mixed workload and write."
+            if index == 1:
+                caption= "\tThe Steady State Verification Plot shows the mean latency of 4k "
+                caption += "random writes, the 20% average window and the slope of the linear best fit line "
+                caption += "in the measurement window."
+            if index == 2:
+                caption= "\tThe Average Latency Measurement Plot shows the mean latency over the measurement window. For every "
+                caption += "workload the latency of all block sizes is plotted."
+            if index == 3:
+                caption= "\tThe Max Latency Measurement Plot shows the maximum latency of the measurement window. For every "
+                caption += "workload the maximum latency of all block sizes is plotted."
         
         self.addString(caption)
         
@@ -135,7 +142,9 @@ class RstReport(object):
             desc = StringIO()
             desc.write("The IOPS test consists of looping over the following parameters:\n")
             desc.write('\n::\n\n\t')
-            print >>desc, "While not Steady State"
+            print >>desc, "Make Secure Erase"
+            print >>desc, "\tWorkload Ind. Preconditioning"
+            print >>desc, "\tWhile not Steady State"
             print >>desc, "\t\tFor workloads ",
             print >>desc, ssd.IopsTest.mixWlds
             desc.write('\t\t\t')
@@ -166,6 +175,24 @@ class RstReport(object):
             desc.write("the result of one round.\n")
             desc.write("To detect the steady state the throughput of 1024k sequential write is taken.\n\n")
             print >>desc, "- Dependent Variable: 1024k block size, sequential write"
+        if testname == 'lat':  
+            desc = StringIO()
+            desc.write("The latency test consists of looping over the following parameters:\n")
+            desc.write('\n::\n\n\t')
+            print >>desc, "Make Secure Erase"
+            print >>desc, "\tWorkload Ind. Preconditioning"
+            print >>desc, "\tWhile not Steady State"
+            print >>desc, "\t\tFor workloads ",
+            print >>desc, ssd.LatencyTest.mixWlds
+            desc.write('\t\t\t')
+            print >>desc, "For block sizes",
+            print >>desc, ssd.LatencyTest.bsLabels
+            desc.write("\nFor all block sizes random read, a 65/35 read/write mixed workload and random write is carried out for 60 ") 
+            desc.write("seconds using direct IO. ")
+            desc.write("For every combination the Min, Max and Mean Latency is measured.")
+            desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
+            desc.write("the mean latency of 4k random write is taken.\n\n")
+            print >>desc, "- Dependent Variable: 4k block size, random write mean latency"
         self.addString(desc.getvalue())
         
         

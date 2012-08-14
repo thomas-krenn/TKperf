@@ -5,7 +5,6 @@ Created on 04.07.2012
 '''
 from perfTest.DeviceTest import DeviceTest
 from fio.FioJob import FioJob
-import plots.genPlots as pgp
 
 import logging
 import json

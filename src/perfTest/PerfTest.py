@@ -14,7 +14,7 @@ class PerfTest(object):
     A performance test, consists of multiple Device Tests
     '''
     
-    def __init__(self,testname,filename,baseDir):
+    def __init__(self,testname,filename):
         '''
         A performance test has several reports and plots.
         '''
@@ -25,12 +25,6 @@ class PerfTest(object):
         ## The data file for the test, can be a whole device also.
         self.__filename = filename
         
-        ## Base directory to write results to.
-        self.__baseDir = baseDir
-        if self.__baseDir != '':
-            if self.__baseDir[-1] != '/':
-                self.__baseDir += '/'
-            
         ## Xml file to write test results to
         self.__xmlReport = XmlReport(testname)
         
@@ -65,13 +59,6 @@ class PerfTest(object):
     def getRstReport(self):
         return self.__rstReport
     
-    def getBaseDir(self):
-        return self.__baseDir
-    
-    def setBaseDir(self):
-        for test in self.__tests:
-            test.setBaseDir(self.__baseDir)
-    
     def toXml(self):
         '''
         Calls for every test in the test dictionary the toXMl method
@@ -94,8 +81,8 @@ class SsdPerfTest(PerfTest):
     ## Keys valid for test dictionary and xml file
     testKeys = ['iops','lat','tp','writesat','iod']
     
-    def __init__(self,testname,filename,baseDir,nj,iod):
-        PerfTest.__init__(self, testname, filename, baseDir)
+    def __init__(self,testname,filename,nj,iod):
+        PerfTest.__init__(self, testname, filename)
         
         ## Number of jobs for fio.
         self.__nj = nj
@@ -115,9 +102,6 @@ class SsdPerfTest(PerfTest):
         test = ssd.IodTest(testname,filename,nj,iod)
         self.addTest(SsdPerfTest.testKeys[4], test)
         
-        if self.getBaseDir() != '':
-            self.setBaseDir()
-        
     def run(self):
         self.runTests()
         self.toXml()
@@ -132,6 +116,7 @@ class SsdPerfTest(PerfTest):
         Afterwards the plotting and rst methods for the specified tests are
         called.
         '''
+        #TODO read numjobs and iodepth from XML
         self.getXmlReport().fileToXml(self.getTestname())
         self.resetTests()
         root = self.getXmlReport().getXml()
@@ -162,29 +147,50 @@ class SsdPerfTest(PerfTest):
         #fio version is the same for every test, just take the
         #one from iops
         rst.addSetupInfo(tests['iops'].getFioJob().__str__())
-        for k,v in tests.iteritems():
-            rst.addChapter(k)
-            rst.addFigure(v.getFigure())
+        rst.addGeneralInfo()
+        
+        rst.addChapter("IOPS")
+        rst.addTestInfo('iops')
+        rst.addSection("Measurement Plots")
+        for i,fig in enumerate(tests['iops'].getFigures()):
+            rst.addFigure(fig,'iops',i)
+        rst.addChapter("Throughput")
+        rst.addTestInfo('tp')
+        rst.addSection("Measurement Plots")
+        for i,fig in enumerate(tests['tp'].getFigures()):
+            rst.addFigure(fig,'tp',i)
+        rst.addChapter("Latency")
+        rst.addTestInfo('lat')
+        rst.addSection("Measurement Plots")
+        for i,fig in enumerate(tests['lat'].getFigures()):
+            rst.addFigure(fig,'lat',i)
+#        rst.addChapter("Write Saturation")
+#        for fig in tests['writesat'].getFigures():
+#            rst.addFigure(fig)
+#        rst.addChapter("IO Depth")
+#        for fig in tests['iod'].getFigures():
+#            rst.addFigure(fig)
+
         rst.toRstFile()
         
     def getPlots(self):
         tests = self.getTests()
         #plots for iops
         if SsdPerfTest.testKeys[0] in tests:
-            pgp.stdyStVerPlt(tests['iops'],"IOPS")
             pgp.stdyStConvPlt(tests['iops'],"IOPS")
+            pgp.stdyStVerPlt(tests['iops'],"IOPS")
             pgp.mes2DPlt(tests['iops'],"IOPS")
         #plots for latency
         if SsdPerfTest.testKeys[1] in tests:
-            pgp.stdyStVerPlt(tests['lat'],"LAT")
             pgp.stdyStConvPlt(tests['lat'],"LAT")
+            pgp.stdyStVerPlt(tests['lat'],"LAT")
             pgp.mes2DPlt(tests['lat'],"avg-LAT")
             pgp.mes2DPlt(tests['lat'],"max-LAT")
         #plots for throughout
         if SsdPerfTest.testKeys[2] in tests:
-            pgp.stdyStVerPlt(tests['tp'],"TP")
             pgp.tpStdyStConvPlt(tests['tp'], "read","ssd")
             pgp.tpStdyStConvPlt(tests['tp'], "write","ssd")
+            pgp.stdyStVerPlt(tests['tp'],"TP")
             pgp.tpMes2DPlt(tests['tp'])
         #plots for write saturation
         if SsdPerfTest.testKeys[3] in tests:
@@ -205,8 +211,8 @@ class HddPerfTest(PerfTest):
     ## Keys valid for test dictionary and xml file
     testKeys = ['iops','tp']
     
-    def __init__(self,testname,filename,baseDir,iod):
-        PerfTest.__init__(self, testname, filename, baseDir)
+    def __init__(self,testname,filename,iod):
+        PerfTest.__init__(self, testname, filename)
         
         ## Number of iodepth for fio.
         self.__iod = iod
@@ -216,9 +222,6 @@ class HddPerfTest(PerfTest):
         test = hdd.TPTest(testname,filename,iod)
         self.addTest(HddPerfTest.testKeys[1],test)
         
-        if self.getBaseDir() != '':
-            self.setBaseDir()
-    
     def run(self):
         self.runTests()
     

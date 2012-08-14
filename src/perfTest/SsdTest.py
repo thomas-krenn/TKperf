@@ -6,7 +6,6 @@ Created on 04.07.2012
 from __future__ import division
 from perfTest.DeviceTest import DeviceTest
 from fio.FioJob import FioJob
-import plots.genPlots as pgp
 
 import numpy as np
 from collections import deque
@@ -210,6 +209,7 @@ class StdyTest(SsdTest):
         e = etree.SubElement(r,'rndnr')
         e.text = data
         
+        #TODO Add FioJob to xml file
         return r
         
         
@@ -239,12 +239,9 @@ class IopsTest(StdyTest):
         '''
         Constructor.
         '''
-        
         SsdTest.__init__(self, testname, filename, nj, iod)
         StdyTest.__init__(self)
         self.getFioJob().addKVArg("rw","randrw")
-        #FIXME
-
     
     def testRound(self):
         '''
@@ -315,6 +312,12 @@ class IopsTest(StdyTest):
         Start the rounds, log the steady state infos and call plot functions.
         @return True if steady state was reached and plots were generated.
         '''
+        if self.makeSecureErase() == False:
+            logging.error("# Could not carry out secure erase.")
+            exit(1) 
+        if self.wlIndPrec() == False:
+            logging.error("# Could not carry out preconditioning.")
+            exit(1)
         logging.info("########### Starting IOPS Test ###########")
         steadyState = self.runRounds()
         self.logTestData()
@@ -368,6 +371,7 @@ class LatencyTest(StdyTest):
                     l = [0,0,0]
                     r = self.getFioJob().getReadLats(jobOut)
                     w = self.getFioJob().getWriteLats(jobOut)
+                    #FIXME Is this also correct for Min and Max?
                     l[0] = (0.65 * r[0]) + (0.35 * w[0])
                     l[1] = (0.65 * r[1]) + (0.35 * w[1])
                     l[2] = (0.65 * r[2]) + (0.35 * w[2])

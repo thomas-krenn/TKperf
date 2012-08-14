@@ -81,13 +81,13 @@ if __name__ == '__main__':
         #in xml mode only load objects, don't run tests
         if args.fromxml == True:
             print "Loading from xml file..."
-            myTest = SsdPerfTest(args.testname, args.filename, '', nj, iod)
+            myTest = SsdPerfTest(args.testname, args.filename,nj, iod)
             myTest.fromXml()
             exit(0)
         
         print "Starting SSD mode..."
         #of jobs and io depth is not given we use 1 for it
-        myTest = SsdPerfTest(args.testname, args.filename, '', nj, iod)
+        myTest = SsdPerfTest(args.testname, args.filename,nj, iod)
         myTest.fromXml()
         #myTest.getXmlReport().printXml()
         #myTest.run()
