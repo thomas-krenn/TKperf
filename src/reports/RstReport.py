@@ -29,6 +29,12 @@ class RstReport(object):
         print >>self.__rst,".. contents::"
         print >>self.__rst,".. sectnum::\n"
         
+    def addFooter(self):
+        print >>self.__rst,".. |logo| image:: ../../../TK_Logo_RGB.png"
+        print >>self.__rst,"\t:height: 70px"
+        print >>self.__rst,".. footer::"
+        print >>self.__rst,"\t|logo| http://www.thomas-krenn.com - Page ###Page### of ###Total###\n"
+    
     def addChapter(self,chap):
         print >>self.__rst, chap
         line = "="
@@ -56,8 +62,8 @@ class RstReport(object):
         @param index The index of the caption to insert after the figure.
         '''
         print >>self.__rst,".. figure:: "+filename 
-        print >>self.__rst,"\t:scale: 70%"
-        print >>self.__rst,"\t:figwidth: 90%\n"
+        print >>self.__rst,"\t:scale: 65%"
+        print >>self.__rst,"\t:figwidth: 85%\n"
         caption = ''
         if perftype == 'iops':
             if index == 0:
