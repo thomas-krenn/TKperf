@@ -68,6 +68,7 @@ class PerfTest(object):
         e = self.getXmlReport().getXml()
         
         #call the xml function for every test in the dictionary
+        #TODO Sort the dict
         for k,v in tests.iteritems():
             e.append(v.toXml(k))
         
@@ -147,6 +148,7 @@ class SsdPerfTest(PerfTest):
         #fio version is the same for every test, just take the
         #one from iops
         rst.addSetupInfo(tests['iops'].getFioJob().__str__())
+        rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
         rst.addGeneralInfo()
         
         rst.addChapter("IOPS")
@@ -164,9 +166,11 @@ class SsdPerfTest(PerfTest):
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['lat'].getFigures()):
             rst.addFigure(fig,'lat',i)
-#        rst.addChapter("Write Saturation")
-#        for fig in tests['writesat'].getFigures():
-#            rst.addFigure(fig)
+        rst.addChapter("Write Saturation")
+        rst.addTestInfo('writesat')
+        rst.addSection("Measurement Plots")
+        for i,fig in enumerate(tests['writesat'].getFigures()):
+            rst.addFigure(fig,'writesat',i)
 #        rst.addChapter("IO Depth")
 #        for fig in tests['iod'].getFigures():
 #            rst.addFigure(fig)

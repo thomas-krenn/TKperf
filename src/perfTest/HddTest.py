@@ -120,7 +120,7 @@ class IopsTest(HddTest):
             logging.error("#Could not get size of device.")
             exit(1)
         
-        increment = (devSizeKB * 1024) / self.tpTestRnds
+        increment = (devSizeKB * 1024) / self.maxRnds
         logging.info("Increment in byte: "+str(increment))
         
         #rounds are the same as for TP

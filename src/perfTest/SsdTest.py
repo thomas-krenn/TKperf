@@ -49,6 +49,18 @@ class SsdTest(DeviceTest):
     def getFioJob(self):
         return self.__fioJob
     
+    def getNj(self):
+        return self.__numJobs
+    
+    def getIod(self):
+        return self.__ioDepth
+    
+    def setNj(self,nj):
+        self.__numJobs = nj
+        
+    def setIod(self,iod):
+        self.__ioDepth = iod
+    
     def wlIndPrec(self):
         ''' 
         Workload independent preconditioning for SSDs.
@@ -185,6 +197,14 @@ class StdyTest(SsdTest):
      
         r = etree.Element(root)
         
+        data = json.dumps(self.getNj())
+        e = etree.SubElement(r,'numjobs')
+        e.text = data
+        
+        data = json.dumps(self.getIod())
+        e = etree.SubElement(r,'iodepth')
+        e.text = data
+        
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -214,6 +234,8 @@ class StdyTest(SsdTest):
         
         
     def fromXml(self,root):
+        self.setNj(json.loads(root.findtext('numjobs')))
+        self.setIod(json.loads(root.findtext('iodepth')))
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyRnds = json.loads(root.findtext('stdyrounds'))
         self.__stdyValues = json.loads(root.findtext('stdyvalues'))
@@ -556,8 +578,6 @@ class WriteSatTest(SsdTest):
     '''
     A class to carry out the Write Saturation test.
     '''
-    ##Labels of block sizes for throughput test
-    bsLabels = ["1024k","64k","8k","4k","512",]
     
     def __init__(self,testname,filename,nj,iod):
         '''
