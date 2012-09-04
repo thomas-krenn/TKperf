@@ -131,16 +131,24 @@ class RstReport(object):
                 row.reverse()
             #also reverse labels
             l.reverse()
-            for i in range(len(l)):
-                val.write("\t")
-                val.write(l[i] + ', ')
-                for j,elem in enumerate(row[i] for row in t):
-                    if j != 0:
-                        val.write(", ")
-                    val.write(str(round(elem,1)))
-                val.write("\n")
-            self.addString(val.getvalue())
-            val.close()
+        if perftype == 'tp':
+            val = StringIO()
+            print >>self.__rst,".. csv-table:: Average MB/s vs. Block Size and R/W"
+            print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Read\", \"Write\"\n"
+            l = list(labels)
+            t = list(table)
+            
+        for i in range(len(l)):
+            val.write("\t")
+            val.write(l[i] + ', ')
+            for j,elem in enumerate(row[i] for row in t):
+                if j != 0:
+                    val.write(", ")
+                val.write(str(round(elem,1)))
+            val.write("\n")
+        self.addString(val.getvalue())
+        val.close()
+                
     
     def toRstFile(self):
         f = open(self.__testname+'.rst','w')
