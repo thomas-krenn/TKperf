@@ -197,8 +197,6 @@ class SsdPerfTest(PerfTest):
         if SsdPerfTest.testKeys[1] in tests:
             pgp.stdyStConvPlt(tests['lat'],"LAT")
             pgp.stdyStVerPlt(tests['lat'],"LAT")
-            pgp.mes2DPlt(tests['lat'],"avg-LAT")
-            pgp.mes2DPlt(tests['lat'],"max-LAT")
             pgp.latMes3DPlt(tests['lat'])
         #plots for throughout
         if SsdPerfTest.testKeys[2] in tests:

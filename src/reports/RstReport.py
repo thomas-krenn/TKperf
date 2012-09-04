@@ -104,12 +104,6 @@ class RstReport(object):
                 caption += "random writes, the 20% average window and the slope of the linear best fit line "
                 caption += "in the measurement window."
             if index == 2:
-                caption= "\tThe Average Latency Measurement Plot shows the mean latency over the measurement window. For every "
-                caption += "workload the latency of all block sizes is plotted."
-            if index == 3:
-                caption= "\tThe Max Latency Measurement Plot shows the maximum latency of the measurement window. For every "
-                caption += "workload the maximum latency of all block sizes is plotted."
-            if index == 4:
                 caption = "\tThe Latency Measurement 3D Plot shows the average latency on top and the max latency below it. "
                 caption += "For the measurement window every workload including all block sizes is plotted."
         if perftype == 'writesat':
