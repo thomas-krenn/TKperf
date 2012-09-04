@@ -88,16 +88,4 @@ if __name__ == '__main__':
         print "Starting SSD mode..."
         #of jobs and io depth is not given we use 1 for it
         myTest = SsdPerfTest(args.testname, args.filename,nj, iod)
-        myTest.fromXml()
-        #myTest.getXmlReport().printXml()
-        #myTest.run()
-        #myTest.toXml()
-#        myTest.fromXml()
-#        myTest.getReport().printXml()
-#        myTest.run()
-#        myTest.runWriteSatTest()
-#        myTest.runLatsTest()
-#        myTest.runTpTest()
-#        myTest.runIoDepthTest()
-        #print myTest.getTestname()
-        #print myTest.getFilename()
+        myTest.run()

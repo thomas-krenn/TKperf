@@ -117,7 +117,6 @@ class SsdPerfTest(PerfTest):
         Afterwards the plotting and rst methods for the specified tests are
         called.
         '''
-        #TODO read numjobs and iodepth from XML
         self.getXmlReport().fileToXml(self.getTestname())
         self.resetTests()
         root = self.getXmlReport().getXml()
@@ -144,6 +143,8 @@ class SsdPerfTest(PerfTest):
     def toRst(self):
         tests = self.getTests()
         rst = self.getRstReport()
+        
+        rst.addFooter()
         rst.addTitle()
         #fio version is the same for every test, just take the
         #one from iops
@@ -156,6 +157,9 @@ class SsdPerfTest(PerfTest):
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['iops'].getFigures()):
             rst.addFigure(fig,'iops',i)
+      
+        rst.addTable(tests['iops'].getTables()[0],ssd.IopsTest.bsLabels,'iops')
+        
         rst.addChapter("Throughput")
         rst.addTestInfo('tp')
         rst.addSection("Measurement Plots")
@@ -171,9 +175,6 @@ class SsdPerfTest(PerfTest):
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['writesat'].getFigures()):
             rst.addFigure(fig,'writesat',i)
-#        rst.addChapter("IO Depth")
-#        for fig in tests['iod'].getFigures():
-#            rst.addFigure(fig)
 
         rst.toRstFile()
         
@@ -209,7 +210,7 @@ class SsdPerfTest(PerfTest):
 
 class HddPerfTest(PerfTest):
     '''
-    A performance test for hdds consists of all hdd
+    A performance test for hdds consists of all hdd tests.
     '''
     
     ## Keys valid for test dictionary and xml file
@@ -228,6 +229,9 @@ class HddPerfTest(PerfTest):
         
     def run(self):
         self.runTests()
+        self.toXml()
+        self.getPlots()
+        self.toRst()
     
     def fromXml(self):
         '''
@@ -257,10 +261,19 @@ class HddPerfTest(PerfTest):
     def toRst(self):
         tests = self.getTests()
         rst = self.getRstReport()
+        rst.addFooter()
         rst.addTitle()
+        #fio version is the same for every test, just take the
+        #one from iops
         rst.addSetupInfo(tests['iops'].getFioJob().__str__())
+        rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
+        
         rst.addChapter("IOPS")
-        rst.addFigure(tests['iops'].getFigure())
+        rst.addFigure(tests['iops'].getFigure()[0])
+        rst.toRstFile()
+        
+        rst.addChapter("Throughput")
+        rst.addFigure(tests['tp'].getFigure()[0])
         rst.toRstFile()
         
     def getPlots(self):

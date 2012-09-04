@@ -42,12 +42,20 @@ class HddTest(DeviceTest):
 
     def getFioJob(self):
         return self.__fioJob
+    
     def getRndMatrices(self):
         return self.__tpRoundMatrices
+    
+    def getIod(self):
+        return self.__ioDepth
     
     def toXml(self,root):
      
         r = etree.Element(root)
+        
+        data = json.dumps(self.getIod())
+        e = etree.SubElement(r,'iodepth')
+        e.text = data
         
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
@@ -59,9 +67,9 @@ class HddTest(DeviceTest):
         
     def fromXml(self,root):
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
-        self.__rounds = json.loads(root.findtext('rndnr'))
+        HddTest.maxRnds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
-        logging.info(self.__rounds)
+        logging.info(HddTest.maxRnds)
         logging.info(self.__roundMatrices)
 
 class IopsTest(HddTest):

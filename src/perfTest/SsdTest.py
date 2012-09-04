@@ -101,7 +101,7 @@ class StdyTest(SsdTest):
     
     def __init__(self):
         
-        self.getFioJob().addKVArg("runtime","2")#FIXME
+        self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
         
         ## A list of matrices with the collected fio measurement values of each round.

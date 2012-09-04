@@ -273,7 +273,6 @@ def mes2DPlt(toPlot,mode):
         #the labels are r/w percentage of mixed workload
         plt.plot(x,mixWLds[i],'o-',
                   label=str(wlds[i])+'/'+str(100-wlds[i]))
-     
     
     if mode == 'IOPS':
         plt.yscale('log')
@@ -291,6 +290,8 @@ def mes2DPlt(toPlot,mode):
     plt.xticks(x,bsLabels)
     plt.savefig(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png')
+    #For latency and IOPS we also want the overview table
+    toPlot.addTable(mixWLds)
     
 def getBS(bsLabels):
     '''

@@ -27,7 +27,8 @@ class RstReport(object):
         print >>self.__rst,"IO perf test report"
         print >>self.__rst,"====================\n"
         print >>self.__rst,".. contents::"
-        print >>self.__rst,".. sectnum::\n"
+        print >>self.__rst,".. sectnum::"
+        print >>self.__rst,".. include:: <isonum.txt>\n"
         
     def addFooter(self):
         print >>self.__rst,".. |logo| image:: ../../../TK_Logo_RGB.png"
@@ -113,6 +114,33 @@ class RstReport(object):
                 caption += "writes over all rounds."
         self.addString(caption)
         
+    def addTable(self,table,labels,perftype):
+        '''
+        Adds a table to the restructured text.
+        @param table The table to insert into the report.
+        @param type The type of performance test.
+        '''
+        if perftype == 'iops':
+            val = StringIO()
+            print >>self.__rst,".. csv-table:: Average IOPS vs. Block Size and R/W Mix %"
+            print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 100/0, 95/5, 65/35, 50/50, 35/65, 5/95, 0/100\n"
+            l = list(labels)
+            t = list(table)
+            #reverse the block size in each table row, to start with 512B
+            for row in t:
+                row.reverse()
+            #also reverse labels
+            l.reverse()
+            for i in range(len(l)):
+                val.write("\t")
+                val.write(l[i] + ', ')
+                for j,elem in enumerate(row[i] for row in t):
+                    if j != 0:
+                        val.write(", ")
+                    val.write(str(round(elem,1)))
+                val.write("\n")
+            self.addString(val.getvalue())
+            val.close()
     
     def toRstFile(self):
         f = open(self.__testname+'.rst','w')
