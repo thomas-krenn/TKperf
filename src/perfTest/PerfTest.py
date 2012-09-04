@@ -157,7 +157,7 @@ class SsdPerfTest(PerfTest):
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['iops'].getFigures()):
             rst.addFigure(fig,'iops',i)
-      
+        rst.addSection("Measurement Window Summary Table")
         rst.addTable(tests['iops'].getTables()[0],ssd.IopsTest.bsLabels,'iops')
         
         rst.addChapter("Throughput")
@@ -165,11 +165,18 @@ class SsdPerfTest(PerfTest):
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['tp'].getFigures()):
             rst.addFigure(fig,'tp',i)
+        rst.addSection("Measurement Window Summary Table")    
+        rst.addTable(tests['tp'].getTables()[0],ssd.TPTest.bsLabels,'tp')
+            
         rst.addChapter("Latency")
         rst.addTestInfo('lat')
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['lat'].getFigures()):
             rst.addFigure(fig,'lat',i)
+        rst.addSection("Measurement Window Summary Table")    
+        rst.addTable(tests['lat'].getTables()[0],ssd.LatencyTest.bsLabels,'avg-lat')#avg lat 
+        rst.addTable(tests['lat'].getTables()[1],ssd.LatencyTest.bsLabels,'max-lat')#max lat
+        
         rst.addChapter("Write Saturation")
         rst.addTestInfo('writesat')
         rst.addSection("Measurement Plots")
@@ -185,12 +192,14 @@ class SsdPerfTest(PerfTest):
             pgp.stdyStConvPlt(tests['iops'],"IOPS")
             pgp.stdyStVerPlt(tests['iops'],"IOPS")
             pgp.mes2DPlt(tests['iops'],"IOPS")
+            pgp.mes3DPlt(tests['iops'],"IOPS")
         #plots for latency
         if SsdPerfTest.testKeys[1] in tests:
             pgp.stdyStConvPlt(tests['lat'],"LAT")
             pgp.stdyStVerPlt(tests['lat'],"LAT")
             pgp.mes2DPlt(tests['lat'],"avg-LAT")
             pgp.mes2DPlt(tests['lat'],"max-LAT")
+            pgp.latMes3DPlt(tests['lat'])
         #plots for throughout
         if SsdPerfTest.testKeys[2] in tests:
             pgp.tpStdyStConvPlt(tests['tp'], "read","ssd")

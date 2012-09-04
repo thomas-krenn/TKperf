@@ -8,7 +8,10 @@ from __future__ import division
 #matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from pylab import setp
+
 import numpy as np
+from copy import deepcopy
 
 import perfTest as pT
 
@@ -196,7 +199,7 @@ def IOPSplot(toPlot):
     
 def mes2DPlt(toPlot,mode):
     '''
-    Generate a measurement 2D plot.
+    Generate a measurement 2D plot and the measurement overview table.
     The plot includes:
     -Lines of the workloads
     -Each line consists of the average of IOPS/Latencies per round
@@ -283,7 +286,7 @@ def mes2DPlt(toPlot,mode):
         plt.ylabel("Latency (ms)")
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
-    plt.suptitle(mode+" Measurement Plot",fontweight='bold')
+    
     plt.xlabel("Block Size (Byte)")
     #scale axis to min and max
     plt.ylim((min_y*0.75,max_y*1.15))
@@ -292,7 +295,121 @@ def mes2DPlt(toPlot,mode):
     toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png')
     #For latency and IOPS we also want the overview table
     toPlot.addTable(mixWLds)
+
+def mes3DPlt(toPlot,mode):
+    '''
+    Generate a measurement 3D plot. This plot depends on the
+    mes2DPlt as there the measurement overview table is calculated.
+    @param toPlot A SsdTest object.
+    @param mode A string representing the test mode (IOPS|max-LAT|avg-LAT)
+    '''
+    colorTable = ['#0000FF','#008080','#00FFFF','#FFFF00','#00FF00','#FF00FF','#800000']
+    if mode == 'IOPS':
+        #Iops have only one measurement table
+        matrix = deepcopy(toPlot.getTables()[0])
+        #reverse to start with 0/100
+        matrix.reverse()
+        #reverse the block size in each table row, to start with 512B
+        for row in matrix:
+            row.reverse()
+        bsLabels = list(pT.SsdTest.IopsTest.bsLabels)
+        mixWlds = list(pT.SsdTest.IopsTest.mixWlds)
+    if mode == "avg-LAT" or mode == "max-LAT":
+        mixWlds = list(pT.SsdTest.LatencyTest.mixWlds)
+        bsLabels = list(pT.SsdTest.LatencyTest.bsLabels)
     
+    #define positions for bars
+    ypos = np.array([0.25] * len(bsLabels)) 
+    xpos = np.arange(0.25, len(bsLabels)+0.25, 1)
+    zpos = np.array([0] * len(bsLabels))
+    
+    #define widht and height (x,y) of bars
+    # z will be the measured values
+    dx = np.array([0.5] * len(bsLabels))
+    dy = np.array([0.5] * len(bsLabels))
+    
+    plt.clf
+    fig = plt.figure()
+    ax = Axes3D(fig)
+    for j,wl in enumerate(matrix):
+        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
+        for pos in range(len(ypos)):
+            ypos[pos] += 1
+            
+    ticksx = np.arange(0.5, len(bsLabels), 1)
+    bsLabels.reverse()
+    plt.xticks(ticksx, bsLabels)
+
+    ticksy = np.arange(0.5, len(mixWlds), 1)
+    mixWlds.reverse()
+    plt.yticks(ticksy,mixWlds)
+    
+    plt.suptitle(mode+" 3D Measurement Plot",fontweight='bold')
+    ax.set_xlabel('Block Size (Byte)')
+    ax.set_ylabel('R/W Mix%')
+    if mode == "avg-LAT" or mode == "max-LAT":
+        ax.set_zlabel('Latency (ms)')
+    if mode == 'IOPS':
+        ax.set_zlabel('IOPS',rotation='vertical')
+    plt.savefig(toPlot.getTestname()+'-'+mode+'-mes3DPlt.png',dpi=300)
+    toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-mes3DPlt.png')
+
+def latMes3DPlt(toPlot):
+    '''
+    Generate a measurement 3D plot for latency. This plot depends on the
+    mes2DPlt as there the measurement overview table is calculated.
+    @param toPlot A SsdTest object.
+    '''
+    colorTable = ['#0000FF','#008080','#00FFFF']
+    mixWlds = list(pT.SsdTest.LatencyTest.mixWlds)
+    bsLabels = list(pT.SsdTest.LatencyTest.bsLabels)
+
+    avgMatrix = deepcopy(toPlot.getTables()[0])
+    maxMatrix = deepcopy(toPlot.getTables()[1])
+    
+    #define positions for bars
+    ypos = np.array([0.25] * len(bsLabels)) 
+    xpos = np.arange(0.25, len(bsLabels)+0.25, 1)
+    zpos = np.array([0] * len(bsLabels))
+    
+    #define widht and height (x,y) of bars
+    # z will be the measured values
+    dx = np.array([0.5] * len(bsLabels))
+    dy = np.array([0.5] * len(bsLabels))
+    
+    plt.clf
+    fig = plt.figure()
+    ax = fig.add_subplot(2, 1, 1, projection='3d')
+    for j,wl in enumerate(avgMatrix):
+        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
+        for pos in range(len(ypos)):
+            ypos[pos] += 1
+    ax.xaxis.set_ticks([None]) 
+    ax.yaxis.set_ticks([None])
+    ax.set_zlabel('Latency (ms)',rotation='vertical')
+            
+    #Second subplot
+    ax = fig.add_subplot(2,1,2, projection='3d')
+    #reset ypos
+    ypos = np.array([0.25] * len(bsLabels)) 
+    for j,wl in enumerate(maxMatrix):
+        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
+        for pos in range(len(ypos)):
+            ypos[pos] += 1
+            
+    ticksx = np.arange(0.5, len(bsLabels), 1)
+    plt.xticks(ticksx, bsLabels)
+    ticksy = np.arange(0.5, len(mixWlds), 1)
+    plt.yticks(ticksy,mixWlds)
+    
+
+    plt.suptitle("LAT 3D Measurement Plot",fontweight='bold')
+    #ax.set_xlabel('Block Size (Byte)')
+    ax.set_ylabel('R/W Mix%')
+    ax.set_zlabel('Latency (ms)',rotation='vertical')
+    plt.savefig(toPlot.getTestname()+'-LAT-mes3DPlt.png',dpi=300)
+    toPlot.addFigure(toPlot.getTestname()+'-LAT-mes3DPlt.png')
+
 def getBS(bsLabels):
     '''
     Convert a list of string block size labels to a list of integers.
@@ -494,6 +611,9 @@ def tpMes2DPlt(toPlot):
     plt.clf()#clear
     x = getBS(pT.SsdTest.TPTest.bsLabels)
     for i in range(len(wlds)):
+        #Convert to MB/s
+        for v in range(len(wlds[i])):
+            wlds[i][v] = (wlds[i][v]) / 1024
         if i == 0:
             label = "read"
         else:
@@ -503,12 +623,13 @@ def tpMes2DPlt(toPlot):
     plt.xscale('log')
     plt.suptitle("TP Measurement Plot",fontweight='bold')
     plt.xlabel("Block Size (Byte)")
-    plt.ylabel("Bandwidth (KB/s)")
+    plt.ylabel("Bandwidth (MB/s)")
     plt.xticks(x,pT.SsdTest.TPTest.bsLabels)
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-TP-mes2DPlt.png')
+    toPlot.addTable(wlds)
     
 def ioDepthMes3DPlt(toPlot,rw):
     fig = plt.figure()
@@ -530,7 +651,7 @@ def ioDepthMes3DPlt(toPlot,rw):
     if rw == "randread": matrix = list(matrices[0][2])
     if rw == "randwrite": matrix = list(matrices[0][3])
     
-    #as IOPS are the mos for small sizes we revers the block sizes
+    #as IOPS are the most for small sizes we reverse the block sizes
     if rw == "randread" or rw == "randwrite":
         matrix.reverse()
     for j,bs in enumerate(matrix):

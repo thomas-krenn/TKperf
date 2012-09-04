@@ -4,6 +4,7 @@ Created on 9 Aug 2012
 @author: gschoenb
 '''
 from cStringIO import StringIO
+from copy import deepcopy
 
 import perfTest.SsdTest as ssd
 
@@ -77,6 +78,9 @@ class RstReport(object):
             if index == 2:
                 caption= "\tThe Measurement Plot shows the average of IOPS in the measurement window. For every "
                 caption += "workload the IOPS of all block sizes are plotted."
+            if index == 3:
+                caption= "\tThe Measurement 3D Plot shows the average of IOPS in the measurement window. For every "
+                caption += "workload the IOPS of all block sizes are plotted."
         if perftype == 'tp':
             if index == 0:
                 caption= "\tThe Read Steady State Convergence Plot shows the bandwidth for "
@@ -105,6 +109,9 @@ class RstReport(object):
             if index == 3:
                 caption= "\tThe Max Latency Measurement Plot shows the maximum latency of the measurement window. For every "
                 caption += "workload the maximum latency of all block sizes is plotted."
+            if index == 4:
+                caption = "\tThe Latency Measurement 3D Plot shows the average latency on top and the max latency below it. "
+                caption += "For the measurement window every workload including all block sizes is plotted."
         if perftype == 'writesat':
             if index == 0:
                 caption= "\tThe Write Saturation IOPS Plot shows the average IOPS of 4k random "
@@ -120,12 +127,14 @@ class RstReport(object):
         @param table The table to insert into the report.
         @param type The type of performance test.
         '''
+        #copy labels and values, don't want to change them
+        l = list(labels)
+        t = deepcopy(table)
+        
         if perftype == 'iops':
             val = StringIO()
             print >>self.__rst,".. csv-table:: Average IOPS vs. Block Size and R/W Mix %"
             print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 100/0, 95/5, 65/35, 50/50, 35/65, 5/95, 0/100\n"
-            l = list(labels)
-            t = list(table)
             #reverse the block size in each table row, to start with 512B
             for row in t:
                 row.reverse()
@@ -135,12 +144,25 @@ class RstReport(object):
             val = StringIO()
             print >>self.__rst,".. csv-table:: Average MB/s vs. Block Size and R/W"
             print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Read\", \"Write\"\n"
-            l = list(labels)
-            t = list(table)
+            
+        if perftype == 'avg-lat':
+            val = StringIO()
+            print >>self.__rst,".. csv-table:: Average Latency (ms) vs. Block Size and R/W Mix %"
+            print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 0/100, 65/35, 100/0\n"
+            #reverse to start with 0/100
+            t.reverse()
+        
+        if perftype == 'max-lat':
+            val = StringIO()
+            print >>self.__rst,".. csv-table:: Max Latency (ms) vs. Block Size and R/W Mix %"
+            print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 0/100, 65/35, 100/0\n"
+            #reverse to start with 0/100
+            t.reverse()
             
         for i in range(len(l)):
             val.write("\t")
             val.write(l[i] + ', ')
+            #access the matrix column wise
             for j,elem in enumerate(row[i] for row in t):
                 if j != 0:
                     val.write(", ")
