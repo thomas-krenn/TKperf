@@ -103,7 +103,7 @@ class RstReport(object):
                 caption= "\tThe Steady State Verification Plot shows the mean latency of 4k "
                 caption += "random writes, the 20% average window and the slope of the linear best fit line "
                 caption += "in the measurement window."
-            if index == 2:
+            if index == 4:
                 caption = "\tThe Latency Measurement 3D Plot shows the average latency on top and the max latency below it. "
                 caption += "For the measurement window every workload including all block sizes is plotted."
         if perftype == 'writesat':

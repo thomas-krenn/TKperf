@@ -172,6 +172,9 @@ class SsdPerfTest(PerfTest):
         rst.addTestInfo('lat')
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['lat'].getFigures()):
+            #index 2 and 3 are 2D measurement plots that are not required
+            #but we need them to generate the measurement overview table
+            if i == 2 or i == 3: continue
             rst.addFigure(fig,'lat',i)
         rst.addSection("Measurement Window Summary Table")    
         rst.addTable(tests['lat'].getTables()[0],ssd.LatencyTest.bsLabels,'avg-lat')#avg lat 
@@ -197,6 +200,8 @@ class SsdPerfTest(PerfTest):
         if SsdPerfTest.testKeys[1] in tests:
             pgp.stdyStConvPlt(tests['lat'],"LAT")
             pgp.stdyStVerPlt(tests['lat'],"LAT")
+            pgp.mes2DPlt(tests['lat'],"avg-LAT")
+            pgp.mes2DPlt(tests['lat'],"max-LAT")
             pgp.latMes3DPlt(tests['lat'])
         #plots for throughout
         if SsdPerfTest.testKeys[2] in tests:
