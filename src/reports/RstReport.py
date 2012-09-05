@@ -83,16 +83,14 @@ class RstReport(object):
                 caption += "workload the IOPS of all block sizes are plotted."
         if perftype == 'tp':
             if index == 0:
-                caption= "\tThe Read Steady State Convergence Plot shows the bandwidth for "
-                caption += "all block sizes of seq. reads over all rounds."
+                caption= "\tThe Read/Write Steady State Convergence Plot shows the bandwidth for "
+                caption += "all block sizes of seq. reads over all rounds. On the top the write throughput is plotted, below "
+                caption += "the throughput for read."
             if index == 1:
-                caption= "\tThe Write Steady State Convergence Plot shows the bandwidth for "
-                caption += "all block sizes of seq. writes over all rounds."
-            if index == 2:
                 caption= "\tThe Steady State Verification Plot shows the bandwidth of 1024k "
                 caption += "seq. writes, the 20% average window and the slope of the linear best fit line "
                 caption += "in the measurement window."
-            if index == 3:
+            if index == 2:
                 caption= "\tThe Measurement Plot shows the average bandwidth of reads and writes in the measurement window. "
                 caption += "For all block sizes the seq. read and write bandwidth is plotted."
         if perftype == 'lat':
