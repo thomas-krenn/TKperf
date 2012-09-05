@@ -377,7 +377,7 @@ def latMes3DPlt(toPlot):
     dx = np.array([0.5] * len(bsLabels))
     dy = np.array([0.5] * len(bsLabels))
     
-    plt.clf
+    plt.clf()
     fig = plt.figure()
     ax = fig.add_subplot(2, 1, 1, projection='3d')
     for j,wl in enumerate(avgMatrix):
@@ -485,6 +485,7 @@ def writeSatLatPlt(toPlot):
     #get the average latencies from the lat list (last elem)
     av_lats = []
     for i in lats_l:
+        #convert from us to ms
         av_lats.append((i[2]) / 1000)
     
     plt.clf()#clear plot
@@ -572,7 +573,75 @@ def tpStdyStConvPlt(toPlot,mode,dev):
     else:
         plt.savefig(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png',dpi=300)
         toPlot.addFigure(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png')
+
+def tpRWStdyStConvPlt(toPlot):
+    '''
+    Generate one steady state convergence plot for throughput read and write measurements.
+    The plot consists of:
+    -Measured bandwidths per round per block size
+    -All lines are the different block sizes
+    -x axes is the number of all rounds
+    -y axes is the bw of the corresponding round
+    The top plot is write, below read
+    The figure is saved as SsdTest.Testname-TP-RW-stdyStConvPlt.png.
+    @param toPlot A SsdTest object.
+    '''
+    matrices = deepcopy(toPlot.getRndMatrices())
+    #TODO Change to getRnds()?
+    rnds = len(matrices[0][0])#fetch the number of total rounds
+    bsLens = len(matrices)#fetch the number of bs, each row is a bs in the matrix
+    bsLabels = pT.SsdTest.TPTest.bsLabels
     
+    #initialize matrix for plotting
+    lines = []
+    for i in range(bsLens):
+        lines.append([])
+    
+    #values for scaling the axes
+    max_y = 0
+    min_y = 0
+    
+    plt.clf()#clear
+    x = range(rnds)#determined by len of matrix
+    
+    plt.clf
+    fig = plt.figure()
+    ax = fig.add_subplot(2, 1, 1)
+    for i,rndMat in enumerate(matrices):
+        row = rndMat[1]#plot the write row
+        #convert to MB/s
+        for v in range(len(row)):
+            row[v] = row[v] / 1024
+        #calc min,man to scale axes
+        min_y,max_y = getMinMax(row, min_y, max_y)
+        ax.plot(x,row,'o-',label='bs='+bsLabels[i])
+    plt.xticks(x)
+    plt.ylim((0,max_y*1.15))
+    plt.legend()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.10),
+               ncol=5, fancybox=True, shadow=True,prop={'size':11})
+    plt.ylabel("Write TP (MB/s)")
+     
+    ax = fig.add_subplot(2, 1, 2)
+    for i,rndMat in enumerate(matrices):
+        row = rndMat[0]#plot the write row
+        #convert to MB/s
+        for v in range(len(row)):
+            row[v] = row[v] / 1024
+        #calc min,man to scale axes
+        min_y,max_y = getMinMax(row, min_y, max_y)
+        ax.plot(x,row,'o-',label='bs='+bsLabels[i])
+    plt.xticks(x)
+    plt.ylim((0,max_y*1.15))
+    plt.ylabel("Read TP (MB/s)")
+
+    plt.xlabel("Round #")
+    plt.suptitle("TP R/W Steady State Convergence Plot",fontweight='bold')
+
+    plt.savefig(toPlot.getTestname()+'-TP-RW-stdyStConvPlt.png',dpi=300)
+    toPlot.addFigure(toPlot.getTestname()+'-TP-RW-stdyStConvPlt.png')
+
+
 def tpMes2DPlt(toPlot):
     '''
     Generate a measurement 2D plot for throughput measurements.
@@ -593,7 +662,7 @@ def tpMes2DPlt(toPlot):
         #in each row will be the different block sizes
         for bs in range(len(pT.SsdTest.TPTest.bsLabels)):
             wlds[i].append(0)
-    matrices = toPlot.getRndMatrices()    
+    matrices = deepcopy(toPlot.getRndMatrices())    
     
     #each row of the matrix is a block size
     for j,bs in enumerate(matrices):

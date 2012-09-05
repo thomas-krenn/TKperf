@@ -209,6 +209,7 @@ class SsdPerfTest(PerfTest):
             pgp.tpStdyStConvPlt(tests['tp'], "write","ssd")
             pgp.stdyStVerPlt(tests['tp'],"TP")
             pgp.tpMes2DPlt(tests['tp'])
+            pgp.tpRWStdyStConvPlt(tests['tp'])
         #plots for write saturation
         if SsdPerfTest.testKeys[3] in tests:
             pgp.writeSatIOPSPlt(tests['writesat'])
