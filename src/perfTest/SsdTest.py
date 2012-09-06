@@ -101,7 +101,7 @@ class StdyTest(SsdTest):
     
     def __init__(self):
         
-        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","2")#FIXME
         self.getFioJob().addSglArg("time_based")
         
         ## A list of matrices with the collected fio measurement values of each round.
@@ -122,6 +122,9 @@ class StdyTest(SsdTest):
         ##Slope of steady regression line.
         self.__stdySlope = []
         
+        ##States if the steady state has been reached or not
+        self.__reachStdyState = None
+        
     def getRndMatrices(self):
         return self.__roundMatrices
     def getRnds(self):
@@ -134,6 +137,8 @@ class StdyTest(SsdTest):
         return self.__stdyAvg
     def getStdySlope(self):
         return self.__stdySlope
+    def getReachStdyState(self):
+        return self.__reachStdyState
     
     def setRnds(self,r):
         self.__rounds = r
@@ -145,21 +150,24 @@ class StdyTest(SsdTest):
         self.__stdyAvg = a
     def setStdySlope(self,s):
         self.__stdySlope = s
+    def setReachStdyState(self,s):
+        self.__reachStdyState = s
     
     def checkSteadyState(self,xs,ys):
         '''
         Checks if the steady is reached for the given values.
         The steady state is defined by the allowed data excursion from the average (+-10%), and
         the allowed slope excursion of the linear regression best fit line (+-5%).
-        @return [True,avg,k,d] (k*x+d is slope line) if steady state is reached, [False,0,0,0] if not
+        @return [True,avg,k,d] (k*x+d is slope line) if steady state is reached, [False,avg,k,d] if not
         '''
+        stdyState = True
         maxY = max(ys)
         minY = min(ys)
         avg = sum(ys)/len(ys)#calc average of values
         #allow max excursion of 20% of average
         avgRange = avg * 0.20
         if (maxY - minY) > avgRange:
-            return [False,0,0,0]
+            stdyState = False
         
         #do linear regression to calculate slope of linear best fit
         y = np.array(ys)
@@ -175,11 +183,15 @@ class StdyTest(SsdTest):
             slopeExc *= -1
         maxSlopeExc = avg * 0.10 #allowed are 10% of avg
         if slopeExc > maxSlopeExc:
-            return [False,0,0,0]
+            stdyState = False
         
-        return [True,avg,k,d]
+        return [stdyState,avg,k,d]
 
     def logTestData(self):
+        '''
+        Log information about the steady state and how it 
+        has been reached.
+        '''
         logging.info("Round matrices: ")
         logging.info(self.__roundMatrices)
         logging.info("Rounds of steady state:")
@@ -192,9 +204,17 @@ class StdyTest(SsdTest):
         logging.info(self.__stdyAvg)
         logging.info("Stopped after round number:")
         logging.info(self.__rounds)
+        logging.info("Reached steady state:")
+        logging.info(self.__reachStdyState)
         
     def toXml(self,root):
-     
+        '''
+        Dump the information about a steady state test to xml. This is
+        useful if changes to reporting functions are made, then the
+        report can be generated again from the xml file.
+        @param root The xml root tag to append the new elements to
+        @return An xml root element containing the information about the test.
+        ''' 
         r = etree.Element(root)
         
         data = json.dumps(self.getNj())
@@ -225,6 +245,10 @@ class StdyTest(SsdTest):
         e = etree.SubElement(r,'stdyavg')
         e.text = data
         
+        data = json.dumps(self.__reachStdyState)
+        e = etree.SubElement(r,'reachStdyState')
+        e.text = data
+        
         data = json.dumps(self.__rounds)
         e = etree.SubElement(r,'rndnr')
         e.text = data
@@ -234,6 +258,12 @@ class StdyTest(SsdTest):
         
         
     def fromXml(self,root):
+        '''
+        Loads the information from the given xml element an initializes
+        the object attributes.
+        @param root The given element containing the information about
+        the object to be initialized.
+        ''' 
         self.setNj(json.loads(root.findtext('numjobs')))
         self.setIod(json.loads(root.findtext('iodepth')))
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
@@ -241,6 +271,7 @@ class StdyTest(SsdTest):
         self.__stdyValues = json.loads(root.findtext('stdyvalues'))
         self.__stdySlope = json.loads(root.findtext('stdyslope'))
         self.__stdyAvg = json.loads(root.findtext('stdyavg'))
+        self.__reachStdyState = json.loads(root.findtext('reachStdyState'))
         self.__rounds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
         self.logTestData()
@@ -318,16 +349,18 @@ class IopsTest(StdyTest):
             #check if the steady state has been reached in the last 5 rounds
             if i >= 4:
                 steadyState,avg,k,d = self.checkSteadyState(xranges,steadyValues)
-                #FIXME also write values if steady state is false
                 if steadyState == True:
-                    self.setRnds(i)
-                    self.setStdyRnds(xranges)
-                    self.setStdyValues(steadyValues)
-                    self.setStdyAvg(avg)
-                    self.getStdySlope().extend([k,d])
-                    return True
-        #TODO How to handle the case if the steady state has not been reached
-        return False
+                    self.setReachStdyState(True)
+                    break
+        self.setRnds(i)
+        self.setStdyRnds(xranges)
+        self.setStdyValues(steadyValues)
+        self.setStdyAvg(avg)
+        self.getStdySlope().extend([k,d])
+        #Check if steady state has been reached
+        if self.getReachStdyState() != True:
+            self.setReachStdyState(False)
+        return self.getReachStdyState()
 
     def run(self):
         '''
@@ -342,8 +375,9 @@ class IopsTest(StdyTest):
             exit(1)
         logging.info("########### Starting IOPS Test ###########")
         steadyState = self.runRounds()
+        if steadyState == False:
+            logging.info("# Steady State has not been reached for IOPS Test.")
         self.logTestData()
-
         return True
 
 class LatencyTest(StdyTest):
@@ -365,6 +399,9 @@ class LatencyTest(StdyTest):
         SsdTest.__init__(self, testname, filename, nj, iod)
         StdyTest.__init__(self)
         self.getFioJob().addKVArg("rw","randrw")
+        #For latency the specification says to use 1 job/thread, 1 outstanding IO
+        self.getFioJob().addKVArg("numjobs","1")
+        self.getFioJob().addKVArg("iodepth","1")
             
     def testRound(self):
         '''
@@ -431,14 +468,17 @@ class LatencyTest(StdyTest):
             if i >= 4:
                 steadyState,avg,k,d = self.checkSteadyState(xranges,steadyValues)
                 if steadyState == True:
-                    self.setRnds(i)
-                    self.setStdyRnds(xranges)
-                    self.setStdyValues(steadyValues)
-                    self.setStdyAvg(avg)
-                    self.getStdySlope().extend([k,d])
-                    return True
-        #TODO How to handle the case if the steady state has not been reached
-        return False
+                    self.setReachStdyState(True)
+                    break
+        self.setRnds(i)
+        self.setStdyRnds(xranges)
+        self.setStdyValues(steadyValues)
+        self.setStdyAvg(avg)
+        self.getStdySlope().extend([k,d])
+        #Check if steady state has been reached
+        if self.getReachStdyState() != True:
+            self.setReachStdyState(False)
+        return self.getReachStdyState()
         
     def run(self):
         '''
@@ -453,6 +493,8 @@ class LatencyTest(StdyTest):
             exit(1)
         logging.info("########### Starting Latency Test ###########")
         steadyState = self.runRounds()
+        if steadyState == False:
+            logging.info("# Steady State has not been reached for Latency Test.")
         self.logTestData()
         return True
 
@@ -533,7 +575,7 @@ class TPTest(StdyTest):
                 #if the rounds have been set by steady state for 1M block size
                 #we need to carry out only i rounds for the other block sizes
                 #as steady state has already been reached
-                if self.getRnds != 0 and self.getRnds == i:
+                if self.getRnds() != 0 and self.getRnds() == i:
                     self.getRndMatrices().append([tpRead_l,tpWrite_l])
                     break
                 
@@ -547,21 +589,25 @@ class TPTest(StdyTest):
                         #check if the steady state has been reached in the last 5 rounds
                     if i >= 4:
                         steadyState,avg,k,d = self.checkSteadyState(xrangesWrite,stdyValsWrite)
+                        #reached a steady state
                         if steadyState == True:
+                            self.setReachStdyState(True)
+                            logging.info("Reached steady state at round %d",i)
+                        #running from 0 to 24
+                        if i == ((StdyTest.testRnds) - 1):
+                            self.setReachStdyState(False)
+                            logging.warn("#Did not reach steady state for bs %s",j)
+                        #In both cases we need the information about the rounds
+                        if steadyState == True or i == ((StdyTest.testRnds) - 1):
                             self.setRnds(i)
                             self.setStdyRnds(xrangesWrite)
                             self.setStdyValues(stdyValsWrite)
                             self.setStdyAvg(avg)
                             self.getStdySlope().extend([k,d])
-                            logging.info("Reached steady state at round %d",i)
-                            #as we have reached the steady state we can use the results from the rounds
-                            self.getRndMatrices().append([tpRead_l,tpWrite_l])
+                            self.getRndMatrices().append([tpRead_l,tpWrite_l])  
+                            #Done with 1M block size
                             break
-            #Here we have not reached the steady state after 25 rounds
-            #FIXME How to handle the case if steady state is not reached
-            if steadyState == False:
-                logging.warn("#Did not reach steady state for bs %s",j)
-            return steadyState
+        return self.getReachStdyState()
         
     def run(self):
         '''
@@ -570,8 +616,9 @@ class TPTest(StdyTest):
         '''
         logging.info("########### Starting Throughput Test ###########")
         steadyState = self.runRounds()
-        self.logTestData(self)
-        
+        if steadyState == False:
+            logging.info("# Steady State has not been reached for Throughput Test.")
+        self.logTestData()
         return True
 
 class WriteSatTest(SsdTest):
@@ -586,7 +633,7 @@ class WriteSatTest(SsdTest):
         SsdTest.__init__(self, testname, filename, nj, iod)
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
-        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","2")#FIXME
         self.getFioJob().addSglArg("time_based")
         
         ##Number of rounds until write saturation test ended
@@ -715,7 +762,7 @@ class IodTest(SsdTest):
         SsdTest.__init__(self, testname, filename, nj, iod)
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
-        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","2")#FIXME
         self.getFioJob().addSglArg("time_based")
         
         ##Number of rounds until write saturation test ended.
@@ -790,7 +837,7 @@ class IodTest(SsdTest):
         for i in range(maxRounds):
             logging.info("######")
             logging.info("Round nr. "+str(i))
-            writeIO,roundMatrix = self.testRnd()()
+            writeIO,roundMatrix = self.testRnd()
             self.__roundMatrices.append(roundMatrix)
             totWriteIO += writeIO
             

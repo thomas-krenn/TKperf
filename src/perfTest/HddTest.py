@@ -44,10 +44,13 @@ class HddTest(DeviceTest):
         return self.__fioJob
     
     def getRndMatrices(self):
-        return self.__tpRoundMatrices
+        return self.__RoundMatrices
     
     def getIod(self):
         return self.__ioDepth
+    
+    def setIod(self,iod):
+        self.__ioDepth = iod
     
     def toXml(self,root):
      
@@ -66,6 +69,7 @@ class HddTest(DeviceTest):
         e.text = data
         
     def fromXml(self,root):
+        self.setIod(json.loads(root.findtext('iodepth')))
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         HddTest.maxRnds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")

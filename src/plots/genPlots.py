@@ -291,6 +291,7 @@ def mes2DPlt(toPlot,mode):
     #scale axis to min and max
     plt.ylim((min_y*0.75,max_y*1.15))
     plt.xticks(x,bsLabels)
+    plt.suptitle(mode+" Measurement Plot",fontweight='bold')
     plt.savefig(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png')
     #For latency and IOPS we also want the overview table

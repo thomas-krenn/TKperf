@@ -3,6 +3,10 @@ Created on 07.08.2012
 
 @author: gschoenb
 '''
+import logging
+import subprocess
+from lxml import etree
+
 import perfTest.SsdTest as ssd
 import perfTest.HddTest as hdd
 from reports.XmlReport import XmlReport
@@ -33,6 +37,9 @@ class PerfTest(object):
         
         ## Dictionary of tests to carry out
         self.__tests = {}
+        
+        ## Information about the tested device fetched via hdparm or a desc file
+        self.__deviceInfo = None
 
     def getTestname(self):
         return self.__testname
@@ -40,18 +47,97 @@ class PerfTest(object):
     def getFilename(self):
         return self.__filename
     
+    def getDevInfo(self):
+        return self.__deviceInfo
+    
+    def readDevInfoHdparm(self):
+        '''
+        Read the device information via hdparm -I. If an error occured
+        the script is stopped and an error message to use a description
+        file is printed to the log file.
+        @return True if the device info was set, False if not.
+        '''
+        #device info has already been set
+        if self.__deviceInfo != None:
+            return True
+        
+        out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("hdparm -I encountered an error: " + stderr)
+            logging.error("Please use a description file to set device information!")
+            return False
+        else:
+            for line in stdout.split('\n'):
+                if line.find("questionable sense data") > -1 or line.find("bad/missing sense data") > -1:
+                    logging.error("hdparm sense data may be incorrect!")
+                    logging.error("Please use a description file to set device information!")
+                    return False
+                
+                self.__deviceInfo = ""
+                if line.find("Model Number"):
+                    self.__deviceInfo += line
+                if line.find("Serial Number"):
+                    self.__deviceInfo += line
+                if line.find("Firmware Revision"):
+                    self.__deviceInfo += line 
+                if line.find("Media Serial Num"):
+                    self.__deviceInfo += line       
+                if line.find("Media Manufacturer"):
+                    self.__deviceInfo += line
+            return True
+
+    def readDevInfoFile(self,fd):
+        '''
+        Reads the device description from a file. This is necessary if
+        the device informaiton cannot be fetched via hdparm.
+        @param fd The path to the description file, has to be opened already.
+        '''
+        self.__deviceInfo = fd.read()
+        fd.close()
+    
+    def setDevInfo(self,str):
+        '''
+        Init the device information with the given string.
+        @param str The device information as string.
+        '''
+        self.__deviceInfo = str
+
     def getTests(self):
         return self.__tests
     
     def addTest(self,key,test):
+        '''
+        Add a test to the test dictionary.
+        @param key The key for the test in the dictionary.
+        @param test The test object to be added.
+        '''
         self.__tests[key] = test
     
     def resetTests(self):
+        '''
+        Clear the dictionary containing the tests.
+        '''
         self.__tests.clear()
     
     def runTests(self):
-        for test in self.__tests:
-            test.run()
+        '''
+        Call the run method of every test in the test dictionary. The run method
+        of a test is its core function where the performance test is carried out.
+        '''
+        #sort per key to ensure tests have the same order
+        sorted(self.__tests.items())
+        for k,v in self.__tests.items():
+            print "Starting test: " + k
+            v.run()
+    
+    def addSglArgToTests(self,key):
+        '''
+        Adds a single key argument to the Fio job of every test.
+        @param key The argument to be added to the job.
+        '''
+        for v in self.__tests.values():
+            v.getFioJob().addSglArg(key)
     
     def getXmlReport(self):
         return self.__xmlReport
@@ -61,14 +147,19 @@ class PerfTest(object):
     
     def toXml(self):
         '''
+        First the device information is written to the xml file
         Calls for every test in the test dictionary the toXMl method
         and writes the results to the xml file.
         '''
         tests = self.getTests()
         e = self.getXmlReport().getXml()
         
+        #Add the device information to the xml file
+        dev = etree.SubElement(e,'devInfo')
+        dev.text = self.__deviceInfo
+        
         #call the xml function for every test in the dictionary
-        #TODO Sort the dict
+        sorted(self.__tests.items())
         for k,v in tests.iteritems():
             e.append(v.toXml(k))
         
@@ -120,7 +211,12 @@ class SsdPerfTest(PerfTest):
         self.getXmlReport().fileToXml(self.getTestname())
         self.resetTests()
         root = self.getXmlReport().getXml()
+        
+        #first read the device information from xml
+        self.setDevInfo(self.root.find('devInfo'))
+        
         for tag in SsdPerfTest.testKeys:
+            #check which test tags are in the xml file
             for elem in root.iterfind(tag):
                 test = None
                 if elem.tag == SsdPerfTest.testKeys[0]:
@@ -133,6 +229,7 @@ class SsdPerfTest(PerfTest):
                     test = ssd.WriteSatTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
                 if elem.tag == SsdPerfTest.testKeys[4]:
                     test = ssd.IodTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                #we found a tag in the xml file, now we ca read the data from xml
                 if test != None:
                     test.fromXml(elem)
                     self.addTest(tag, test)
@@ -148,6 +245,7 @@ class SsdPerfTest(PerfTest):
         rst.addTitle()
         #fio version is the same for every test, just take the
         #one from iops
+        rst.addDevInfo(self.getDevInfo())
         rst.addSetupInfo(tests['iops'].getFioJob().__str__())
         rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
         rst.addGeneralInfo()
@@ -255,13 +353,17 @@ class HddPerfTest(PerfTest):
         self.getXmlReport().fileToXml(self.getTestname())
         self.resetTests()
         root = self.getXmlReport().getXml()
+        
+        #first read the device information from xml
+        self.setDevInfo(self.root.find('devInfo'))
+
         for tag in HddPerfTest.testKeys:
             for elem in root.iterfind(tag):
                 test = None
                 if elem.tag == HddPerfTest.testKeys[0]:
-                    test = hdd.IopsTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                    test = hdd.IopsTest(self.getTestname(),self.getFilename,self.__iod)
                 if elem.tag == HddPerfTest.testKeys[1]:
-                    test = hdd.TPTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                    test = hdd.TPTest(self.getTestname(),self.getFilename,self.__iod)
                 if test != None:
                     test.fromXml(elem)
                     self.addTest(tag, test)
@@ -274,6 +376,7 @@ class HddPerfTest(PerfTest):
         rst = self.getRstReport()
         rst.addFooter()
         rst.addTitle()
+        rst.addDevInfo(self.getDevInfo())
         #fio version is the same for every test, just take the
         #one from iops
         rst.addSetupInfo(tests['iops'].getFioJob().__str__())

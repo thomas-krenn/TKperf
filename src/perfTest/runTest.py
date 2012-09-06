@@ -32,6 +32,8 @@ if __name__ == '__main__':
     parser.add_argument("-nj","--numjobs",help="specify number of jobs for fio",type=int)
     parser.add_argument("-iod","--iodepth",help="specify iodepth for libaio used by fio",type=int)
     parser.add_argument("-xml","--fromxml",help="don't run tests but load test objects from xml file",action='store_true')
+    parser.add_argument("-rfb","--refill_buffers",help="use Fio's refill buffers option to circumvent any compression of devices",action='store_true')
+    parser.add_argument("-dsc","--desc_file",help="use a description file for the tested device if hdparm doesn't work correctly",type=argparse.FileType('r'))
     
     args = parser.parse_args()
     if args.debug == True:
@@ -60,7 +62,7 @@ if __name__ == '__main__':
         
     #check if iodepth is used
     if args.numjobs == None:
-            nj = 1
+        nj = 1
     else:
         nj = args.numjobs
     if args.iodepth == None:
@@ -87,5 +89,17 @@ if __name__ == '__main__':
         
         print "Starting SSD mode..."
         #of jobs and io depth is not given we use 1 for it
-        myTest = SsdPerfTest(args.testname, args.filename,nj, iod)
+        myTest = SsdPerfTest(args.testname, args.filename, nj, iod)
+        if args.refill_buffers == True:
+            myTest.addSglArgToTests('refill_buffers')
+        if myTest.readDevInfoHdparm() != True:
+            if args.desc_file == None:
+                print "### Error! ###"
+                print "Please use a description file for the current device."
+                print "The information via hdparm -I is not reliable."
+                print "Use -dsc DESC_FILE to provide the information"
+                exit(0)
+            else:
+                myTest.readDevInfoFile(args.desc_file)
+        print myTest.getDevInfo()
         myTest.run()

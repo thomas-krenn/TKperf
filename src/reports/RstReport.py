@@ -170,6 +170,16 @@ class RstReport(object):
         self.__rst.close()
         f.close()
         
+    def addDevInfo(self,str):
+        '''
+        Add info about the tested device to the report.
+        @param str The device information from hdparm or the dsc file.
+        ''' 
+        self.addChapter("Device Information")
+        self.addString("Tested Device:\n")
+        for line in str.split('\n'):
+            print >>self.__rst,line
+            
     def addSetupInfo(self,str):
         '''
         Add info about the version of Fio to the report.
