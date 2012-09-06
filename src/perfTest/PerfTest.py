@@ -85,6 +85,7 @@ class PerfTest(object):
                     self.__deviceInfo += line       
                 if line.find("Media Manufacturer"):
                     self.__deviceInfo += line
+            logging.info("# Testing device: " + self.__deviceInfo)
             return True
 
     def readDevInfoFile(self,fd):
