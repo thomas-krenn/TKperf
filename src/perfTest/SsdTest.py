@@ -101,7 +101,7 @@ class StdyTest(SsdTest):
     
     def __init__(self):
         
-        self.getFioJob().addKVArg("runtime","2")#FIXME
+        self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
         
         ## A list of matrices with the collected fio measurement values of each round.
@@ -633,7 +633,7 @@ class WriteSatTest(SsdTest):
         SsdTest.__init__(self, testname, filename, nj, iod)
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
-        self.getFioJob().addKVArg("runtime","2")#FIXME
+        self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
         
         ##Number of rounds until write saturation test ended
@@ -762,7 +762,7 @@ class IodTest(SsdTest):
         SsdTest.__init__(self, testname, filename, nj, iod)
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
-        self.getFioJob().addKVArg("runtime","2")#FIXME
+        self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
         
         ##Number of rounds until write saturation test ended.

@@ -91,7 +91,7 @@ class IopsTest(HddTest):
 
         HddTest.__init__(self, testname, filename, iod)
         self.getFioJob().addKVArg("rw","randrw")
-        self.getFioJob().addKVArg("runtime","10")#FIXME Change to 60 seconds
+        self.getFioJob().addKVArg("runtime","60")
     
     def testRound(self,offset,size):
         '''
