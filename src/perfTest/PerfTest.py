@@ -61,30 +61,33 @@ class PerfTest(object):
         if self.__deviceInfo != None:
             return True
         
-        out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        (stdout,stderr) = out.communicate()
+        #out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        #(stdout,stderr) = out.communicate()
+        file = open("hdparm.dsc",'r')
+        stdout = file.read()
+        stderr = ''
         if stderr != '':
             logging.error("hdparm -I encountered an error: " + stderr)
             logging.error("Please use a description file to set device information!")
             return False
         else:
+            self.__deviceInfo = ""
             for line in stdout.split('\n'):
                 if line.find("questionable sense data") > -1 or line.find("bad/missing sense data") > -1:
                     logging.error("hdparm sense data may be incorrect!")
                     logging.error("Please use a description file to set device information!")
                     return False
                 
-                self.__deviceInfo = ""
                 if line.find("Model Number") > -1:
-                    self.__deviceInfo += line
+                    self.__deviceInfo += line + '\n'
                 if line.find("Serial Number") > -1:
-                    self.__deviceInfo += line
+                    self.__deviceInfo += line +'\n'
                 if line.find("Firmware Revision") > -1:
-                    self.__deviceInfo += line 
+                    self.__deviceInfo += line + '\n'
                 if line.find("Media Serial Num") > -1:
-                    self.__deviceInfo += line       
+                    self.__deviceInfo += line + '\n'
                 if line.find("Media Manufacturer") > -1:
-                    self.__deviceInfo += line
+                    self.__deviceInfo += line + '\n'
             logging.info("# Testing device: " + self.__deviceInfo)
             return True
 
