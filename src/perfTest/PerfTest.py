@@ -61,11 +61,8 @@ class PerfTest(object):
         if self.__deviceInfo != None:
             return True
         
-        #out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        #(stdout,stderr) = out.communicate()
-        file = open("hdparm.dsc",'r')
-        stdout = file.read()
-        stderr = ''
+        out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("hdparm -I encountered an error: " + stderr)
             logging.error("Please use a description file to set device information!")
