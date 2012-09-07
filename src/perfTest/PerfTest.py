@@ -75,15 +75,15 @@ class PerfTest(object):
                     return False
                 
                 self.__deviceInfo = ""
-                if line.find("Model Number"):
+                if line.find("Model Number") > -1:
                     self.__deviceInfo += line
-                if line.find("Serial Number"):
+                if line.find("Serial Number") > -1:
                     self.__deviceInfo += line
-                if line.find("Firmware Revision"):
+                if line.find("Firmware Revision") > -1:
                     self.__deviceInfo += line 
-                if line.find("Media Serial Num"):
+                if line.find("Media Serial Num") > -1:
                     self.__deviceInfo += line       
-                if line.find("Media Manufacturer"):
+                if line.find("Media Manufacturer") > -1:
                     self.__deviceInfo += line
             logging.info("# Testing device: " + self.__deviceInfo)
             return True
