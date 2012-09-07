@@ -246,7 +246,7 @@ class StdyTest(SsdTest):
         e.text = data
         
         data = json.dumps(self.__reachStdyState)
-        e = etree.SubElement(r,'reachStdyState')
+        e = etree.SubElement(r,'reachstdystate')
         e.text = data
         
         data = json.dumps(self.__rounds)
@@ -271,7 +271,7 @@ class StdyTest(SsdTest):
         self.__stdyValues = json.loads(root.findtext('stdyvalues'))
         self.__stdySlope = json.loads(root.findtext('stdyslope'))
         self.__stdyAvg = json.loads(root.findtext('stdyavg'))
-        self.__reachStdyState = json.loads(root.findtext('reachStdyState'))
+        self.__reachStdyState = json.loads(root.findtext('reachstdystate'))
         self.__rounds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
         self.logTestData()

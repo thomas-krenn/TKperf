@@ -246,4 +246,3 @@ class DeviceTest(object):
                                             else:
                                                 logging.info("#Security still enabled for hdparm")
                                                 return False
-                    

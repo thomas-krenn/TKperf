@@ -6,6 +6,7 @@ Created on 07.08.2012
 import logging
 import subprocess
 from lxml import etree
+import json
 
 import perfTest.SsdTest as ssd
 import perfTest.HddTest as hdd
@@ -156,8 +157,8 @@ class PerfTest(object):
         e = self.getXmlReport().getXml()
         
         #Add the device information to the xml file
-        dev = etree.SubElement(e,'devInfo')
-        dev.text = self.__deviceInfo
+        dev = etree.SubElement(e,'devinfo')
+        dev.text = json.dumps(self.__deviceInfo)
         
         #call the xml function for every test in the dictionary
         sorted(self.__tests.items())
@@ -214,7 +215,7 @@ class SsdPerfTest(PerfTest):
         root = self.getXmlReport().getXml()
         
         #first read the device information from xml
-        self.setDevInfo(self.root.find('devInfo'))
+        self.setDevInfo(json.loads(root.findtext('devinfo')))
         
         for tag in SsdPerfTest.testKeys:
             #check which test tags are in the xml file
@@ -252,7 +253,7 @@ class SsdPerfTest(PerfTest):
         rst.addGeneralInfo()
         
         rst.addChapter("IOPS")
-        rst.addTestInfo('iops')
+        rst.addTestInfo('iops',tests['iops'])
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['iops'].getFigures()):
             rst.addFigure(fig,'iops',i)
@@ -260,7 +261,7 @@ class SsdPerfTest(PerfTest):
         rst.addTable(tests['iops'].getTables()[0],ssd.IopsTest.bsLabels,'iops')
         
         rst.addChapter("Throughput")
-        rst.addTestInfo('tp')
+        rst.addTestInfo('tp',tests['tp'])
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['tp'].getFigures()):
             rst.addFigure(fig,'tp',i)
@@ -268,7 +269,7 @@ class SsdPerfTest(PerfTest):
         rst.addTable(tests['tp'].getTables()[0],ssd.TPTest.bsLabels,'tp')
             
         rst.addChapter("Latency")
-        rst.addTestInfo('lat')
+        rst.addTestInfo('lat',tests['lat'])
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['lat'].getFigures()):
             #index 2 and 3 are 2D measurement plots that are not required
@@ -280,7 +281,7 @@ class SsdPerfTest(PerfTest):
         rst.addTable(tests['lat'].getTables()[1],ssd.LatencyTest.bsLabels,'max-lat')#max lat
         
         rst.addChapter("Write Saturation")
-        rst.addTestInfo('writesat')
+        rst.addTestInfo('writesat',tests['writesat'])
         rst.addSection("Measurement Plots")
         for i,fig in enumerate(tests['writesat'].getFigures()):
             rst.addFigure(fig,'writesat',i)

@@ -170,23 +170,26 @@ class RstReport(object):
         self.__rst.close()
         f.close()
         
-    def addDevInfo(self,str):
+    def addDevInfo(self,devStr):
         '''
         Add info about the tested device to the report.
-        @param str The device information from hdparm or the dsc file.
+        @param devStr The device information from hdparm or the dsc file.
         ''' 
         self.addChapter("Device Information")
-        self.addString("Tested Device:\n")
-        for line in str.split('\n'):
-            print >>self.__rst,line
+        print >>self.__rst,"Tested Device:"
+        if devStr[-1] == '\n':
+            devStr = devStr[:-1]
+        for line in devStr.split('\n'):
+            print >>self.__rst," - " + line
+        print >>self.__rst,'\n'
             
-    def addSetupInfo(self,str):
+    def addSetupInfo(self,setupStr):
         '''
         Add info about the version of Fio to the report.
-        @param str The Fio version string, fetched via str-method of a FioJob.
+        @param setupStr The Fio version string, fetched via str-method of a FioJob.
         ''' 
         self.addChapter("Setup Information")
-        self.addString("Performance Tool:\n" + " - " + str)
+        print >>self.__rst,"Performance Tool:\n" + " - " + setupStr
         
     def addFioJobInfo(self,nj,iod):
         '''
@@ -228,7 +231,41 @@ class RstReport(object):
         self.addString(info.getvalue())
         info.close()
     
-    def addTestInfo(self,testname):
+    def addSteadyInfo(self,test):
+        ''' 
+        Adds information about the steady state to the rst report.
+        @param test The corresponding test object.
+        '''
+        self.addSection("Steady State Information")
+
+        stdyStr = StringIO()
+        stdyStr.write("Steady State has been reached:\n")
+        stdyStr.write(" - ")
+        print >>stdyStr, test.getReachStdyState()
+        
+        stdyStr.write("Steady State has been reached in rounds    :\n")
+        stdyStr.write(" - ")
+        print >>stdyStr, test.getStdyRnds()
+        
+        stdyStr.write("Values in stdy measurement window:\n")
+        stdyStr.write(" - ")
+        print >>stdyStr, test.getStdyValues()
+        
+        stdyStr.write("Average in stdy measurement window:\n")
+        stdyStr.write(" - ")
+        print >>stdyStr, test.getStdyAvg()  
+        
+        self.addString(stdyStr.getvalue())
+        stdyStr.close()
+    
+    def addTestInfo(self,testname,test):
+        '''
+        Add information about a test to the rst report.
+        This part is the main information about a test, it describes how 
+        a test has been carried out.
+        @param testname Type name of a test.
+        @param test The specific test object 
+        '''
         if testname == 'iops':
             desc = StringIO()
             desc.write("The IOPS test consists of looping over the following parameters:\n")
@@ -247,6 +284,9 @@ class RstReport(object):
             desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
             desc.write("the IOPS of 4k random write are taken.\n\n")
             print >>desc, "- Dependent Variable: 4k block size, random write"
+            self.addString(desc.getvalue())
+            desc.close()
+            self.addSteadyInfo(test)
         if testname == 'tp':  
             desc = StringIO()
             desc.write("The throughput test consists of looping over the following parameters:\n")
@@ -266,6 +306,9 @@ class RstReport(object):
             desc.write("the result of one round.\n")
             desc.write("To detect the steady state the throughput of 1024k sequential write is taken.\n\n")
             print >>desc, "- Dependent Variable: 1024k block size, sequential write"
+            self.addString(desc.getvalue())
+            desc.close()
+            self.addSteadyInfo(test)
         if testname == 'lat':  
             desc = StringIO()
             desc.write("The latency test consists of looping over the following parameters:\n")
@@ -284,6 +327,9 @@ class RstReport(object):
             desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
             desc.write("the mean latency of 4k random write is taken.\n\n")
             print >>desc, "- Dependent Variable: 4k block size, random write mean latency"
+            self.addString(desc.getvalue())
+            desc.close()
+            self.addSteadyInfo(test)
         if testname == 'writesat':  
             desc = StringIO()
             desc.write("The write saturation test consists of looping over the following parameters:\n")
@@ -296,8 +342,9 @@ class RstReport(object):
             desc.write("For each round (60 second window) the write IOPS and latencies are measured. Also the total written ")
             desc.write("IO is measured to check if 4x capacity has been written.\n\n")
             desc.write("As no steady state detection is necessary there is no dependence variable.\n\n")
-        self.addString(desc.getvalue())
-        desc.close()
+            self.addString(desc.getvalue())
+            desc.close()
+        
         
         
         
