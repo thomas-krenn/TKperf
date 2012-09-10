@@ -213,7 +213,7 @@ class SsdPerfTest(PerfTest):
         self.getXmlReport().fileToXml(self.getTestname())
         self.resetTests()
         root = self.getXmlReport().getXml()
-        
+
         #first read the device information from xml
         self.setDevInfo(json.loads(root.findtext('devinfo')))
         
