@@ -4,8 +4,8 @@ Created on 09.07.2012
 @author: gschoenb
 '''
 from __future__ import division
-#import matplotlib
-#matplotlib.use('Agg')
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from pylab import setp
