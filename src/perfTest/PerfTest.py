@@ -86,6 +86,8 @@ class PerfTest(object):
                     self.__deviceInfo += line + '\n'
                 if line.find("Media Manufacturer") > -1:
                     self.__deviceInfo += line + '\n'
+                if line.find("device size with M = 1000*1000") > -1:
+                    self.__deviceInfo += line + '\n'
             logging.info("# Testing device: " + self.__deviceInfo)
             return True
 
