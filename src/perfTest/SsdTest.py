@@ -76,6 +76,7 @@ class SsdTest(DeviceTest):
         job.addKVArg("ioengine","libaio")
         job.addKVArg("iodepth",str(self.__ioDepth))
         job.addSglArg("group_reporting")
+        job.addSglArg('refill_buffers')
         
         for i in range(SsdTest.wlIndPrecRnds):
             logging.info("# Starting preconditioning round "+str(i))
