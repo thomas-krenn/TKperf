@@ -158,7 +158,7 @@ class RstReport(object):
             for j,elem in enumerate(row[i] for row in t):
                 if j != 0:
                     val.write(", ")
-                val.write(str(round(elem,1)))
+                val.write(str(round(elem,3)))
             val.write("\n")
         self.addString(val.getvalue())
         val.close()
