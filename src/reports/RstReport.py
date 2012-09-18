@@ -183,13 +183,15 @@ class RstReport(object):
             print >>self.__rst," - " + line
         print >>self.__rst,'\n'
             
-    def addSetupInfo(self,setupStr):
+    def addSetupInfo(self,setupStr,dateStr):
         '''
         Add info about the version of Fio to the report.
         @param setupStr The Fio version string, fetched via str-method of a FioJob.
+        @param dateStr The date string the test was carried out.
         ''' 
         self.addChapter("Setup Information")
         print >>self.__rst,"Performance Tool:\n" + " - " + setupStr
+        print >>self.__rst,"Date of test run:\n" + " - " + dateStr
         
     def addFioJobInfo(self,nj,iod):
         '''

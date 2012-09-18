@@ -55,6 +55,9 @@ class PerfTest(object):
     def getDevInfo(self):
         return self.__deviceInfo
     
+    def getTestDate(self):
+        return self.__testDate
+    
     def readDevInfoHdparm(self):
         '''
         Read the device information via hdparm -I. If an error occured
@@ -268,7 +271,7 @@ class SsdPerfTest(PerfTest):
         #fio version is the same for every test, just take the
         #one from iops
         rst.addDevInfo(self.getDevInfo())
-        rst.addSetupInfo(tests['iops'].getFioJob().__str__())
+        rst.addSetupInfo(tests['iops'].getFioJob().__str__(),self.getTestDate())
         rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
         rst.addGeneralInfo()
         
@@ -403,7 +406,7 @@ class HddPerfTest(PerfTest):
         rst.addDevInfo(self.getDevInfo())
         #fio version is the same for every test, just take the
         #one from iops
-        rst.addSetupInfo(tests['iops'].getFioJob().__str__())
+        rst.addSetupInfo(tests['iops'].getFioJob().__str__(),self.getTestDate())
         rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
         
         rst.addChapter("IOPS")

@@ -2,19 +2,19 @@
 Created on 27.06.2012
 
 @author: gschoenb
+@version: 1.0
 '''
+__author__ = 'Georg Schoenberger'
+__version__ = '1.0'
 
 
 import argparse
 import logging
 
 from fio.FioJob import FioJob
-from perfTest.SsdTest import IopsTest
 from perfTest.DeviceTest import DeviceTest
 from perfTest.HddTest import TPTest
 from perfTest.PerfTest import SsdPerfTest
-
-from reports.RstReport import RstReport
 
 if __name__ == '__main__':
     vTest = FioJob()
