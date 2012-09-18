@@ -7,6 +7,7 @@ import logging
 import subprocess
 from lxml import etree
 import json
+import datetime
 
 import perfTest.SsdTest as ssd
 import perfTest.HddTest as hdd
@@ -41,6 +42,9 @@ class PerfTest(object):
         
         ## Information about the tested device fetched via hdparm or a desc file
         self.__deviceInfo = None
+        
+        ## Date the test has been carried out
+        self.__testDate = None
 
     def getTestname(self):
         return self.__testname
@@ -100,12 +104,19 @@ class PerfTest(object):
         self.__deviceInfo = fd.read()
         fd.close()
     
-    def setDevInfo(self,str):
+    def setDevInfo(self,devStr):
         '''
         Init the device information with the given string.
-        @param str The device information as string.
+        @param devStr The device information as string.
         '''
-        self.__deviceInfo = str
+        self.__deviceInfo = devStr
+
+    def setTestDate(self,dateStr):
+        '''
+        Sets the date the test has been carried out.
+        @param dateStr The date string.
+        '''
+        self.__testDate = dateStr
 
     def getTests(self):
         return self.__tests
@@ -151,12 +162,17 @@ class PerfTest(object):
     
     def toXml(self):
         '''
-        First the device information is written to the xml file
+        First the device information is written to the xml file.
         Calls for every test in the test dictionary the toXMl method
         and writes the results to the xml file.
         '''
         tests = self.getTests()
         e = self.getXmlReport().getXml()
+        
+        #add the current date to the xml
+        now = datetime.datetime.now()
+        dev = etree.SubElement(e,'testdate')
+        dev.text = json.dumps(now.strftime("%Y-%m-%d"))
         
         #Add the device information to the xml file
         dev = etree.SubElement(e,'devinfo')
@@ -215,6 +231,8 @@ class SsdPerfTest(PerfTest):
         self.getXmlReport().fileToXml(self.getTestname())
         self.resetTests()
         root = self.getXmlReport().getXml()
+
+        self.setTestDate(json.loads(root.findtext('testdate')))
 
         #first read the device information from xml
         self.setDevInfo(json.loads(root.findtext('devinfo')))
@@ -357,6 +375,8 @@ class HddPerfTest(PerfTest):
         self.getXmlReport().fileToXml(self.getTestname())
         self.resetTests()
         root = self.getXmlReport().getXml()
+        
+        self.setTestDate(json.loads(root.findtext('testdate')))
         
         #first read the device information from xml
         self.setDevInfo(self.root.find('devInfo'))
