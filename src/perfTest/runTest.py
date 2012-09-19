@@ -45,23 +45,24 @@ if __name__ == '__main__':
         logging.basicConfig(filename=args.testname+'.log',level=logging.INFO)
     
     #Don't print a warning if force is given or loading from xml
-    if args.force_test == False or args.fromxml == False:
-        toTest = DeviceTest(args.testname,args.filename)
-        if toTest.checkDevIsMounted() == True:
-            print "!!!WARNING!!!"
-            print "You are writing to a mounted device, this is highly dangerous!"
-            exit(0)
-        if toTest.checkDevIsAvbl() == True:
-            print "!!!Attention!!!"
-            print "All data on " + args.filename + " will be lost!"
-            print "Are you sure you want to continue? (In case you really know what you are doing.)"
-            print "Press 'y' to continue, any key to stop:"
-            key = raw_input()
-            if key != 'y':
+    if args.force_test == False:
+        if args.fromxml == False:
+            toTest = DeviceTest(args.testname,args.filename)
+            if toTest.checkDevIsMounted() == True:
+                print "!!!WARNING!!!"
+                print "You are writing to a mounted device, this is highly dangerous!"
                 exit(0)
-        else:
-            print "You are not using a valid device or partition!"
-            exit(1)    
+            if toTest.checkDevIsAvbl() == True:
+                print "!!!Attention!!!"
+                print "All data on " + args.filename + " will be lost!"
+                print "Are you sure you want to continue? (In case you really know what you are doing.)"
+                print "Press 'y' to continue, any key to stop:"
+                key = raw_input()
+                if key != 'y':
+                    exit(0)
+            else:
+                print "You are not using a valid device or partition!"
+                exit(1)    
         
     #check if iodepth is used
     if args.numjobs == None:
