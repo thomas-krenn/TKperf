@@ -8,7 +8,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from pylab import setp
 
 import numpy as np
 from copy import deepcopy
@@ -700,58 +699,6 @@ def tpMes2DPlt(toPlot):
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-TP-mes2DPlt.png')
     toPlot.addTable(wlds)
-    
-def ioDepthMes3DPlt(toPlot,rw):
-    fig = plt.figure()
-    ax = Axes3D(fig)
-    
-    matrices = toPlot.getRndMatrices()
-     
-    #define positions for bars
-    xpos = np.array([0.25,0.25,0.25,0.25]) # Set up a mesh of positions
-    ypos = np.array([0.25,1.25,2.25,3.25])
-    zpos = np.array([0,0,0,0])
-    
-    dx = [0.5,0.5,0.5,0.5]
-    dy = [0.5,0.5,0.5,0.5]
-
-    #FIXME Currently we use only the first round    
-    if rw == "read": matrix = list(matrices[0][0])
-    if rw == "write": matrix = list(matrices[0][1])
-    if rw == "randread": matrix = list(matrices[0][2])
-    if rw == "randwrite": matrix = list(matrices[0][3])
-    
-    #as IOPS are the most for small sizes we reverse the block sizes
-    if rw == "randread" or rw == "randwrite":
-        matrix.reverse()
-    for j,bs in enumerate(matrix):
-        if j == 0: bcolor = 'b'
-        if j == 1: bcolor = 'g'
-        if j == 2: bcolor = 'r'
-        if j == 3: bcolor = 'y'
-        ax.bar3d(xpos,ypos,zpos, dx, dy, bs,color = bcolor)
-        for pos in range(len(xpos)):
-            xpos[pos] += 1
-            
-    ticksx = np.arange(0.5, 4, 1)
-    if rw == "randread" or rw == "randwrite":
-        labels = list(pT.SsdTest.IodTest.bsLabels)
-        labels.reverse()
-        plt.xticks(ticksx, labels)
-    else:
-        plt.xticks(ticksx, pT.SsdTest.IodTest.bsLabels)
-    ticksy = np.arange(0.5, 4, 1)
-    plt.yticks(ticksy,pT.SsdTest.IodTest.iodDepths)
-    plt.suptitle("IOD "+rw+" Measurement Plot",fontweight='bold')
-    ax.set_xlabel('Block Size (Byte)')
-    ax.set_ylabel('IO Depth')
-    if rw == "read" or rw == "write":
-        ax.set_zlabel('BW')
-    if rw == "randread" or rw == "randwrite":
-        ax.set_zlabel('IOPS')
-    plt.savefig(toPlot.getTestname()+'-IOD-'+rw+'-mes3DPlt.png',dpi=300)
-    toPlot.addFigure(toPlot.getTestname()+'-IOD-'+rw+'-mes3DPlt.png')
-
 
     
     

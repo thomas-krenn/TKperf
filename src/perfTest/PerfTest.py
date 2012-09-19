@@ -211,7 +211,7 @@ class SsdPerfTest(PerfTest):
     '''
     
     ## Keys valid for test dictionary and xml file
-    testKeys = ['iops','lat','tp','writesat','iod']
+    testKeys = ['iops','lat','tp','writesat']
     
     def __init__(self,testname,filename,nj,iod):
         PerfTest.__init__(self, testname, filename)
@@ -231,8 +231,6 @@ class SsdPerfTest(PerfTest):
         self.addTest(SsdPerfTest.testKeys[2], test)
         test = ssd.WriteSatTest(testname,filename,nj,iod)
         self.addTest(SsdPerfTest.testKeys[3], test)
-        test = ssd.IodTest(testname,filename,nj,iod)
-        self.addTest(SsdPerfTest.testKeys[4], test)
         
     def run(self):
         self.runTests()
@@ -243,7 +241,7 @@ class SsdPerfTest(PerfTest):
     def fromXml(self):
         '''
         Reads out the xml file name 'testname.xml' and initializes the test
-        specified with xml. The valid tags are "iops,lat,tp,writesat,iod", but
+        specified with xml. The valid tags are "iops,lat,tp,writesat", but
         there don't must be every tag in the file.
         Afterwards the plotting and rst methods for the specified tests are
         called.
@@ -272,8 +270,6 @@ class SsdPerfTest(PerfTest):
                     test = ssd.TPTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
                 if elem.tag == SsdPerfTest.testKeys[3]:
                     test = ssd.WriteSatTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
-                if elem.tag == SsdPerfTest.testKeys[4]:
-                    test = ssd.IodTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
                 #we found a tag in the xml file, now we ca read the data from xml
                 if test != None:
                     test.fromXml(elem)
@@ -355,12 +351,6 @@ class SsdPerfTest(PerfTest):
         if SsdPerfTest.testKeys[3] in tests:
             pgp.writeSatIOPSPlt(tests['writesat'])
             pgp.writeSatLatPlt(tests['writesat'])
-        #plots for io depth        
-        if SsdPerfTest.testKeys[4] in tests:
-            pgp.ioDepthMes3DPlt(tests['iod'],"read")
-            pgp.ioDepthMes3DPlt(tests['iod'],"write")
-            pgp.ioDepthMes3DPlt(tests['iod'],"randread")
-            pgp.ioDepthMes3DPlt(tests['iod'],"randwrite")
 
 class HddPerfTest(PerfTest):
     '''

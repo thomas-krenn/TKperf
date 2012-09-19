@@ -154,7 +154,7 @@ class RstReport(object):
         for i in range(len(l)):
             val.write("\t")
             val.write(l[i] + ', ')
-            #access the matrix column wise
+            #access the matrix column wise, round the numbers to 3 after
             for j,elem in enumerate(row[i] for row in t):
                 if j != 0:
                     val.write(", ")
