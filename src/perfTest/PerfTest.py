@@ -14,7 +14,7 @@ import perfTest.HddTest as hdd
 from reports.XmlReport import XmlReport
 from reports.RstReport import RstReport
 import plots.genPlots as pgp
-from perfTest import runTest
+import perfTest.runTest as rt
 
 class PerfTest(object):
     '''
@@ -47,7 +47,7 @@ class PerfTest(object):
         self.__testDate = None
         
         ## Per default use the version from main module
-        self.__IOPerfVersion = runTest.__version__
+        self.__IOPerfVersion = rt.__version__
 
     def getTestname(self):
         return self.__testname
