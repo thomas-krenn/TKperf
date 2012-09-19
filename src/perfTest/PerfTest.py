@@ -14,6 +14,7 @@ import perfTest.HddTest as hdd
 from reports.XmlReport import XmlReport
 from reports.RstReport import RstReport
 import plots.genPlots as pgp
+from perfTest import runTest
 
 class PerfTest(object):
     '''
@@ -24,7 +25,6 @@ class PerfTest(object):
         '''
         A performance test has several reports and plots.
         '''
-        
         ## The output file for the fio job test results.
         self.__testname = testname
         
@@ -45,6 +45,9 @@ class PerfTest(object):
         
         ## Date the test has been carried out
         self.__testDate = None
+        
+        ## Per default use the version from main module
+        self.__IOPerfVersion = runTest.__version__
 
     def getTestname(self):
         return self.__testname
@@ -57,6 +60,9 @@ class PerfTest(object):
     
     def getTestDate(self):
         return self.__testDate
+    
+    def getIOPerfVersion(self):
+        return self.__IOPerfVersion
     
     def readDevInfoHdparm(self):
         '''
@@ -121,6 +127,13 @@ class PerfTest(object):
         '''
         self.__testDate = dateStr
 
+    def setIOPerfVersion(self,verStr):
+        '''
+        Sets the current io perf version.
+        @param verStr The version string.
+        '''
+        self.__IOPerfVersion = verStr
+    
     def getTests(self):
         return self.__tests
     
@@ -181,6 +194,10 @@ class PerfTest(object):
         dev = etree.SubElement(e,'devinfo')
         dev.text = json.dumps(self.__deviceInfo)
         
+        #Add the current test suite version to the xml file
+        dev = etree.SubElement(e,'ioperfversion')
+        dev.text = json.dumps(self.__IOPerfVersion)
+        
         #call the xml function for every test in the dictionary
         sorted(self.__tests.items())
         for k,v in tests.iteritems():
@@ -240,6 +257,9 @@ class SsdPerfTest(PerfTest):
         #first read the device information from xml
         self.setDevInfo(json.loads(root.findtext('devinfo')))
         
+        #first read the device information from xml
+        self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
+        
         for tag in SsdPerfTest.testKeys:
             #check which test tags are in the xml file
             for elem in root.iterfind(tag):
@@ -271,7 +291,7 @@ class SsdPerfTest(PerfTest):
         #fio version is the same for every test, just take the
         #one from iops
         rst.addDevInfo(self.getDevInfo())
-        rst.addSetupInfo(tests['iops'].getFioJob().__str__(),self.getTestDate())
+        rst.addSetupInfo(self.getIOPerfVersion(),tests['iops'].getFioJob().__str__(),self.getTestDate())
         rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
         rst.addGeneralInfo()
         
@@ -383,6 +403,8 @@ class HddPerfTest(PerfTest):
         
         #first read the device information from xml
         self.setDevInfo(self.root.find('devInfo'))
+        
+        self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
 
         for tag in HddPerfTest.testKeys:
             for elem in root.iterfind(tag):

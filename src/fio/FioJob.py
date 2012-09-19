@@ -53,6 +53,10 @@ class FioJob(object):
         res = "fio: " + self.__fioPath + ", " + self.__fioVersion
         return res
     
+    def setFioVersion(self,fioStr):
+        ''' Set the used fio version (useful if loading from xml).'''
+        self.__fioVersion = fioStr
+    
     def getKVArgs(self):
         ''' Return the current configured fio key value arguments. '''
         return self.__fioKVArgs

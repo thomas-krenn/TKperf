@@ -218,6 +218,11 @@ class StdyTest(SsdTest):
         ''' 
         r = etree.Element(root)
         
+        #Add the fio version to the xml
+        data = json.dumps(self.getFioJob().__str__())
+        e = etree.SubElement(r,'fioversion')
+        e.text = data
+        
         data = json.dumps(self.getNj())
         e = etree.SubElement(r,'numjobs')
         e.text = data
@@ -265,6 +270,7 @@ class StdyTest(SsdTest):
         @param root The given element containing the information about
         the object to be initialized.
         ''' 
+        self.getFioJob().setFioVersion(json.loads(root.findtext('fioversion')))
         self.setNj(json.loads(root.findtext('numjobs')))
         self.setIod(json.loads(root.findtext('iodepth')))
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
@@ -725,6 +731,11 @@ class WriteSatTest(SsdTest):
         #root element of current xml child
         r = etree.Element(root)
         
+        #Add the fio version to the xml
+        data = json.dumps(self.getFioJob().__str__())
+        e = etree.SubElement(r,'fioversion')
+        e.text = data
+        
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -736,6 +747,7 @@ class WriteSatTest(SsdTest):
         return r
         
     def fromXml(self,root):
+        self.getFioJob().setFioVersion(json.loads(root.findtext('fioversion')))
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__rounds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")

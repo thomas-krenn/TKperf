@@ -182,16 +182,17 @@ class RstReport(object):
         for line in devStr.split('\n'):
             print >>self.__rst," - " + line
         print >>self.__rst,'\n'
-            
-    def addSetupInfo(self,setupStr,dateStr):
+        
+    def addSetupInfo(self,ioVer,fioVer,dateStr):
         '''
         Add info about the version of Fio to the report.
         @param setupStr The Fio version string, fetched via str-method of a FioJob.
         @param dateStr The date string the test was carried out.
         ''' 
         self.addChapter("Setup Information")
-        print >>self.__rst,"Performance Tool:\n" + " - " + setupStr
-        print >>self.__rst,"Date of test run:\n" + " - " + dateStr
+        print >>self.__rst," - IO Perf Version: " + ioVer
+        print >>self.__rst," - Fio Version: " + fioVer
+        print >>self.__rst," - Date of test run " + dateStr
         
     def addFioJobInfo(self,nj,iod):
         '''
