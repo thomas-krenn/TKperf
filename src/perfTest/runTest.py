@@ -45,7 +45,7 @@ if __name__ == '__main__':
         logging.basicConfig(filename=args.testname+'.log',level=logging.INFO)
     
     #Don't print a warning if force is given or loading from xml
-    if args.force_test == True or args.fromxml != True:
+    if args.force_test == False or args.fromxml == False:
         toTest = DeviceTest(args.testname,args.filename)
         if toTest.checkDevIsMounted() == True:
             print "!!!WARNING!!!"
