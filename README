@@ -6,7 +6,17 @@ Normally:
 
 To use fio with a device root privileges are required.
 -Add the modules to the PYTHONPATH to run 'runTest.py' from command line:
-  export PYTHONPATH=/home/gschoenb/repos/io_perf_test/src/
+  export PYTHONPATH=/io_perf_test/src/
 -Call the script with sudo an preserve the PYTHONPATH:
   sudo PYTHONPATH=$PYTHONPATH python runTest.py
 -Add an alias for that command to call it more comfortable
+
+  Generate pdf report
+To generate a pdf from the rst use rst2pdf:
+$ rst2pdf test.rst test.pdf
+
+  Loading from an xml file
+To load an already carried out test from the generated xml file, use the -xml option:
+$ sudo PYTHONPATH=$PYTHONPATH python runTest.py ssd intel520 /dev/sdb1 -xml
+In this case nothing happens with /dev/sdb1, it is just there as a placeholder.
+Loading from an xml file is useful if something has changed in the plotting methods.
