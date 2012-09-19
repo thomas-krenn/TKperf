@@ -31,10 +31,15 @@ if __name__ == '__main__':
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
     parser.add_argument("-nj","--numjobs",help="specify number of jobs for fio",type=int)
     parser.add_argument("-iod","--iodepth",help="specify iodepth for libaio used by fio",type=int)
-    parser.add_argument("-xml","--fromxml",help="don't run tests but load test objects from xml file",action='store_true')
-    parser.add_argument("-rfb","--refill_buffers",help="use Fio's refill buffers option to circumvent any compression of devices",action='store_true')
-    parser.add_argument("-dsc","--desc_file",help="use a description file for the tested device if hdparm doesn't work correctly",type=argparse.FileType('r'))
-    
+    parser.add_argument("-xml","--fromxml",help="don't run tests but load test objects from xml file",
+                        action='store_true')
+    parser.add_argument("-rfb","--refill_buffers",help="use Fio's refill buffers option to circumvent any compression of devices",
+                        action='store_true')
+    parser.add_argument("-dsc","--desc_file",help="use a description file for the tested device if hdparm doesn't work correctly",
+                        type=argparse.FileType('r'))
+    parser.add_argument("-ft","--force_test",help="skip checks if the used device is mounted, don't print warnings and force starting the test",
+                        action='store_true')
+  
     args = parser.parse_args()
     if args.debug == True:
         logging.basicConfig(filename=args.testname+'.log',level=logging.DEBUG)
@@ -43,22 +48,24 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(filename=args.testname+'.log',level=logging.INFO)
     
-    toTest = DeviceTest(args.testname,args.filename)
-    if toTest.checkDevIsMounted() == True:
-        print "!!!WARNING!!!"
-        print "You are writing to a mounted device, this is highly dangerous!"
-        exit(0)
-    if toTest.checkDevIsAvbl() == True:
-        print "!!!Attention!!!"
-        print "All data on " + args.filename + " will be lost!"
-        print "Are you sure you want to continue? (In case you really know what you are doing.)"
-        print "Press 'y' to continue, any key to stop:"
-        key = raw_input()
-        if key != 'y':
+    #Don't print a warning if force is given or loading from xml
+    if args.force_test == True or args.fromxml != True:
+        toTest = DeviceTest(args.testname,args.filename)
+        if toTest.checkDevIsMounted() == True:
+            print "!!!WARNING!!!"
+            print "You are writing to a mounted device, this is highly dangerous!"
             exit(0)
-    else:
-        print "You are not using a valid device or partition!"
-        exit(1)    
+        if toTest.checkDevIsAvbl() == True:
+            print "!!!Attention!!!"
+            print "All data on " + args.filename + " will be lost!"
+            print "Are you sure you want to continue? (In case you really know what you are doing.)"
+            print "Press 'y' to continue, any key to stop:"
+            key = raw_input()
+            if key != 'y':
+                exit(0)
+        else:
+            print "You are not using a valid device or partition!"
+            exit(1)    
         
     #check if iodepth is used
     if args.numjobs == None:
@@ -79,7 +86,6 @@ if __name__ == '__main__':
         print myTest.getFilename()
         
     if args.mode == "ssd":
-        
         #in xml mode only load objects, don't run tests
         if args.fromxml == True:
             print "Loading from xml file..."
