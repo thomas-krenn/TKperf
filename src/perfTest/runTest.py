@@ -4,10 +4,6 @@ Created on 27.06.2012
 @author: gschoenb
 @version: 1.0
 '''
-__author__ = 'Georg Schoenberger'
-__version__ = '1.0'
-
-
 import argparse
 import logging
 

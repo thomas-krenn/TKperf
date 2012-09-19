@@ -3,6 +3,8 @@ Created on 07.08.2012
 
 @author: gschoenb
 '''
+__version__ = '1.0'
+
 import logging
 import subprocess
 from lxml import etree
@@ -14,7 +16,6 @@ import perfTest.HddTest as hdd
 from reports.XmlReport import XmlReport
 from reports.RstReport import RstReport
 import plots.genPlots as pgp
-import perfTest.runTest as rt
 
 class PerfTest(object):
     '''
@@ -47,7 +48,7 @@ class PerfTest(object):
         self.__testDate = None
         
         ## Per default use the version from main module
-        self.__IOPerfVersion = rt.__version__
+        self.__IOPerfVersion = __version__
 
     def getTestname(self):
         return self.__testname
