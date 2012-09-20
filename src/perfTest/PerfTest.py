@@ -187,9 +187,8 @@ class PerfTest(object):
         e = self.getXmlReport().getXml()
         
         #add the current date to the xml
-        now = datetime.datetime.now()
         dev = etree.SubElement(e,'testdate')
-        dev.text = json.dumps(now.strftime("%Y-%m-%d"))
+        dev.text = json.dumps(self.__testDate)
         
         #Add the device information to the xml file
         dev = etree.SubElement(e,'devinfo')
@@ -222,6 +221,10 @@ class SsdPerfTest(PerfTest):
         
         ## Number of iodepth for fio.
         self.__iod = iod
+        
+        #Add current date to test
+        now = datetime.datetime.now()
+        self.setTestDate(now.strftime("%Y-%m-%d"))
         
         #Add every test to the performance test
         test = ssd.IopsTest(testname,filename,nj,iod)
@@ -288,7 +291,7 @@ class SsdPerfTest(PerfTest):
         #fio version is the same for every test, just take the
         #one from iops
         rst.addDevInfo(self.getDevInfo())
-        rst.addSetupInfo(self.getIOPerfVersion(),tests['iops'].getFioJob().__str__(),self.getTestDate())
+        rst.addSetupInfo(self.getIOPerfVersion(),tests['iops'].getFioJob().getFioVersion(),self.getTestDate())
         rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
         rst.addGeneralInfo()
         
@@ -366,6 +369,10 @@ class HddPerfTest(PerfTest):
         
         ## Number of iodepth for fio.
         self.__iod = iod
+        
+        #Add current date
+        now = datetime.datetime.now()
+        self.setTestDate(now.strftime("%Y-%m-%d"))
         
         test = hdd.IopsTest(testname,filename,iod)
         self.addTest(HddPerfTest.testKeys[0],test)

@@ -53,6 +53,10 @@ class FioJob(object):
         res = "fio: " + self.__fioPath + ", " + self.__fioVersion
         return res
     
+    def getFioVersion(self):
+        ''' Return the current fio version string. '''
+        return self.__fioVersion
+    
     def setFioVersion(self,fioStr):
         ''' Set the used fio version (useful if loading from xml).'''
         self.__fioVersion = fioStr

@@ -219,7 +219,7 @@ class StdyTest(SsdTest):
         r = etree.Element(root)
         
         #Add the fio version to the xml
-        data = json.dumps(self.getFioJob().__str__())
+        data = json.dumps(self.getFioJob().getFioVersion())
         e = etree.SubElement(r,'fioversion')
         e.text = data
         
@@ -732,7 +732,7 @@ class WriteSatTest(SsdTest):
         r = etree.Element(root)
         
         #Add the fio version to the xml
-        data = json.dumps(self.getFioJob().__str__())
+        data = json.dumps(self.getFioJob().getFioVersion())
         e = etree.SubElement(r,'fioversion')
         e.text = data
         
