@@ -35,6 +35,8 @@ if __name__ == '__main__':
                         type=argparse.FileType('r'))
     parser.add_argument("-ft","--force_test",help="skip checks if the used device is mounted, don't print warnings and force starting the test",
                         action='store_true')
+    parser.add_argument("-fm","--feature_matrix",help="add a feature matrix of the given device to the report",
+                        type=argparse.FileType('r'))
   
     args = parser.parse_args()
     if args.debug == True:
@@ -104,5 +106,8 @@ if __name__ == '__main__':
                 exit(0)
             else:
                 myTest.readDevInfoFile(args.desc_file)
+        #add an extra feature matrix to the performance test
+        if args.feature_matrix != None:
+            myTest.readFeatureMatrix(args.feature_matrix)
         print myTest.getDevInfo()
         myTest.run()

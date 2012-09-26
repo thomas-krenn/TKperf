@@ -170,10 +170,11 @@ class RstReport(object):
         self.__rst.close()
         f.close()
         
-    def addDevInfo(self,devStr):
+    def addDevInfo(self,devStr,featMat):
         '''
         Add info about the tested device to the report.
         @param devStr The device information from hdparm or the dsc file.
+        @param featMat The extra feature matrix given via a csv table. 
         ''' 
         self.addChapter("Device Information")
         print >>self.__rst,"Tested Device:"
@@ -182,6 +183,10 @@ class RstReport(object):
         for line in devStr.split('\n'):
             print >>self.__rst," - " + line
         print >>self.__rst,'\n'
+        
+        if featMat != None:
+            print >>self.__rst,"Feature Matrix:"
+            print >>self.__rst,featMat + "\n"
         
     def addSetupInfo(self,ioVer,fioVer,dateStr):
         '''

@@ -49,6 +49,9 @@ class PerfTest(object):
         
         ## Per default use the version from main module
         self.__IOPerfVersion = __version__
+        
+        ## A matrix of special features specific for the device
+        self.__featureMatrix = None
 
     def getTestname(self):
         return self.__testname
@@ -58,6 +61,9 @@ class PerfTest(object):
     
     def getDevInfo(self):
         return self.__deviceInfo
+    
+    def getFeatureMatrix(self):
+        return self.__featureMatrix
     
     def getTestDate(self):
         return self.__testDate
@@ -114,12 +120,27 @@ class PerfTest(object):
         self.__deviceInfo = fd.read()
         fd.close()
     
+    def readFeatureMatrix(self,fd):
+        '''
+        Reads a special feature matrix from a file.
+        @param fd The path to the feature matrix file, has to be opened already.
+        '''
+        self.__featureMatrix = fd.read()
+        fd.close()
+        
     def setDevInfo(self,devStr):
         '''
         Init the device information with the given string.
         @param devStr The device information as string.
         '''
         self.__deviceInfo = devStr
+
+    def setFeatureMatrix(self,fmStr):
+        '''
+        Init the device feature matrix with the given string.
+        @param devStr The feature matrix as string.
+        '''
+        self.__featureMatrix = fmStr
 
     def setTestDate(self,dateStr):
         '''
@@ -194,6 +215,11 @@ class PerfTest(object):
         dev = etree.SubElement(e,'devinfo')
         dev.text = json.dumps(self.__deviceInfo)
         
+        #if a feature matrix is given, add it to the xml file
+        if self.__featureMatrix != None:
+            dev = etree.SubElement(e,'featmatrix')
+            dev.text = json.dumps(self.__featureMatrix)
+        
         #Add the current test suite version to the xml file
         dev = etree.SubElement(e,'ioperfversion')
         dev.text = json.dumps(self.__IOPerfVersion)
@@ -259,6 +285,9 @@ class SsdPerfTest(PerfTest):
         #first read the device information from xml
         self.setDevInfo(json.loads(root.findtext('devinfo')))
         
+        #read the feature matrix from the xml file
+        self.setFeatureMatrix(json.loads(root.findtext('featmatrix')))
+        
         #first read the device information from xml
         self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
         
@@ -288,9 +317,8 @@ class SsdPerfTest(PerfTest):
         
         rst.addFooter()
         rst.addTitle()
+        rst.addDevInfo(self.getDevInfo(),self.getFeatureMatrix())
         #fio version is the same for every test, just take the
-        #one from iops
-        rst.addDevInfo(self.getDevInfo())
         rst.addSetupInfo(self.getIOPerfVersion(),tests['iops'].getFioJob().getFioVersion(),self.getTestDate())
         rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
         rst.addGeneralInfo()
