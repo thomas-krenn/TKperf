@@ -20,7 +20,7 @@ if __name__ == '__main__':
     
     parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
     parser.add_argument("testname",help="name of the fio job, corresponds to the result output file")
-    parser.add_argument("filename",help="data file or device name to run fio test on")
+    parser.add_argument("filename",help="device name to run fio test on")
     
     parser.add_argument("-v","--version", help="get the version information", action='version',version=fioVersion)
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
