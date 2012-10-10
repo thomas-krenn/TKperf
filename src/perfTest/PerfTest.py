@@ -118,6 +118,8 @@ class PerfTest(object):
         @param fd The path to the description file, has to be opened already.
         '''
         self.__deviceInfo = fd.read()
+        logging.info("# Read device info from file")
+        logging.info("# Testing device: " + self.__deviceInfo)
         fd.close()
     
     def readFeatureMatrix(self,fd):
