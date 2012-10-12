@@ -1,9 +1,9 @@
 #!/bin/bash
-#if [ "$(whoami)" != "root" ]
-#then
-#	echo "Insufficient privileges, call with sudo!"
-#	exit 1
-#fi
+if [ "$(whoami)" != "root" ]
+then
+	echo "Insufficient privileges, call with sudo!"
+	exit 1
+fi
 
 pyStartScript="../src/perfTest/runTest.py"
 
@@ -88,6 +88,14 @@ read startOK
 if [ "$startOK" != 'yes' ]
 then
 	echo "Exiting as command is not OK"
+	exit 1
+fi
+
+#start test
+$startCommand
+if [ "$?" -ne "0" ]
+then
+	echo "Performance test returned an error code!"
 	exit 1
 fi
 
