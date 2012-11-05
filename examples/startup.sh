@@ -5,7 +5,7 @@ then
 	exit 1
 fi
 
-pyStartScript="../src/perfTest/runTest.py"
+pyStartScript="/home/pmtest/bin/runTest.py"
 
 echo "Test name:"
 read testName
@@ -80,7 +80,7 @@ fi
 
 echo "The following command starts the test:"
 echo "----------------"
-startCommand="nohup python $pyStartScript $testMode $testName $testDevice -ft -nj=$numJobs -iod=$ioDepth $extraParams 1>runTest.out 2>runTest.err &"
+startCommand="python $pyStartScript $testMode $testName $testDevice -ft -nj=$numJobs -iod=$ioDepth $extraParams"
 echo $startCommand
 echo "----------------"
 echo "Ready to start? yes/no":
