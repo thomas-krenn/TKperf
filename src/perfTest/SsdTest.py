@@ -259,9 +259,7 @@ class StdyTest(SsdTest):
         e = etree.SubElement(r,'rndnr')
         e.text = data
         
-        #TODO Add FioJob to xml file
         return r
-        
         
     def fromXml(self,root):
         '''
