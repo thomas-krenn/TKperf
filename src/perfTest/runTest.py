@@ -9,8 +9,8 @@ import logging
 
 from fio.FioJob import FioJob
 from perfTest.DeviceTest import DeviceTest
-from perfTest.HddTest import TPTest
 from perfTest.PerfTest import SsdPerfTest
+from perfTest.PerfTest import HddPerfTest
 
 if __name__ == '__main__':
     vTest = FioJob()
@@ -75,25 +75,29 @@ if __name__ == '__main__':
         iod = 1
     else:
         iod = args.iodepth
-            
+
+    if args.fromxml == True:
+        #in xml mode only load objects, don't run tests
+        print "Loading from xml file..."
+        if args.mode == "ssd":
+            myTest = SsdPerfTest(args.testname, args.filename,nj, iod)
+        if args.mode == "hdd":
+            myTest = HddPerfTest(args.testname, args.filename,nj, iod)
+        myTest.fromXml()
+        exit(0)
+        
     if args.mode == "hdd":
         print "Starting HDD mode..."
         #num jobs is not used for hdds
-        myTest = TPTest(args.testname,args.filename,iod)
+        myTest = HddPerfTest(args.testname,args.filename,nj,iod)
+        #hdparm -I should work for HDDs
+        myTest.readDevInfoHdparm()
+        if args.feature_matrix != None:
+            myTest.readFeatureMatrix(args.feature_matrix)
+        print myTest.getDevInfo()
         myTest.run()
-        print myTest.getTestname()
-        print myTest.getFilename()
-        
     if args.mode == "ssd":
-        #in xml mode only load objects, don't run tests
-        if args.fromxml == True:
-            print "Loading from xml file..."
-            myTest = SsdPerfTest(args.testname, args.filename,nj, iod)
-            myTest.fromXml()
-            exit(0)
-        
         print "Starting SSD mode..."
-        #of jobs and io depth is not given we use 1 for it
         myTest = SsdPerfTest(args.testname, args.filename, nj, iod)
         if args.refill_buffers == True:
             myTest.addSglArgToTests('refill_buffers')

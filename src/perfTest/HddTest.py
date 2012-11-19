@@ -18,14 +18,19 @@ class HddTest(DeviceTest):
     ##Number of rounds to carry out the tests
     maxRnds = 128 
       
-    def __init__(self,testname,filename,iod):
+    def __init__(self,testname,filename,nj,iod):
         '''
         Constructor
+        @param nj Number of jobs for Fio.
+        @param iod IO depth for libaio used by Fio.
         '''
         DeviceTest.__init__(self,testname,filename)
         
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
+        
+        ##Number of jobs started by fio
+        self.__numJobs = nj
         
         ##IO depth for libaio used by fio
         self.__ioDepth = iod
@@ -37,17 +42,24 @@ class HddTest(DeviceTest):
         self.__fioJob.addKVArg("direct","1")
         self.__fioJob.addKVArg("minimal","1")
         self.__fioJob.addKVArg("ioengine","libaio")
+        self.__fioJob.addKVArg("numjobs",str(self.__numJobs))
         self.__fioJob.addKVArg("iodepth",str(self.__ioDepth))
-        self.__fioJob.addSglArg("group_reporting")   
+        self.__fioJob.addSglArg("group_reporting")
 
     def getFioJob(self):
         return self.__fioJob
     
     def getRndMatrices(self):
-        return self.__RoundMatrices
+        return self.__roundMatrices
+    
+    def getNj(self):
+        return self.__numJobs
     
     def getIod(self):
         return self.__ioDepth
+    
+    def setNj(self,nj):
+        self.__numJobs = nj
     
     def setIod(self,iod):
         self.__ioDepth = iod
@@ -55,6 +67,15 @@ class HddTest(DeviceTest):
     def toXml(self,root):
      
         r = etree.Element(root)
+        
+        #Add the fio version to the xml
+        data = json.dumps(self.getFioJob().getFioVersion())
+        e = etree.SubElement(r,'fioversion')
+        e.text = data
+        
+        data = json.dumps(self.getNj())
+        e = etree.SubElement(r,'numjobs')
+        e.text = data
         
         data = json.dumps(self.getIod())
         e = etree.SubElement(r,'iodepth')
@@ -68,7 +89,11 @@ class HddTest(DeviceTest):
         e = etree.SubElement(r,'rndnr')
         e.text = data
         
+        return r
+        
     def fromXml(self,root):
+        self.getFioJob().setFioVersion(json.loads(root.findtext('fioversion')))
+        self.setNj(json.loads(root.findtext('numjobs')))
         self.setIod(json.loads(root.findtext('iodepth')))
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         HddTest.maxRnds = json.loads(root.findtext('rndnr'))
@@ -84,18 +109,23 @@ class IopsTest(HddTest):
     ##Percentages of mixed workloads for IOPS test.
     mixWlds = [100,50,0]
     
-    def __init__(self,testname,filename,iod):
+    def __init__(self,testname,filename,nj,iod):
         '''
         Constructor.
         '''
 
-        HddTest.__init__(self, testname, filename, iod)
+        HddTest.__init__(self,testname,filename,nj,iod)
         self.getFioJob().addKVArg("rw","randrw")
-        self.getFioJob().addKVArg("runtime","60")
+        #TODO Remove the runtime to test the whole sector
+        #self.getFioJob().addKVArg("runtime","60")
     
     def testRound(self,offset,size):
         '''
-        IOPS test round for HDD
+        Carry out one IOPS test round.
+        The round consists of two inner loops: one iterating over the
+        percentage of random reads/writes in the mixed workload, the other
+        over different block sizes.
+        @return A matrix containing the sum of average IOPS.
         '''
         
         self.getFioJob().addKVArg("offset", str(offset))
@@ -104,7 +134,6 @@ class IopsTest(HddTest):
         #iterate over mixed rand read and write and vary block size
         #save the output of fio for parsing and retreiving IOPS
         jobOut = ''
-        
         rndMatrix = []        
         for i in IopsTest.mixWlds:
             rwRow = []
@@ -149,7 +178,7 @@ class IopsTest(HddTest):
                 
             #we read and write increment starting at the offset
             rndMatrix = self.testRound(offset,increment)
-            self.getRoundMatrices.append(rndMatrix)
+            self.getRndMatrices().append(rndMatrix)
             offset += increment
     
         return
@@ -166,17 +195,19 @@ class IopsTest(HddTest):
         return True
     
 class TPTest(HddTest):
-   
-    
+    '''
+    A class to carry out the Throughput test for HDDs.
+    '''
     ##Labels of block sizes for throughput test
     bsLabels = ["1024k","4k"]
      
-    def __init__(self,testname,filename,iod):
+    def __init__(self,testname,filename,nj,iod):
         '''
         Constructor.
         '''
-        HddTest.__init__(self, testname, filename, iod)
-        self.getFioJob().addKVArg("runtime","60")#FIXME Change to 60 seconds or remove it
+        HddTest.__init__(self, testname, filename, nj, iod)
+        #FIXME Remove it to really read all sectors of device
+        #self.getFioJob().addKVArg("runtime","60")
         
         
     def testRound(self,bs,offset,size):
@@ -190,7 +221,7 @@ class TPTest(HddTest):
         '''
         self.getFioJob().addKVArg("offset", str(offset))
         self.getFioJob().addKVArg("size", str(size))
-        self.getFioJob().addKVArg("bs",bs)   
+        self.getFioJob().addKVArg("bs",bs)
       
         jobOut = ''
         tpRead = 0 #read bandwidth

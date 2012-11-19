@@ -394,8 +394,11 @@ class HddPerfTest(PerfTest):
     ## Keys valid for test dictionary and xml file
     testKeys = ['iops','tp']
     
-    def __init__(self,testname,filename,iod):
+    def __init__(self,testname,filename, nj, iod):
         PerfTest.__init__(self, testname, filename)
+        
+        ## Number of jobs for fio.
+        self.__nj = nj
         
         ## Number of iodepth for fio.
         self.__iod = iod
@@ -404,9 +407,9 @@ class HddPerfTest(PerfTest):
         now = datetime.datetime.now()
         self.setTestDate(now.strftime("%Y-%m-%d"))
         
-        test = hdd.IopsTest(testname,filename,iod)
+        test = hdd.IopsTest(testname,filename,nj,iod)
         self.addTest(HddPerfTest.testKeys[0],test)
-        test = hdd.TPTest(testname,filename,iod)
+        test = hdd.TPTest(testname,filename,nj,iod)
         self.addTest(HddPerfTest.testKeys[1],test)
         
     def run(self):
@@ -432,15 +435,19 @@ class HddPerfTest(PerfTest):
         #first read the device information from xml
         self.setDevInfo(self.root.find('devInfo'))
         
+        #read the feature matrix from the xml file
+        self.setFeatureMatrix(json.loads(root.findtext('featmatrix')))
+        
+        #first read the device information from xml
         self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
 
         for tag in HddPerfTest.testKeys:
             for elem in root.iterfind(tag):
                 test = None
                 if elem.tag == HddPerfTest.testKeys[0]:
-                    test = hdd.IopsTest(self.getTestname(),self.getFilename,self.__iod)
+                    test = hdd.IopsTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
                 if elem.tag == HddPerfTest.testKeys[1]:
-                    test = hdd.TPTest(self.getTestname(),self.getFilename,self.__iod)
+                    test = hdd.TPTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
                 if test != None:
                     test.fromXml(elem)
                     self.addTest(tag, test)
@@ -456,8 +463,9 @@ class HddPerfTest(PerfTest):
         rst.addDevInfo(self.getDevInfo())
         #fio version is the same for every test, just take the
         #one from iops
-        rst.addSetupInfo(tests['iops'].getFioJob().__str__(),self.getTestDate())
+        rst.addSetupInfo(self.getIOPerfVersion(),tests['iops'].getFioJob().getFioVersion(),self.getTestDate())
         rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
+        rst.addGeneralInfo()
         
         rst.addChapter("IOPS")
         rst.addFigure(tests['iops'].getFigure()[0])
