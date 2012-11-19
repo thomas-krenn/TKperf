@@ -117,7 +117,7 @@ class IopsTest(HddTest):
         HddTest.__init__(self,testname,filename,nj,iod)
         self.getFioJob().addKVArg("rw","randrw")
         #TODO Remove the runtime to test the whole sector
-        #self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","60")
     
     def testRound(self,offset,size):
         '''
