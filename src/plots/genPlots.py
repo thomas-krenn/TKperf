@@ -432,7 +432,7 @@ def getMinMax(values, currMin, currMax):
     newMax if it is greater than currMax.
     '''
     #TODO Testing for 0 can be a problem if minimum is really 0
-    # This should not happen for performance tests under normal circumstances
+    #This should not happen for performance tests under normal circumstances
     newMin = 0
     newMax = 0
     curr = max(values)
@@ -620,7 +620,7 @@ def tpRWStdyStConvPlt(toPlot):
      
     ax = fig.add_subplot(2, 1, 2)
     for i,rndMat in enumerate(matrices):
-        row = rndMat[0]#plot the write row
+        row = rndMat[0]#plot the read row
         #convert to MB/s
         for v in range(len(row)):
             row[v] = row[v] / 1024
@@ -640,7 +640,7 @@ def tpRWStdyStConvPlt(toPlot):
 
 def tpMes2DPlt(toPlot):
     '''
-    Generate a measurement 2D plot for throughput measurements.
+    Generate a measurement 2D plot and the measurement overview table for throughput.
     The plot includes:
     -One line for read, one line for write
     -Each line consists of the average of IOPS per round
@@ -658,7 +658,7 @@ def tpMes2DPlt(toPlot):
         #in each row will be the different block sizes
         for bs in range(len(pT.SsdTest.TPTest.bsLabels)):
             wlds[i].append(0)
-    matrices = deepcopy(toPlot.getRndMatrices())    
+    matrices = deepcopy(toPlot.getRndMatrices())
     
     #each row of the matrix is a block size
     for j,bs in enumerate(matrices):
@@ -695,8 +695,3 @@ def tpMes2DPlt(toPlot):
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-TP-mes2DPlt.png')
     toPlot.addTable(wlds)
-
-    
-    
-    
-    
