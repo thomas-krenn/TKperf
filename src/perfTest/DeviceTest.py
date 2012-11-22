@@ -176,6 +176,7 @@ class DeviceTest(object):
         '''
         frozen = True
         security = False
+        logging.info("#Starting Secure Eras for device: "+self.__filename)
         out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
@@ -228,7 +229,7 @@ class DeviceTest(object):
                                 logging.error(stderr)
                                 return False
                             else:
-                                logging.info("#Successfully carried out secure erase")
+                                logging.info("#Successfully carried out secure erase for "+self.__filename)
                                 #Check if security is diasbled again
                                 out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                                 (stdout,stderr) = out.communicate()
