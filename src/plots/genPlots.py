@@ -228,7 +228,7 @@ def mes2DPlt(toPlot,mode):
         #in each row will be the different block sizes
         for bs in range(len(bsLabels)):
             mixWLds[i].append(0)
-    matrices = toPlot.getRndMatrices()    
+    matrices = toPlot.getRndMatrices()
     
     #limit the matrices to the measurement window
     for j in mesWin:
@@ -302,7 +302,7 @@ def mes3DPlt(toPlot,mode):
     Generate a measurement 3D plot. This plot depends on the
     mes2DPlt as there the measurement overview table is calculated.
     @param toPlot A SsdTest object.
-    @param mode A string representing the test mode (IOPS|max-LAT|avg-LAT)
+    @param mode A string representing the test mode (IOPS)
     '''
     colorTable = ['#0000FF','#008080','#00FFFF','#FFFF00','#00FF00','#FF00FF','#800000']
     if mode == 'IOPS':
@@ -315,9 +315,6 @@ def mes3DPlt(toPlot,mode):
             row.reverse()
         bsLabels = list(pT.SsdTest.IopsTest.bsLabels)
         mixWlds = list(pT.SsdTest.IopsTest.mixWlds)
-    if mode == "avg-LAT" or mode == "max-LAT":
-        mixWlds = list(pT.SsdTest.LatencyTest.mixWlds)
-        bsLabels = list(pT.SsdTest.LatencyTest.bsLabels)
     
     #define positions for bars
     ypos = np.array([0.25] * len(bsLabels)) 
@@ -348,8 +345,6 @@ def mes3DPlt(toPlot,mode):
     plt.suptitle(mode+" 3D Measurement Plot",fontweight='bold')
     ax.set_xlabel('Block Size (Byte)')
     ax.set_ylabel('R/W Mix%')
-    if mode == "avg-LAT" or mode == "max-LAT":
-        ax.set_zlabel('Latency (ms)')
     if mode == 'IOPS':
         ax.set_zlabel('IOPS',rotation='vertical')
     plt.savefig(toPlot.getTestname()+'-'+mode+'-mes3DPlt.png',dpi=300)
