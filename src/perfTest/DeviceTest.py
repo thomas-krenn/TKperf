@@ -176,7 +176,7 @@ class DeviceTest(object):
         '''
         frozen = True
         security = False
-        logging.info("#Starting Secure Eras for device: "+self.__filename)
+        logging.info("#Starting Secure Erase for device: "+self.__filename)
         out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
