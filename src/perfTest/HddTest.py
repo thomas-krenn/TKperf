@@ -162,6 +162,13 @@ class IopsTest(HddTest):
             exit(1)
         
         increment = (devSizeKB * 1024) / self.maxRnds
+        #we must ensure that increment can be divided by 4096
+        #as we need to align the direct IO to block size. If it
+        #is an advanced sector format with 4k 4096 is ok, if the 
+        #sector size i 512b 4096 is also ok
+        rem = increment % 4096
+        if rem != 0:
+            increment = increment - rem
         logging.info("Increment in byte: "+str(increment))
         
         #rounds are the same as for TP
@@ -257,9 +264,15 @@ class TPTest(HddTest):
             exit(1)
         
         #in each round the offset is incremented
-        #the offset has to be in bytes
         #if it can be divided by 1024, we can also divide it by 128
         increment = (devSizeKB * 1024) / HddTest.maxRnds
+        #we must ensure that increment can be divided by 4096
+        #as we need to align the direct IO to block size. If it
+        #is an advanced sector format with 4k 4096 is ok, if the 
+        #sector size i 512b 4096 is also ok
+        rem = increment % 4096
+        if rem != 0:
+            increment = increment - rem
         logging.info("Increment in byte: "+str(increment))
 
         #rounds are the same for IOPS and throughput

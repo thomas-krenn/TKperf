@@ -185,6 +185,7 @@ def IOPSplot(toPlot):
             min_y,max_y = getMinMax(mixWLds[i][j], min_y, max_y)
             plt.plot(x,mixWLds[i][j],ls,color=lc,
                   label=str(wlds[i])+'/bs=' + bsLabels[j])
+    x = range(0,rnds + 1,32)
     plt.xticks(x)
     plt.suptitle("HDD IOPS plot",fontweight='bold')
     plt.xlabel("Number of Area of Device")
