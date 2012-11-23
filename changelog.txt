@@ -1,0 +1,25 @@
+################################################################################
+Changelog for io_perf_test, performance tests for ssd and hdd
+################################################################################
+
+Version 1.0-dev 20121123
+  * SSD
+    * Tests
+      * Iops
+      * Latency
+      * Write Saturation
+      *Throughput
+    * Plots and measurment tables required by SNIA spec
+    * Logging all FIO calls to log file
+    * Xml file with test results
+    * Rst file with restructured text
+    * Rst file can be converted to pdf with rst2pdf
+  * HDD
+    * Tests
+      * Iops
+      * Throughput
+    * Measurement plots
+
+List of contributors to version 1.* branch:
+  Georg Schönberger, Thomas-Krenn.AG (author)
+################################################################################
