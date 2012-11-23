@@ -1,27 +1,33 @@
 == Installation ==
-The following python packages are required:
-*logging
-*json
-*lxml
-*subprocess
-*datetime
-*argparse
-*copy
-*collections
-*numpy
-*matplotlib
+* The following python packages are required:
+  * logging
+  * json
+  * lxml
+  * subprocess
+  * datetime
+  * argparse
+  * copy
+  * collections
+  * numpy
+  * matplotlib
 
-Under Ubuntu it is normally sufficient to install:
+* Under Ubuntu it is normally sufficient to install:
 	sudo apt-get install python-argparse python-matplotlib python-lxml python-numpy
 
 == Setup ==
-The io_perf_test checks if FIO is findable with:
+* The io_perf_test checks if FIO is found with:
 	$ which fio
-Please ensure that FIO is in your path and executable.
+  Please ensure that FIO is in your path and executable.
+* To install FIO visit
+	http://freecode.com/projects/fio
+* To fetch FIO per git use:
+	$ git clone git://git.kernel.dk/fio.git
+* An installation howto (currently only in german):
+	http://www.thomas-krenn.com/de/wiki/Fio_kompilieren
 
 == Running a test ==
 * Suppose the following directory setup:
--io_perf_test
+  ->io_perf_test
 	-src
 	-doc
 	-examples
@@ -29,15 +35,37 @@ Please ensure that FIO is in your path and executable.
 	
 * The main script file is located under:
 	io_perf_test/src/perfTest/runTest.py
-* You have to modify your PYTHONPATH so that the other packages can be loaded:
-	$ export PYTHONPATH=io_perf_test/src/
-
-* To run the test you need root privilieges. To preserve the PYTHONPATH with 'sudo' use:
+* You have to modify your PYTHONPATH so that the other packages can be loaded (absolute):
+	$ export PYTHONPATH=/home/gschoenb/io_perf_test/src/
+* To run the test you need root privileges. To preserve the PYTHONPATH with 'sudo' use:
 	$ sudo PYTHONPATH=$PYTHONPATH python runTest.py
 
-=== Examples ===
-$ nohup python ../runTest.py ssd intel320 /dev/sde -ft -nj 2 -iod 16 -rfb 1>runTest.out 2>runTest.err &
+== Log File ==
+* The log file is named after the given test name (e.g. 'intel320' in the example above).
+  Inspect the log from time to time to ensure that no errors occured. In the log all
+  calls to FIO are stated out. Also the results from the steady rounds are written
+  to the log file. If you have any doubts that the results in the pdf report are
+  correct check the log what performance values Fio returned. As the log file
+  contains the FIO output in terse version, read the FIO HOWTO to find out how
+  to interpret it.
 
+== Examples ==
+* To run a test on a remote machine and ensure it is not stopped if the connection
+  closes it is good practice to start the script in a screen session. See 'man screen'
+  for more information. Basically it is sufficient to call 'screen', start the script
+  and then detach with 'Ctrl-a d'.
+* As root:
+	# python runTest.py ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
+* Start with nohup and disable the warning that the device will be erase ('-ft', '--force-test'). Note
+  that with nohup it is difficult to use sudo and redirect stdout/stderr to output files.
+	# nohup python ../runTest.py ssd intel320 /dev/sde -ft -nj 2 -iod 16 -rfb 1>runTest.out 2>runTest.err &
+
+== Description File ==
+* If 'hdparm -I' does not provide any valuable information about a drive, you have to provide a
+  so called 'description file'. This file just contains some meta information for the pdf report
+  and so it can be a simple text file describing the tested device. When calling the script
+  provide the path to the description file with '-dsc PATH_TO_FILE'.
+  
 == Generate a PDF report ==
 * To generate a pdf from the rst use rst2pdf:
 	$ rst2pdf test.rst test.pdf
@@ -45,9 +73,15 @@ $ nohup python ../runTest.py ssd intel320 /dev/sde -ft -nj 2 -iod 16 -rfb 1>runT
 == Loading from XML ==
 * To load an already carried out test from the generated xml file, use the '-xml' option:
 	$ sudo PYTHONPATH=$PYTHONPATH python runTest.py ssd intel520 /dev/sdb1 -xml
-* In this case nothing happens with /dev/sdb1, it is just there as a placeholder.
+* In this case nothing happens with /dev/sdb1, it is just there as a placeholder. You can
+  for example insert an usb drive as a dummy device.
 * Loading from an xml file is useful if something has changed in the plotting methods and you
-want to re-plot the results.
+  want to re-plot the results. This is mainly required during a development process.
+
+== Further information ==
+* To get more information about how the SSD tests are carried out, visit
+  http://www.snia.org/tech_activities/standards/curr_standards/pts for the
+  standard these tests are based on.
 
 == Help Text ==
 usage: runTest.py [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-xml]
