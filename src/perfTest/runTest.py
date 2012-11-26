@@ -37,6 +37,10 @@ if __name__ == '__main__':
                         action='store_true')
     parser.add_argument("-fm","--feature_matrix",help="add a feature matrix of the given device to the report",
                         type=argparse.FileType('r'))
+    parser.add_argument("-hddt","--hdd_type",help="choose which tests are run",
+                        choices=['iops','tp'],action='append')
+    parser.add_argument("-ssdt","--ssd_type",help="choose which tests are run",
+                        choices=['iops','lat','tp','writesat'],action='append')
   
     args = parser.parse_args()
     if args.debug == True:
@@ -88,7 +92,9 @@ if __name__ == '__main__':
         
     if args.mode == "hdd":
         print "Starting HDD mode..."
-        #num jobs is not used for hdds
+        #modify the test types if available
+        if args.hddt != None:
+            HddPerfTest.testKeys = args.hddt
         myTest = HddPerfTest(args.testname,args.filename,nj,iod)
         #hdparm -I should work for HDDs
         myTest.readDevInfoHdparm()
@@ -98,6 +104,9 @@ if __name__ == '__main__':
         myTest.run()
     if args.mode == "ssd":
         print "Starting SSD mode..."
+        #modify the test types if available
+        if args.ssdt != None:
+            SsdPerfTest.testKeys = args.ssdt
         myTest = SsdPerfTest(args.testname, args.filename, nj, iod)
         if args.refill_buffers == True:
             myTest.addSglArgToTests('refill_buffers')

@@ -114,7 +114,7 @@ class PerfTest(object):
     def readDevInfoFile(self,fd):
         '''
         Reads the device description from a file. This is necessary if
-        the device informaiton cannot be fetched via hdparm.
+        the device information cannot be fetched via hdparm.
         @param fd The path to the description file, has to be opened already.
         '''
         self.__deviceInfo = fd.read()
@@ -238,8 +238,13 @@ class SsdPerfTest(PerfTest):
     A performance test for ssds consists of all ssd tests
     '''
     
-    ## Keys valid for test dictionary and xml file
+    ## Keys for the tests carried out
     testKeys = ['iops','lat','tp','writesat']
+    ## Keys valid for tests
+    iopsKey = 'iops'
+    latKey = 'lat'
+    tpKey = 'tp'
+    wrKey = 'writesat'
     
     def __init__(self,testname,filename,nj,iod):
         PerfTest.__init__(self, testname, filename)
@@ -255,14 +260,17 @@ class SsdPerfTest(PerfTest):
         self.setTestDate(now.strftime("%Y-%m-%d"))
         
         #Add every test to the performance test
-        test = ssd.IopsTest(testname,filename,nj,iod)
-        self.addTest(SsdPerfTest.testKeys[0], test)
-        test = ssd.LatencyTest(testname,filename,nj,iod)
-        self.addTest(SsdPerfTest.testKeys[1], test)
-        test = ssd.TPTest(testname,filename,nj,iod)
-        self.addTest(SsdPerfTest.testKeys[2], test)
-        test = ssd.WriteSatTest(testname,filename,nj,iod)
-        self.addTest(SsdPerfTest.testKeys[3], test)
+        for testType in SsdPerfTest.testKeys:
+            if testType == SsdPerfTest.iopsKey:
+                test = ssd.IopsTest(testname,filename,nj,iod)
+            if testType == SsdPerfTest.latKey:
+                test = ssd.LatencyTest(testname,filename,nj,iod)
+            if testType == SsdPerfTest.tpKey:
+                test = ssd.TPTest(testname,filename,nj,iod)
+            if testType == SsdPerfTest.wrKey:
+                test = ssd.WriteSatTest(testname,filename,nj,iod)
+            #add the test to the key/value structure
+            self.addTest(testType, test)
         
     def run(self):
         self.runTests()
@@ -298,13 +306,13 @@ class SsdPerfTest(PerfTest):
             #check which test tags are in the xml file
             for elem in root.iterfind(tag):
                 test = None
-                if elem.tag == SsdPerfTest.testKeys[0]:
+                if elem.tag == SsdPerfTest.iopsKey:
                     test = ssd.IopsTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
-                if elem.tag == SsdPerfTest.testKeys[1]:
+                if elem.tag == SsdPerfTest.latKey:
                     test = ssd.LatencyTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
-                if elem.tag == SsdPerfTest.testKeys[2]:
+                if elem.tag == SsdPerfTest.tpKey:
                     test = ssd.TPTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
-                if elem.tag == SsdPerfTest.testKeys[3]:
+                if elem.tag == SsdPerfTest.wrKey:
                     test = ssd.WriteSatTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
                 #we found a tag in the xml file, now we ca read the data from xml
                 if test != None:
@@ -321,69 +329,73 @@ class SsdPerfTest(PerfTest):
         rst.addFooter()
         rst.addTitle()
         rst.addDevInfo(self.getDevInfo(),self.getFeatureMatrix())
-        #fio version is the same for every test, just take the
-        rst.addSetupInfo(self.getIOPerfVersion(),tests['iops'].getFioJob().getFioVersion(),self.getTestDate())
-        rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
-        rst.addGeneralInfo()
+        #add the fio version, nj, iod and general info of one test to the report
+        for keys in tests.iterkeys():
+            rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
+                             self.getTestDate())
+            rst.addFioJobInfo(tests[keys].getNj(), tests[keys].getIod())
+            rst.addGeneralInfo()
+            break
         
-        rst.addChapter("IOPS")
-        rst.addTestInfo('iops',tests['iops'])
-        rst.addSection("Measurement Plots")
-        for i,fig in enumerate(tests['iops'].getFigures()):
-            rst.addFigure(fig,'iops',i)
-        rst.addSection("Measurement Window Summary Table")
-        rst.addTable(tests['iops'].getTables()[0],ssd.IopsTest.bsLabels,'iops')
-        
-        rst.addChapter("Throughput")
-        rst.addTestInfo('tp',tests['tp'])
-        rst.addSection("Measurement Plots")
-        for i,fig in enumerate(tests['tp'].getFigures()):
-            rst.addFigure(fig,'tp',i)
-        rst.addSection("Measurement Window Summary Table")    
-        rst.addTable(tests['tp'].getTables()[0],ssd.TPTest.bsLabels,'tp')
-            
-        rst.addChapter("Latency")
-        rst.addTestInfo('lat',tests['lat'])
-        rst.addSection("Measurement Plots")
-        for i,fig in enumerate(tests['lat'].getFigures()):
-            #index 2 and 3 are 2D measurement plots that are not required
-            #but we need them to generate the measurement overview table
-            if i == 2 or i == 3: continue
-            rst.addFigure(fig,'lat',i)
-        rst.addSection("Measurement Window Summary Table")    
-        rst.addTable(tests['lat'].getTables()[0],ssd.LatencyTest.bsLabels,'avg-lat')#avg lat 
-        rst.addTable(tests['lat'].getTables()[1],ssd.LatencyTest.bsLabels,'max-lat')#max lat
-        
-        rst.addChapter("Write Saturation")
-        rst.addTestInfo('writesat',tests['writesat'])
-        rst.addSection("Measurement Plots")
-        for i,fig in enumerate(tests['writesat'].getFigures()):
-            rst.addFigure(fig,'writesat',i)
+        if SsdPerfTest.iopsKey in tests:
+            rst.addChapter("IOPS")
+            rst.addTestInfo('iops',tests['iops'])
+            rst.addSection("Measurement Plots")
+            for i,fig in enumerate(tests['iops'].getFigures()):
+                rst.addFigure(fig,'iops',i)
+            rst.addSection("Measurement Window Summary Table")
+            rst.addTable(tests['iops'].getTables()[0],ssd.IopsTest.bsLabels,'iops')
+        if SsdPerfTest.tpKey in tests:
+            rst.addChapter("Throughput")
+            rst.addTestInfo('tp',tests['tp'])
+            rst.addSection("Measurement Plots")
+            for i,fig in enumerate(tests['tp'].getFigures()):
+                rst.addFigure(fig,'tp',i)
+            rst.addSection("Measurement Window Summary Table")    
+            rst.addTable(tests['tp'].getTables()[0],ssd.TPTest.bsLabels,'tp')
+        if SsdPerfTest.latKey in tests:
+            rst.addChapter("Latency")
+            rst.addTestInfo('lat',tests['lat'])
+            rst.addSection("Measurement Plots")
+            for i,fig in enumerate(tests['lat'].getFigures()):
+                #index 2 and 3 are 2D measurement plots that are not required
+                #but we need them to generate the measurement overview table
+                if i == 2 or i == 3: continue
+                rst.addFigure(fig,'lat',i)
+            rst.addSection("Measurement Window Summary Table")    
+            rst.addTable(tests['lat'].getTables()[0],ssd.LatencyTest.bsLabels,'avg-lat')#avg lat 
+            rst.addTable(tests['lat'].getTables()[1],ssd.LatencyTest.bsLabels,'max-lat')#max lat
+        if SsdPerfTest.wrKey in tests:
+            rst.addChapter("Write Saturation")
+            rst.addTestInfo('writesat',tests['writesat'])
+            rst.addSection("Measurement Plots")
+            for i,fig in enumerate(tests['writesat'].getFigures()):
+                rst.addFigure(fig,'writesat',i)
 
         rst.toRstFile()
         
     def getPlots(self):
         tests = self.getTests()
         #plots for iops
-        if SsdPerfTest.testKeys[0] in tests:
+        if SsdPerfTest.iopsKey in tests:
             pgp.stdyStConvPlt(tests['iops'],"IOPS")
             pgp.stdyStVerPlt(tests['iops'],"IOPS")
             pgp.mes2DPlt(tests['iops'],"IOPS")
             pgp.mes3DPlt(tests['iops'],"IOPS")
         #plots for latency
-        if SsdPerfTest.testKeys[1] in tests:
+        if SsdPerfTest.latKey in tests:
             pgp.stdyStConvPlt(tests['lat'],"LAT")
             pgp.stdyStVerPlt(tests['lat'],"LAT")
             pgp.mes2DPlt(tests['lat'],"avg-LAT")
             pgp.mes2DPlt(tests['lat'],"max-LAT")
             pgp.latMes3DPlt(tests['lat'])
         #plots for throughout
-        if SsdPerfTest.testKeys[2] in tests:
+        if SsdPerfTest.tpKey in tests:
             pgp.tpRWStdyStConvPlt(tests['tp'])
             pgp.stdyStVerPlt(tests['tp'],"TP")
             pgp.tpMes2DPlt(tests['tp'])
         #plots for write saturation
-        if SsdPerfTest.testKeys[3] in tests:
+        if SsdPerfTest.wrKey in tests:
             pgp.writeSatIOPSPlt(tests['writesat'])
             pgp.writeSatLatPlt(tests['writesat'])
 
@@ -394,6 +406,9 @@ class HddPerfTest(PerfTest):
     
     ## Keys valid for test dictionary and xml file
     testKeys = ['iops','tp']
+    ## Keys valid for tests
+    iopsKey = 'iops'
+    tpKey = 'tp'
     
     def __init__(self,testname,filename, nj, iod):
         PerfTest.__init__(self, testname, filename)
@@ -408,10 +423,14 @@ class HddPerfTest(PerfTest):
         now = datetime.datetime.now()
         self.setTestDate(now.strftime("%Y-%m-%d"))
         
-        test = hdd.IopsTest(testname,filename,nj,iod)
-        self.addTest(HddPerfTest.testKeys[0],test)
-        test = hdd.TPTest(testname,filename,nj,iod)
-        self.addTest(HddPerfTest.testKeys[1],test)
+                #Add every test to the performance test
+        for testType in HddPerfTest.testKeys:
+            if testType == HddPerfTest.iopsKey:
+                test = hdd.IopsTest(testname,filename,nj,iod)
+            if testType == HddPerfTest.tpKey:
+                test = hdd.TPTest(testname,filename,nj,iod)
+            #add the test to the key/value structure
+            self.addTest(testType, test)
         
     def run(self):
         self.runTests()
@@ -445,9 +464,9 @@ class HddPerfTest(PerfTest):
         for tag in HddPerfTest.testKeys:
             for elem in root.iterfind(tag):
                 test = None
-                if elem.tag == HddPerfTest.testKeys[0]:
+                if elem.tag == HddPerfTest.iopsKey:
                     test = hdd.IopsTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
-                if elem.tag == HddPerfTest.testKeys[1]:
+                if elem.tag == HddPerfTest.tpKey:
                     test = hdd.TPTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
                 if test != None:
                     test.fromXml(elem)
@@ -478,9 +497,9 @@ class HddPerfTest(PerfTest):
         
     def getPlots(self):
         tests = self.getTests()
-        if HddPerfTest.testKeys[0] in tests:
+        if HddPerfTest.iopsKey in tests:
             pgp.IOPSplot(tests['iops'])
-        if HddPerfTest.testKeys[1] in tests:
+        if HddPerfTest.tpKey in tests:
             pgp.tpStdyStConvPlt(tests['tp'], "rw","hdd")
 
         
