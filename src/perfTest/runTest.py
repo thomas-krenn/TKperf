@@ -38,9 +38,9 @@ if __name__ == '__main__':
     parser.add_argument("-fm","--feature_matrix",help="add a feature matrix of the given device to the report",
                         type=argparse.FileType('r'))
     parser.add_argument("-hddt","--hdd_type",help="choose which tests are run",
-                        choices=['iops','tp'],action='append')
+                        choices=['iops','tp'],action='append',dest='hddt')
     parser.add_argument("-ssdt","--ssd_type",help="choose which tests are run",
-                        choices=['iops','lat','tp','writesat'],action='append')
+                        choices=['iops','lat','tp','writesat'],action='append',dest='ssdt')
   
     args = parser.parse_args()
     if args.debug == True:
