@@ -8,7 +8,7 @@ Version 1.0-dev 20121123
       * Iops
       * Latency
       * Write Saturation
-      *Throughput
+      * Throughput
     * Plots and measurment tables required by SNIA spec
     * Logging all FIO calls to log file
     * Xml file with test results

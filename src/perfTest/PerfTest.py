@@ -288,7 +288,8 @@ class SsdPerfTest(PerfTest):
         self.setDevInfo(json.loads(root.findtext('devinfo')))
         
         #read the feature matrix from the xml file
-        self.setFeatureMatrix(json.loads(root.findtext('featmatrix')))
+        if(root.findtext('featmatrix')):
+            self.setFeatureMatrix(json.loads(root.findtext('featmatrix')))
         
         #first read the device information from xml
         self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
