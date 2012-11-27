@@ -342,7 +342,7 @@ class SsdPerfTest(PerfTest):
             rst.addTestInfo('iops',tests['iops'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['iops'].getFigures()):
-                rst.addFigure(fig,'iops',i)
+                rst.addFigure(fig,'ssd','iops',i)
             rst.addSection("Measurement Window Summary Table")
             rst.addTable(tests['iops'].getTables()[0],ssd.IopsTest.bsLabels,'iops')
         if SsdPerfTest.tpKey in tests:
@@ -350,7 +350,7 @@ class SsdPerfTest(PerfTest):
             rst.addTestInfo('tp',tests['tp'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['tp'].getFigures()):
-                rst.addFigure(fig,'tp',i)
+                rst.addFigure(fig,'ssd','tp',i)
             rst.addSection("Measurement Window Summary Table")    
             rst.addTable(tests['tp'].getTables()[0],ssd.TPTest.bsLabels,'tp')
         if SsdPerfTest.latKey in tests:
@@ -361,7 +361,7 @@ class SsdPerfTest(PerfTest):
                 #index 2 and 3 are 2D measurement plots that are not required
                 #but we need them to generate the measurement overview table
                 if i == 2 or i == 3: continue
-                rst.addFigure(fig,'lat',i)
+                rst.addFigure(fig,'ssd','lat',i)
             rst.addSection("Measurement Window Summary Table")    
             rst.addTable(tests['lat'].getTables()[0],ssd.LatencyTest.bsLabels,'avg-lat')#avg lat 
             rst.addTable(tests['lat'].getTables()[1],ssd.LatencyTest.bsLabels,'max-lat')#max lat
@@ -370,7 +370,7 @@ class SsdPerfTest(PerfTest):
             rst.addTestInfo('writesat',tests['writesat'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['writesat'].getFigures()):
-                rst.addFigure(fig,'writesat',i)
+                rst.addFigure(fig,'ssd','writesat',i)
 
         rst.toRstFile()
         
@@ -449,11 +449,11 @@ class HddPerfTest(PerfTest):
         self.getXmlReport().fileToXml(self.getTestname())
         self.resetTests()
         root = self.getXmlReport().getXml()
-        
+
         self.setTestDate(json.loads(root.findtext('testdate')))
-        
+
         #first read the device information from xml
-        self.setDevInfo(self.root.find('devInfo'))
+        self.setDevInfo(json.loads(root.findtext('devinfo')))
         
         #read the feature matrix from the xml file
         if(root.findtext('featmatrix')):
@@ -481,19 +481,26 @@ class HddPerfTest(PerfTest):
         rst = self.getRstReport()
         rst.addFooter()
         rst.addTitle()
-        rst.addDevInfo(self.getDevInfo())
+        rst.addDevInfo(self.getDevInfo(),self.getFeatureMatrix())
         #fio version is the same for every test, just take the
         #one from iops
-        rst.addSetupInfo(self.getIOPerfVersion(),tests['iops'].getFioJob().getFioVersion(),self.getTestDate())
-        rst.addFioJobInfo(tests['iops'].getNj(), tests['iops'].getIod())
-        rst.addGeneralInfo()
+        for keys in tests.iterkeys():
+            rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
+                             self.getTestDate())
+            rst.addFioJobInfo(tests[keys].getNj(), tests[keys].getIod())
+            rst.addGeneralInfo()
+            break
         
-        rst.addChapter("IOPS")
-        rst.addFigure(tests['iops'].getFigure()[0])
-        rst.toRstFile()
+        if HddPerfTest.iopsKey in tests:
+            rst.addChapter("IOPS")
+            for i,fig in enumerate(tests['iops'].getFigures()):
+                rst.addFigure(fig,'hdd','iops',i)
         
-        rst.addChapter("Throughput")
-        rst.addFigure(tests['tp'].getFigure()[0])
+        if HddPerfTest.tpKey in tests:
+            rst.addChapter("Throughput")
+            for i,fig in enumerate(tests['tp'].getFigures()):
+                rst.addFigure(fig,'hdd','tp',i)
+        
         rst.toRstFile()
         
     def getPlots(self):
@@ -501,6 +508,6 @@ class HddPerfTest(PerfTest):
         if HddPerfTest.iopsKey in tests:
             pgp.IOPSplot(tests['iops'])
         if HddPerfTest.tpKey in tests:
-            pgp.tpStdyStConvPlt(tests['tp'], "rw","hdd")
+            pgp.TPplot(tests['tp'])
 
         
