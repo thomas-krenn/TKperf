@@ -142,60 +142,7 @@ def stdyStConvPlt(toPlot,mode):
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png')
     
-def IOPSplot(toPlot):
-    rnds = pT.HddTest.HddTest.maxRnds
-    matrices = toPlot.getRndMatrices()
-    
-    wlds = pT.HddTest.IopsTest.mixWlds
-    bsLabels = pT.HddTest.IopsTest.bsLabels
-    
-    #each row will be a workload percentage
-    mixWLds = []
-    for i in range(len(wlds)):
-        mixWLds.append([])
-        #in each row will be the different block sizes
-        for bs in range(len(bsLabels)):
-            mixWLds[i].append([])
-            
-    for rnd in matrices:
-        #each round has its workloads
-        for i,row in enumerate(rnd):
-            #each workload has its block sizes
-            for j,bs in enumerate(row):
-                mixWLds[i][j].append(bs)
 
-    plt.clf()#clear
-    x = range(rnds)
-    max_y = 0
-    min_y = 0
-    for i in range(len(mixWLds)):
-        if i == 0:
-            lc = 'blue'
-        if i == 1:
-            lc = 'green'
-        if i == 2:
-            lc = 'red'
-        for j in range(len(mixWLds[i])):
-            if j == 0:
-                ls = 's-'
-            if j == 1:
-                ls = 'o-'
-            if j == 2:
-                ls = '^-'
-            min_y,max_y = getMinMax(mixWLds[i][j], min_y, max_y)
-            plt.plot(x,mixWLds[i][j],ls,color=lc,
-                  label=str(wlds[i])+'/bs=' + bsLabels[j])
-    x = range(0,rnds + 1,32)
-    plt.xticks(x)
-    plt.suptitle("HDD IOPS plot",fontweight='bold')
-    plt.xlabel("Number of Area of Device")
-    plt.ylabel("IOPS")
-    #plt.yscale('log')
-    plt.ylim((min_y*0.75,max_y*1.25))
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
-               ncol=3, fancybox=True, shadow=True,prop={'size':12})
-    plt.savefig(toPlot.getTestname()+'-IOPSPlt.png',dpi=300)
-    toPlot.addFigure(toPlot.getTestname()+'-IOPSPlt.png')
     
 def mes2DPlt(toPlot,mode):
     '''
@@ -406,50 +353,6 @@ def latMes3DPlt(toPlot):
     plt.savefig(toPlot.getTestname()+'-LAT-mes3DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-LAT-mes3DPlt.png')
 
-def getBS(bsLabels):
-    '''
-    Convert a list of string block size labels to a list of integers.
-    This can be handy if the block sizes are needed to be plotted at
-    the x axis.
-    @return A list of integer block sizes.
-    '''
-    bs = []
-    for b in bsLabels:
-        if b == "512":
-            bs.append(0.5)
-            continue
-        s = b[0:-1]
-        bs.append(int(s))
-    return bs
-
-def getMinMax(values, currMin, currMax):
-    '''
-    Returns the minimum and maximum of a sequence of values.
-    @param values Squence to calculate min and max for
-    @param currMin Current minimum to compare to.
-    @param currMax Current maximum to compare to.
-    @return [newMin,newMax] if newMin is smaller than currMin,
-    newMax if it is greater than currMax.
-    '''
-    #TODO Testing for 0 can be a problem if minimum is really 0
-    #This should not happen for performance tests under normal circumstances
-    newMin = 0
-    newMax = 0
-    curr = max(values)
-    if curr > currMax:
-        newMax = curr
-    else:
-        newMax = currMax
-    curr = min(values)
-    if currMin == 0:
-        newMin = curr
-    else:
-        if curr < currMin:
-            newMin = curr
-        else:
-            newMin = currMin
-    return [newMin,newMax]
-    
 def writeSatIOPSPlt(toPlot):
     #fetch number of rounds, we want to include all rounds
     #as stdy state was reached at rnds, it must be included
@@ -499,77 +402,6 @@ def writeSatLatPlt(toPlot):
     plt.savefig(toPlot.getTestname()+'-writeSatLatPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-writeSatLatPlt.png')
     
-def tpStdyStConvPlt(toPlot,mode,dev):
-    '''
-    Generate a steady state convergence plot for throughput measurements.
-    The plot consists of:
-    -Measured bandwidths per round per block size
-    -All lines are the different block sizes
-    -x axes is the number of all rounds
-    -y axes is the bw of the corresponding round
-    The figure is saved as SsdTest.Testname-bw-stdyStConvPlt.png.
-    @param toPlot A SsdTest object.
-    @param mode String "read|write|rw"
-    @param dev String "ssd|hdd"
-    '''
-    matrices = toPlot.getRndMatrices()
-    rnds = len(matrices[0][0])#fetch the number of total rounds
-    bsLens = len(matrices)#fetch the number of bs, each row is a bs in the matrix
-    
-    if dev == "hdd":
-        bsLabels = pT.HddTest.TPTest.bsLabels
-    else:
-        bsLabels = pT.SsdTest.TPTest.bsLabels
-    
-    #initialize matrix for plotting
-    lines = []
-    for i in range(bsLens):
-        lines.append([])
-    
-    #values for scaling the axes
-    max_y = 0
-    min_y = 0
-    
-    plt.clf()#clear
-    x = range(rnds)#determined by len of matrix
-    for i,rndMat in enumerate(matrices):
-        if dev == "hdd" and mode == "rw":
-            min_y,max_y = getMinMax(rndMat[0], min_y, max_y)
-            plt.plot(x,rndMat[0],'o-',label='read bs='+bsLabels[i])
-            min_y,max_y = getMinMax(rndMat[1], min_y, max_y)
-            plt.plot(x,rndMat[1],'o-',label='write bs='+bsLabels[i])
-        else:
-            if mode == "read":
-                row = rndMat[0]#plot the read row
-            if mode == "write":
-                row = rndMat[1]#plot the write row
-            min_y,max_y = getMinMax(row, min_y, max_y)
-            plt.plot(x,row,'o-',label='bs='+bsLabels[i])
-    
-    if dev == "hdd":
-        x = range(0,pT.HddTest.HddTest.maxRnds+1,16)
-        plt.xticks(x)
-    else:
-        x = range(rnds)
-        plt.xticks(x)
-    if dev == "hdd":
-        plt.suptitle("TP "+mode+" Plot",fontweight='bold')    
-        plt.xlabel("Number of Area of Device")
-    else:
-        plt.suptitle("TP "+mode+" Steady State Convergence Plot",fontweight='bold')
-        plt.xlabel("Round #")
-    plt.ylabel("Bandwidth (KB/s)")
-    #scale axis to min and max +- 15%
-    plt.ylim((min_y*0.6,max_y*1.15))
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
-               ncol=3, fancybox=True, shadow=True,prop={'size':12})
-    if dev == "hdd":
-        plt.savefig(toPlot.getTestname()+'-'+mode+'-TpPlt.png',dpi=300)
-        toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-TpPlt.png')
-    else:
-        plt.savefig(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png',dpi=300)
-        toPlot.addFigure(toPlot.getTestname()+'-TP-'+mode+'-stdyStConvPlt.png')
-
 def tpRWStdyStConvPlt(toPlot):
     '''
     Generate one steady state convergence plot for throughput read and write measurements.
@@ -637,7 +469,6 @@ def tpRWStdyStConvPlt(toPlot):
     plt.savefig(toPlot.getTestname()+'-TP-RW-stdyStConvPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-TP-RW-stdyStConvPlt.png')
 
-
 def tpMes2DPlt(toPlot):
     '''
     Generate a measurement 2D plot and the measurement overview table for throughput.
@@ -695,3 +526,158 @@ def tpMes2DPlt(toPlot):
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-TP-mes2DPlt.png')
     toPlot.addTable(wlds)
+
+######### PLOTS FOR HDD TESTS #########
+def TPplot(toPlot):
+    '''
+    Generate a R/W throughput measurement plot for the hdd round results.
+    The plot consists of:
+    -Measured bandwidths per round, per block size for read and write
+    -x axes is the number of carried out rounds
+    -y axes is the bandwidth of the corresponding round
+    The figure is saved as TPTest.Testname-TP-RW-Plt.png.
+    @param toPlot A hdd TPTest object.
+    '''
+    #As the values are converted to KB, copy the matrices
+    matrices = deepcopy(toPlot.getRndMatrices())
+    rnds = pT.HddTest.HddTest.maxRnds
+    bsLabels = pT.HddTest.TPTest.bsLabels
+    
+    #values for scaling the axes
+    max_y = 0
+    min_y = 0
+    
+    plt.clf()#clear
+    x = range(rnds)#determined by len of matrix
+    for i,rndMat in enumerate(matrices):
+        #convert to MB/S
+        for v in range(len(rndMat[0])):
+            rndMat[0][v] = (rndMat[0][v]) / 1024
+        #plot the read row for current BS
+        min_y,max_y = getMinMax(rndMat[0], min_y, max_y)
+        plt.plot(x,rndMat[0],'o-',label='read bs='+bsLabels[i])
+        #plot the write row for current BS
+        for v in range(len(rndMat[1])):
+            rndMat[1][v] = (rndMat[1][v]) / 1024
+        min_y,max_y = getMinMax(rndMat[1], min_y, max_y)
+        plt.plot(x,rndMat[1],'o-',label='write bs='+bsLabels[i])
+    
+    x = range(0,pT.HddTest.HddTest.maxRnds+1,16)
+    plt.xticks(x)
+    plt.suptitle("TP Measurement Plot",fontweight='bold')    
+    plt.xlabel("Area of Device (in rounds)")
+    plt.ylabel("Bandwidth (MB/s)")
+    #scale axis to min and max +- 15%
+    plt.ylim((min_y*0.6,max_y*1.15))
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=3, fancybox=True, shadow=True,prop={'size':12})
+    plt.savefig(toPlot.getTestname()+'-TP-RW-Plt.png',dpi=300)
+    toPlot.addFigure(toPlot.getTestname()+'-TP-RW-Plt.png')
+
+def IOPSplot(toPlot):
+    '''
+    Generate the IOPS plot for a hdd performance test. The plot consists
+    of plotting the IOPS results from the 128 rounds that have been carried
+    out. In each round the mixed workloads and all block sizes are plotted.
+    @param toPlot An hdd IopsTest object.
+    '''
+    rnds = pT.HddTest.HddTest.maxRnds
+    matrices = toPlot.getRndMatrices()
+    
+    wlds = pT.HddTest.IopsTest.mixWlds
+    bsLabels = pT.HddTest.IopsTest.bsLabels
+    
+    #each row will be a workload percentage
+    mixWLds = []
+    for i in range(len(wlds)):
+        mixWLds.append([])
+        #in each row will be the different block sizes
+        for bs in range(len(bsLabels)):
+            mixWLds[i].append([])
+            
+    for rnd in matrices:
+        #each round has its workloads
+        for i,row in enumerate(rnd):
+            #each workload has its block sizes
+            for j,bs in enumerate(row):
+                mixWLds[i][j].append(bs)
+
+    plt.clf()#clear
+    x = range(rnds)
+    max_y = 0
+    min_y = 0
+    for i in range(len(mixWLds)):
+        if i == 0:
+            lc = 'blue'
+        if i == 1:
+            lc = 'green'
+        if i == 2:
+            lc = 'red'
+        for j in range(len(mixWLds[i])):
+            if j == 0:
+                ls = 's-'
+            if j == 1:
+                ls = 'o-'
+            if j == 2:
+                ls = '^-'
+            min_y,max_y = getMinMax(mixWLds[i][j], min_y, max_y)
+            plt.plot(x,mixWLds[i][j],ls,color=lc,
+                  label=str(wlds[i])+'/bs=' + bsLabels[j])
+    x = range(0,rnds + 1,16)
+    plt.xticks(x)
+    plt.suptitle("IOPS Measurement Plot",fontweight='bold')
+    plt.xlabel("Area of Device (in rounds)")
+    plt.ylabel("IOPS")
+    #plt.yscale('log')
+    plt.ylim((min_y*0.75,max_y*1.25))
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=3, fancybox=True, shadow=True,prop={'size':12})
+    plt.savefig(toPlot.getTestname()+'-IOPSPlt.png',dpi=300)
+    toPlot.addFigure(toPlot.getTestname()+'-IOPSPlt.png')
+    
+######### HELPER FUNCTIONS TO GENERATE PLOTS #########
+def getBS(bsLabels):
+    '''
+    Convert a list of string block size labels to a list of integers.
+    This can be handy if the block sizes are needed to be plotted at
+    the x axis.
+    @return A list of integer block sizes.
+    '''
+    bs = []
+    for b in bsLabels:
+        if b == "512":
+            bs.append(0.5)
+            continue
+        s = b[0:-1]
+        bs.append(int(s))
+    return bs
+
+def getMinMax(values, currMin, currMax):
+    '''
+    Returns the minimum and maximum of a sequence of values.
+    @param values Squence to calculate min and max for
+    @param currMin Current minimum to compare to.
+    @param currMax Current maximum to compare to.
+    @return [newMin,newMax] if newMin is smaller than currMin,
+    newMax if it is greater than currMax.
+    '''
+    #TODO Testing for 0 can be a problem if minimum is really 0
+    #This should not happen for performance tests under normal circumstances
+    newMin = 0
+    newMax = 0
+    curr = max(values)
+    if curr > currMax:
+        newMax = curr
+    else:
+        newMax = currMax
+    curr = min(values)
+    if currMin == 0:
+        newMin = curr
+    else:
+        if curr < currMin:
+            newMin = curr
+        else:
+            newMin = currMin
+    return [newMin,newMax]
+    
+    
