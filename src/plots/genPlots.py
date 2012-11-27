@@ -142,8 +142,6 @@ def stdyStConvPlt(toPlot,mode):
     plt.savefig(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-stdyStConvPlt.png')
     
-
-    
 def mes2DPlt(toPlot,mode):
     '''
     Generate a measurement 2D plot and the measurement overview table.
@@ -570,7 +568,7 @@ def TPplot(toPlot):
     #scale axis to min and max +- 15%
     plt.ylim((min_y*0.6,max_y*1.15))
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
-               ncol=3, fancybox=True, shadow=True,prop={'size':12})
+               ncol=2, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-TP-RW-Plt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-TP-RW-Plt.png')
 
