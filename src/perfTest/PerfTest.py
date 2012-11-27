@@ -509,5 +509,7 @@ class HddPerfTest(PerfTest):
             pgp.IOPSplot(tests['iops'])
         if HddPerfTest.tpKey in tests:
             pgp.TPplot(tests['tp'])
+            pgp.TPBoxPlot(tests['tp'])
+            
 
         
