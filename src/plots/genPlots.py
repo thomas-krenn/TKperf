@@ -658,7 +658,7 @@ def TPBoxPlot(toPlot):
         boxes.append(bsRows[1])
     #Length of BS per R/W
     pos = range(len(bsLabels) * 2)
-    plt.boxplot(boxes,positions=pos,label='bla')
+    plt.boxplot(boxes,positions=pos)
     labels = []
     for l in bsLabels:
         labels.append(l + ' R')

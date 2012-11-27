@@ -339,7 +339,7 @@ class SsdPerfTest(PerfTest):
         
         if SsdPerfTest.iopsKey in tests:
             rst.addChapter("IOPS")
-            rst.addTestInfo('iops',tests['iops'])
+            rst.addTestInfo('ssd','iops',tests['iops'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['iops'].getFigures()):
                 rst.addFigure(fig,'ssd','iops',i)
@@ -347,7 +347,7 @@ class SsdPerfTest(PerfTest):
             rst.addTable(tests['iops'].getTables()[0],ssd.IopsTest.bsLabels,'iops')
         if SsdPerfTest.tpKey in tests:
             rst.addChapter("Throughput")
-            rst.addTestInfo('tp',tests['tp'])
+            rst.addTestInfo('ssd','tp',tests['tp'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['tp'].getFigures()):
                 rst.addFigure(fig,'ssd','tp',i)
@@ -355,7 +355,7 @@ class SsdPerfTest(PerfTest):
             rst.addTable(tests['tp'].getTables()[0],ssd.TPTest.bsLabels,'tp')
         if SsdPerfTest.latKey in tests:
             rst.addChapter("Latency")
-            rst.addTestInfo('lat',tests['lat'])
+            rst.addTestInfo('ssd','lat',tests['lat'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['lat'].getFigures()):
                 #index 2 and 3 are 2D measurement plots that are not required
@@ -367,7 +367,7 @@ class SsdPerfTest(PerfTest):
             rst.addTable(tests['lat'].getTables()[1],ssd.LatencyTest.bsLabels,'max-lat')#max lat
         if SsdPerfTest.wrKey in tests:
             rst.addChapter("Write Saturation")
-            rst.addTestInfo('writesat',tests['writesat'])
+            rst.addTestInfo('ssd','writesat',tests['writesat'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['writesat'].getFigures()):
                 rst.addFigure(fig,'ssd','writesat',i)
@@ -493,11 +493,15 @@ class HddPerfTest(PerfTest):
         
         if HddPerfTest.iopsKey in tests:
             rst.addChapter("IOPS")
+            rst.addTestInfo('hdd','iops',tests['iops'])
+            rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['iops'].getFigures()):
                 rst.addFigure(fig,'hdd','iops',i)
         
         if HddPerfTest.tpKey in tests:
             rst.addChapter("Throughput")
+            rst.addTestInfo('hdd','tp',tests['tp'])
+            rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['tp'].getFigures()):
                 rst.addFigure(fig,'hdd','tp',i)
         

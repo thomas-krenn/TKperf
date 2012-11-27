@@ -7,6 +7,8 @@ from cStringIO import StringIO
 from copy import deepcopy
 
 import perfTest.SsdTest as ssd
+import perfTest.HddTest as hdd
+#from perfTest.HddTest import HddTest
 
 class RstReport(object):
     '''
@@ -281,104 +283,127 @@ class RstReport(object):
         self.addString(stdyStr.getvalue())
         stdyStr.close()
     
-    def addTestInfo(self,testname,test):
+    def addTestInfo(self,testtype,testname,test):
         '''
         Add information about a test to the rst report.
         This part is the main information about a test, it describes how 
         a test has been carried out.
+        @param testtype Type of performance test (hdd,ssd)
         @param testname Type name of a test.
         @param test The specific test object 
         '''
-        if testname == 'iops':
-            desc = StringIO()
-            desc.write("The IOPS test consists of looping over the following parameters:\n")
-            desc.write('\n::\n\n\t')
-            print >>desc, "Make Secure Erase"
-            print >>desc, "\tWorkload Ind. Preconditioning"
-            print >>desc, "\tWhile not Steady State"
-            print >>desc, "\t\tFor workloads ",
-            print >>desc, ssd.IopsTest.mixWlds
-            desc.write('\t\t\t')
-            print >>desc, "For block sizes",
-            print >>desc, ssd.IopsTest.bsLabels
-            desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
-            desc.write("The average number of read and write IOPS is measured and summed up, therefore 56 values are ")
-            desc.write("the result of the two loops.\n")
-            desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
-            desc.write("the IOPS of 4k random write are taken.\n\n")
-            print >>desc, "- Dependent Variable: 4k block size, random write"
-            self.addString(desc.getvalue())
-            desc.close()
-            self.addSteadyInfo(test)
-        if testname == 'tp':  
-            desc = StringIO()
-            desc.write("The throughput test consists of looping over the following parameters:\n")
-            desc.write('\n::\n\n\t')
-            print >>desc, "For block sizes ",
-            print >>desc, ssd.TPTest.bsLabels
-            desc.write('\t\t')
-            print >>desc, "Make Secure Erase"
-            desc.write('\t\t')
-            print >>desc, "While not Steady State"
-            desc.write('\t\t\t')
-            print >>desc, "Sequential read"
-            desc.write('\t\t\t')
-            print >>desc, "Sequential write"
-            desc.write("\nFor each block size sequential read and write is carried out for 60 seconds using direct IO. ")
-            desc.write("The number of kilobytes for read and write is measured, therefore 2 values are ")
-            desc.write("the result of one round.\n")
-            desc.write("To detect the steady state the throughput of 1024k sequential write is taken.\n\n")
-            print >>desc, "- Dependent Variable: 1024k block size, sequential write"
-            self.addString(desc.getvalue())
-            desc.close()
-            self.addSteadyInfo(test)
-        if testname == 'lat':  
-            desc = StringIO()
-            desc.write("The latency test consists of looping over the following parameters:\n")
-            desc.write('\n::\n\n\t')
-            print >>desc, "Make Secure Erase"
-            print >>desc, "\tWorkload Ind. Preconditioning"
-            print >>desc, "\tWhile not Steady State"
-            print >>desc, "\t\tFor workloads ",
-            print >>desc, ssd.LatencyTest.mixWlds
-            desc.write('\t\t\t')
-            print >>desc, "For block sizes",
-            print >>desc, ssd.LatencyTest.bsLabels
-            desc.write("\nFor all block sizes random read, a 65/35 read/write mixed workload and random write is carried out for 60 ") 
-            desc.write("seconds using direct IO. ")
-            desc.write("For every combination the Min, Max and Mean Latency is measured. ")
-            desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
-            desc.write("the mean latency of 4k random write is taken.\n\n")
-            print >>desc, "- Dependent Variable: 4k block size, random write mean latency"
-            self.addString(desc.getvalue())
-            desc.close()
-            self.addSteadyInfo(test)
-        if testname == 'writesat':  
-            desc = StringIO()
-            desc.write("The write saturation test consists of looping over the following parameters:\n")
-            desc.write('\n::\n\n\t')
-            print >>desc, "Make Secure Erase"
-            print >>desc, "\tWhile not written 4x User Capacity or 24h"
-            print >>desc, "\t\tCarry out random write, 4k block size for 1 minute."
-            desc.write("\nFor 4k block size random write is carried out for 60 ") 
-            desc.write("seconds using direct IO. ")
-            desc.write("For each round (60 second window) the write IOPS and latencies are measured. Also the total written ")
-            desc.write("IO is measured to check if 4x capacity has been written.\n\n")
-            desc.write("As no steady state detection is necessary there is no dependence variable.\n\n")
-            self.addString(desc.getvalue())
-            desc.close()
+        if testtype == 'ssd':
+            if testname == 'iops':
+                desc = StringIO()
+                desc.write("The IOPS test consists of looping over the following parameters:\n")
+                desc.write('\n::\n\n\t')
+                print >>desc, "Make Secure Erase"
+                print >>desc, "\tWorkload Ind. Preconditioning"
+                print >>desc, "\tWhile not Steady State"
+                print >>desc, "\t\tFor workloads ",
+                print >>desc, ssd.IopsTest.mixWlds
+                desc.write('\t\t\t')
+                print >>desc, "For block sizes",
+                print >>desc, ssd.IopsTest.bsLabels
+                desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
+                desc.write("The average number of read and write IOPS is measured and summed up, therefore 56 values are ")
+                desc.write("the result of the two loops.\n")
+                desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
+                desc.write("the IOPS of 4k random write are taken.\n\n")
+                print >>desc, "- Dependent Variable: 4k block size, random write"
+                self.addString(desc.getvalue())
+                desc.close()
+                self.addSteadyInfo(test)
+            if testname == 'tp':  
+                desc = StringIO()
+                desc.write("The throughput test consists of looping over the following parameters:\n")
+                desc.write('\n::\n\n\t')
+                print >>desc, "For block sizes ",
+                print >>desc, ssd.TPTest.bsLabels
+                desc.write('\t\t')
+                print >>desc, "Make Secure Erase"
+                desc.write('\t\t')
+                print >>desc, "While not Steady State"
+                desc.write('\t\t\t')
+                print >>desc, "Sequential read"
+                desc.write('\t\t\t')
+                print >>desc, "Sequential write"
+                desc.write("\nFor each block size sequential read and write is carried out for 60 seconds using direct IO. ")
+                desc.write("The number of kilobytes for read and write is measured, therefore 2 values are ")
+                desc.write("the result of one round.\n")
+                desc.write("To detect the steady state the throughput of 1024k sequential write is taken.\n\n")
+                print >>desc, "- Dependent Variable: 1024k block size, sequential write"
+                self.addString(desc.getvalue())
+                desc.close()
+                self.addSteadyInfo(test)
+            if testname == 'lat':  
+                desc = StringIO()
+                desc.write("The latency test consists of looping over the following parameters:\n")
+                desc.write('\n::\n\n\t')
+                print >>desc, "Make Secure Erase"
+                print >>desc, "\tWorkload Ind. Preconditioning"
+                print >>desc, "\tWhile not Steady State"
+                print >>desc, "\t\tFor workloads ",
+                print >>desc, ssd.LatencyTest.mixWlds
+                desc.write('\t\t\t')
+                print >>desc, "For block sizes",
+                print >>desc, ssd.LatencyTest.bsLabels
+                desc.write("\nFor all block sizes random read, a 65/35 read/write mixed workload and random write is carried out for 60 ") 
+                desc.write("seconds using direct IO. ")
+                desc.write("For every combination the Min, Max and Mean Latency is measured. ")
+                desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
+                desc.write("the mean latency of 4k random write is taken.\n\n")
+                print >>desc, "- Dependent Variable: 4k block size, random write mean latency"
+                self.addString(desc.getvalue())
+                desc.close()
+                self.addSteadyInfo(test)
+            if testname == 'writesat':  
+                desc = StringIO()
+                desc.write("The write saturation test consists of looping over the following parameters:\n")
+                desc.write('\n::\n\n\t')
+                print >>desc, "Make Secure Erase"
+                print >>desc, "\tWhile not written 4x User Capacity or 24h"
+                print >>desc, "\t\tCarry out random write, 4k block size for 1 minute."
+                desc.write("\nFor 4k block size random write is carried out for 60 ") 
+                desc.write("seconds using direct IO. ")
+                desc.write("For each round (60 second window) the write IOPS and latencies are measured. Also the total written ")
+                desc.write("IO is measured to check if 4x capacity has been written.\n\n")
+                desc.write("As no steady state detection is necessary there is no dependence variable.\n\n")
+                self.addString(desc.getvalue())
+                desc.close()
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        if testtype == 'hdd':
+            if testname == 'iops':
+                desc = StringIO()
+                desc.write("The IOPS test consists of looping over the following parameters:\n")
+                desc.write('\n::\n\n\t')
+                print >>desc, "Divide device in " + str(hdd.HddTest.maxRnds) + " parts"
+                print >>desc, "\tFor range(" + str(hdd.HddTest.maxRnds) + ")"
+                print >>desc, "\t\tFor workloads ",
+                print >>desc, hdd.IopsTest.mixWlds
+                desc.write('\t\t\t')
+                print >>desc, "For block sizes",
+                print >>desc, hdd.IopsTest.bsLabels
+                desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
+                desc.write("The IOPS of one round are an indicator for the random performance of the corresponding area.")
+                self.addString(desc.getvalue())
+                desc.close()
+            if testname == 'tp':  
+                desc = StringIO()
+                desc.write("The throughput test consists of looping over the following parameters:\n")
+                desc.write('\n::\n\n\t')
+                print >>desc, "For block sizes ",
+                print >>desc, hdd.TPTest.bsLabels
+                desc.write('\t\t')
+                print >>desc, "For range(" + str(hdd.HddTest.maxRnds) + ")"
+                desc.write('\t\t\t')
+                print >>desc, "Sequential read"
+                desc.write('\t\t\t')
+                print >>desc, "Sequential write"
+                desc.write("\nFor each block size, every area of the device (this are the rounds) is tested ")
+                desc.write("with sequential read and write using direct IO. ")
+                self.addString(desc.getvalue())
+                desc.close()
         
         
         
