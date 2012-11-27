@@ -56,61 +56,73 @@ class RstReport(object):
             str += '\n'
         print >>self.__rst, str
     
-    def addFigure(self,filename,perftype,index):
+    def addFigure(self,filename,testtype,perftype,index):
         '''
         Adds a figure to the restructured text.
         @param filename The filename of the figure.
-        @param type The type of performance test
+        @param testtype The type of the performance test (ssd,hdd)
+        @param type The type of the test (iops,tp etc)
         @param index The index of the caption to insert after the figure.
         '''
         print >>self.__rst,".. figure:: "+filename 
         print >>self.__rst,"\t:scale: 65%"
         print >>self.__rst,"\t:figwidth: 85%\n"
         caption = ''
-        if perftype == 'iops':
-            if index == 0:
-                caption= "\tThe Steady State Convergence Plot shows the reached IOPS for "
-                caption += "all block sizes of random writes over all rounds."
-            if index == 1:
-                caption= "\tThe Steady State Verification Plot shows the measured IOPS of 4k "
-                caption += "random writes, the 20% average window and the slope of the linear best fit line "
-                caption += "in the measurement window."
-            if index == 2:
-                caption= "\tThe Measurement Plot shows the average of IOPS in the measurement window. For every "
-                caption += "workload the IOPS of all block sizes are plotted."
-            if index == 3:
-                caption= "\tThe Measurement 3D Plot shows the average of IOPS in the measurement window. For every "
-                caption += "workload the IOPS of all block sizes are plotted."
-        if perftype == 'tp':
-            if index == 0:
-                caption= "\tThe Read/Write Steady State Convergence Plot shows the bandwidth for "
-                caption += "all block sizes of seq. reads over all rounds. On the top the write throughput is plotted, below "
-                caption += "the throughput for read."
-            if index == 1:
-                caption= "\tThe Steady State Verification Plot shows the bandwidth of 1024k "
-                caption += "seq. writes, the 20% average window and the slope of the linear best fit line "
-                caption += "in the measurement window."
-            if index == 2:
-                caption= "\tThe Measurement Plot shows the average bandwidth of reads and writes in the measurement window. "
-                caption += "For all block sizes the seq. read and write bandwidth is plotted."
-        if perftype == 'lat':
-            if index == 0:
-                caption= "\tThe Steady State Convergence Plot shows the mean latency for "
-                caption += "all block sizes of random read, mixed workload and write."
-            if index == 1:
-                caption= "\tThe Steady State Verification Plot shows the mean latency of 4k "
-                caption += "random writes, the 20% average window and the slope of the linear best fit line "
-                caption += "in the measurement window."
-            if index == 4:
-                caption = "\tThe Latency Measurement 3D Plot shows the average latency on top and the max latency below it. "
-                caption += "For the measurement window every workload including all block sizes is plotted."
-        if perftype == 'writesat':
-            if index == 0:
-                caption= "\tThe Write Saturation IOPS Plot shows the average IOPS of 4k random "
-                caption += "writes over all rounds."
-            if index == 1:
-                caption= "\tThe Write Saturation Latency Plot shows the mean latency of 4k random "
-                caption += "writes over all rounds."
+        if testtype == 'ssd':
+            if perftype == 'iops':
+                if index == 0:
+                    caption= "\tThe Steady State Convergence Plot shows the reached IOPS for "
+                    caption += "all block sizes of random writes over all rounds."
+                if index == 1:
+                    caption= "\tThe Steady State Verification Plot shows the measured IOPS of 4k "
+                    caption += "random writes, the 20% average window and the slope of the linear best fit line "
+                    caption += "in the measurement window."
+                if index == 2:
+                    caption= "\tThe Measurement Plot shows the average of IOPS in the measurement window. For every "
+                    caption += "workload the IOPS of all block sizes are plotted."
+                if index == 3:
+                    caption= "\tThe Measurement 3D Plot shows the average of IOPS in the measurement window. For every "
+                    caption += "workload the IOPS of all block sizes are plotted."
+            if perftype == 'tp':
+                if index == 0:
+                    caption= "\tThe Read/Write Steady State Convergence Plot shows the bandwidth for "
+                    caption += "all block sizes of seq. reads over all rounds. On the top the write throughput is plotted, below "
+                    caption += "the throughput for read."
+                if index == 1:
+                    caption= "\tThe Steady State Verification Plot shows the bandwidth of 1024k "
+                    caption += "seq. writes, the 20% average window and the slope of the linear best fit line "
+                    caption += "in the measurement window."
+                if index == 2:
+                    caption= "\tThe Measurement Plot shows the average bandwidth of reads and writes in the measurement window. "
+                    caption += "For all block sizes the seq. read and write bandwidth is plotted."
+            if perftype == 'lat':
+                if index == 0:
+                    caption= "\tThe Steady State Convergence Plot shows the mean latency for "
+                    caption += "all block sizes of random read, mixed workload and write."
+                if index == 1:
+                    caption= "\tThe Steady State Verification Plot shows the mean latency of 4k "
+                    caption += "random writes, the 20% average window and the slope of the linear best fit line "
+                    caption += "in the measurement window."
+                if index == 4:
+                    caption = "\tThe Latency Measurement 3D Plot shows the average latency on top and the max latency below it. "
+                    caption += "For the measurement window every workload including all block sizes is plotted."
+            if perftype == 'writesat':
+                if index == 0:
+                    caption= "\tThe Write Saturation IOPS Plot shows the average IOPS of 4k random "
+                    caption += "writes over all rounds."
+                if index == 1:
+                    caption= "\tThe Write Saturation Latency Plot shows the mean latency of 4k random "
+                    caption += "writes over all rounds."
+        if testtype == 'hdd':
+            if perftype == 'iops':
+                if index == 0:
+                    caption= "\tThe Measurement Plot shows the IOPS of each one-128th part of the disk. For every "
+                    caption += "workload the IOPS of all block sizes are plotted."
+            if perftype == 'tp':
+                if index == 0:
+                    caption= "\tThe Measurement Plot shows the bandwidth of reads and writes in each one-128th part "
+                    caption += "of the disk. For all block sizes the seq. read and write bandwidth is plotted."
+                    
         self.addString(caption)
         
     def addTable(self,table,labels,perftype):
