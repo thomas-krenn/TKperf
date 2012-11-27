@@ -52,6 +52,10 @@ class PerfTest(object):
         
         ## A matrix of special features specific for the device
         self.__featureMatrix = None
+        
+        ## Information about the used operating system
+        self.__OSInfo = {}
+        self.collOSInfos()
 
     def getTestname(self):
         return self.__testname
@@ -129,6 +133,39 @@ class PerfTest(object):
         '''
         self.__featureMatrix = fd.read()
         fd.close()
+        
+    def collOSInfos(self):
+        '''
+        Collects some information about the curren OS in use
+        @return True if all infos are present, False on error
+        '''
+        out = subprocess.Popen(['uname','-r'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("uname -r encountered an error: " + stderr)
+            return False
+        else:
+            self.__OSInfo['kernel'] = stdout
+        out = subprocess.Popen(['lsb_release','-d'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("lsb_release -d encountered an error: " + stderr)
+            return False
+        else:
+            self.__OSInfo['lsb'] = stdout
+        return True
+        
+    def getOSInfo(self):
+        return self.__OSInfo
+    
+    def setOSInfo(self,key,value):
+        '''
+        Sets the current OS information.
+        @param key A key to be used in the OS info dict.
+        @param value The value being assigned to the key.
+        '''
+        if value != None:
+            self.__OSInfo[key] = value
         
     def setDevInfo(self,devStr):
         '''
@@ -221,6 +258,14 @@ class PerfTest(object):
         if self.__featureMatrix != None:
             dev = etree.SubElement(e,'featmatrix')
             dev.text = json.dumps(self.__featureMatrix)
+            
+        if self.__OSInfo != None:
+            if 'kernel' in self.__OSInfo:
+                dev = etree.SubElement(e,'kernel')
+                dev.text = json.dumps(self.__OSInfo['kernel'])
+            if 'lsb' in self.__OSInfo:
+                dev = etree.SubElement(e,'lsb')
+                dev.text = json.dumps(self.__OSInfo['lsb'])
         
         #Add the current test suite version to the xml file
         dev = etree.SubElement(e,'ioperfversion')
@@ -298,6 +343,12 @@ class SsdPerfTest(PerfTest):
         #read the feature matrix from the xml file
         if(root.findtext('featmatrix')):
             self.setFeatureMatrix(json.loads(root.findtext('featmatrix')))
+
+        #read the operating system information        
+        if(root.findtext('kernel')):
+            self.setOSInfo('kernel',json.loads(root.findtext('kernel')))
+        if(root.findtext('lsb')):
+            self.setOSInfo('lsb',json.loads(root.findtext('lsb')))
         
         #first read the device information from xml
         self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
@@ -334,6 +385,7 @@ class SsdPerfTest(PerfTest):
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                              self.getTestDate())
             rst.addFioJobInfo(tests[keys].getNj(), tests[keys].getIod())
+            rst.addOSInfo(self.getOSInfo())
             rst.addGeneralInfo('ssd')
             break
         
@@ -458,6 +510,12 @@ class HddPerfTest(PerfTest):
         #read the feature matrix from the xml file
         if(root.findtext('featmatrix')):
             self.setFeatureMatrix(json.loads(root.findtext('featmatrix')))
+            
+        #read the operating system information
+        if(root.findtext('kernel')):
+            self.setOSInfo('kernel',json.loads(root.findtext('kernel')))
+        if(root.findtext('lsb')):
+            self.setOSInfo('lsb',json.loads(root.findtext('lsb')))
         
         #first read the device information from xml
         self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
@@ -482,12 +540,13 @@ class HddPerfTest(PerfTest):
         rst.addFooter()
         rst.addTitle()
         rst.addDevInfo(self.getDevInfo(),self.getFeatureMatrix())
-        #fio version is the same for every test, just take the
-        #one from iops
+        
+        #Setup and OS infos are the same for all tests, just take one
         for keys in tests.iterkeys():
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                              self.getTestDate())
             rst.addFioJobInfo(tests[keys].getNj(), tests[keys].getIod())
+            rst.addOSInfo(self.getOSInfo())
             rst.addGeneralInfo('hdd')
             break
         

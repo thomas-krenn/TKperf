@@ -212,9 +212,10 @@ class RstReport(object):
         @param dateStr The date string the test was carried out.
         ''' 
         self.addChapter("Setup Information")
+        print >>self.__rst,"Performance System:"
         print >>self.__rst," - IO Perf Version: " + ioVer
         print >>self.__rst," - Fio Version: " + fioVer
-        print >>self.__rst," - Date of test run " + dateStr
+        print >>self.__rst," - Date of test run: " + dateStr
         
     def addFioJobInfo(self,nj,iod):
         '''
@@ -227,6 +228,14 @@ class RstReport(object):
         info.write(" - Number of outstanding IOs (iodepth): " + str(iod))
         self.addString(info.getvalue())
         info.close()
+        
+    def addOSInfo(self,OSDict):
+        if OSDict != None:
+            print >>self.__rst,"Operating System:"
+            if 'kernel' in OSDict:
+                print >>self.__rst," - Kernel Version: " + OSDict['kernel']
+            if 'lsb' in OSDict:
+                print >>self.__rst," - " + OSDict['lsb']
         
     def addGeneralInfo(self,testtype):
         '''
