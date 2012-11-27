@@ -122,6 +122,9 @@ class RstReport(object):
                 if index == 0:
                     caption= "\tThe Measurement Plot shows the bandwidth of reads and writes in each one-128th part "
                     caption += "of the disk. For all block sizes the seq. read and write bandwidth is plotted."
+                if index == 1:
+                    caption= "\tThe Boxplot shows minimum, lower quartile, median, upper quartile and maximum. "
+                    caption += "For all block sizes the seq. read and write data is plotted."
                     
         self.addString(caption)
         

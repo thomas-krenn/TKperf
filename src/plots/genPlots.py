@@ -633,6 +633,47 @@ def IOPSplot(toPlot):
     plt.savefig(toPlot.getTestname()+'-IOPSPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-IOPSPlt.png')
     
+def TPBoxPlot(toPlot):
+    '''
+    Generate a R/W throughput box plot for the hdd round results.
+    The plot consists of:
+    -Measured bandwidths per round, per block size for read and write
+    -x axes is the number of carried out rounds
+    -y axes is the bandwidth of the corresponding round
+    The figure is saved as TPTest.Testname-TP-RW-Plt.png.
+    @param toPlot A hdd TPTest object.
+    '''
+    #As the values are converted to KB, copy the matrices
+    matrices = deepcopy(toPlot.getRndMatrices())
+    bsLabels = pT.HddTest.TPTest.bsLabels
+    
+    plt.clf()#clear
+    boxes = []
+    for bsRows in matrices:
+        #For each BS we have read and write, both rows have equal length
+        for v in range(len(bsRows[0])):
+            bsRows[0][v] = (bsRows[0][v]) / 1024
+            bsRows[1][v] = (bsRows[1][v]) / 1024
+        boxes.append(bsRows[0])
+        boxes.append(bsRows[1])
+    #Length of BS per R/W
+    pos = range(len(bsLabels) * 2)
+    plt.boxplot(boxes,positions=pos,label='bla')
+    labels = []
+    for l in bsLabels:
+        labels.append(l + ' R')
+        labels.append(l + ' W')
+    plt.xticks(pos,labels)
+    
+    plt.suptitle("TP Boxplot",fontweight='bold')    
+    plt.ylabel("Bandwidth (MB/s)")
+    #scale axis to min and max +- 15%
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+               ncol=2, fancybox=True, shadow=True,prop={'size':12})
+    plt.savefig(toPlot.getTestname()+'-TP-Boxplt.png',dpi=300)
+    toPlot.addFigure(toPlot.getTestname()+'-TP-Boxplt.png')
+    
+    
 ######### HELPER FUNCTIONS TO GENERATE PLOTS #########
 def getBS(bsLabels):
     '''
