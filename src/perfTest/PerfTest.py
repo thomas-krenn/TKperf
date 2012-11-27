@@ -334,7 +334,7 @@ class SsdPerfTest(PerfTest):
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                              self.getTestDate())
             rst.addFioJobInfo(tests[keys].getNj(), tests[keys].getIod())
-            rst.addGeneralInfo()
+            rst.addGeneralInfo('ssd')
             break
         
         if SsdPerfTest.iopsKey in tests:
@@ -488,7 +488,7 @@ class HddPerfTest(PerfTest):
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                              self.getTestDate())
             rst.addFioJobInfo(tests[keys].getNj(), tests[keys].getIod())
-            rst.addGeneralInfo()
+            rst.addGeneralInfo('hdd')
             break
         
         if HddPerfTest.iopsKey in tests:

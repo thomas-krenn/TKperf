@@ -228,33 +228,42 @@ class RstReport(object):
         self.addString(info.getvalue())
         info.close()
         
-    def addGeneralInfo(self):
+    def addGeneralInfo(self,testtype):
+        '''
+        Defines some general used words.
+        @param testtype The type of the performance test (ssd,hdd)
+        ''' 
         info = StringIO()
         self.addChapter("General Information")
         info.write("- *workloads*: The percentage of read operations in the random mixed workload. In the plots the ")
         info.write("term \"100/00\" means 100% read and 0% write, \"95/5\" 95% read and 5% write, and so on.\n")
         info.write("- *block sizes*: The block size of Fio to be used for IO operations.\n")
-        info.write("- *measurement window*: Those rounds, where the dependence variable became stable.\n")
-        info.write("- *dependence variable*: A specific type of test variable to determine the steady state.\n")
+        if testtype == 'ssd':
+            info.write("- *measurement window*: Those rounds, where the dependence variable became stable.\n")
+            info.write("- *dependence variable*: A specific type of test variable to determine the steady state.\n")
+        if testtype == 'hdd':
+            info.write("- *round*: As an hdd's performance is different at outer and inner side, the ")
+            info.write("device is divided into equal size parts. In every round one part of the device is tested")
         self.addString(info.getvalue())
         info.close()
-        info = StringIO()
-        self.addSection("Steady State")
-        info.write("The Steady State is to determine if a test has reached a steady performance level. ")
-        info.write("Each test has a different dependence variable to check if the state has already been reached. ")
-        info.write("To check for the steady state the performance values of a test measurement window are taken (the last 5 rounds).\n")
-        info.write("The steady state is reached if:\n\n")
-        info.write("- The maximum data excursion is less than 20% of the average in the measurement window.\n")
-        info.write("- The slope of the linear best fit line is less than 10% of the average in the measurement window\n\n")
-        
-        info.write("If these two conditions are met the steady state has been reach for the specific dependence variable. ")
-        info.write("Therefore the test can be stopped and the performance values of the measurement window can be taken ")
-        info.write("for the measurement plots. If the steady state has not been reached after a maximum number of rounds the test ")
-        info.write("can be stopped as well. The numbers for these two variables are:\n\n")
-        print >>info, "- Measurement Window: " + str(ssd.StdyTest.testMesWindow)
-        print >>info, "- Max. number of rounds: " + str(ssd.StdyTest.testRnds) + '\n'
-        self.addString(info.getvalue())
-        info.close()
+        if testtype == 'ssd':
+            info = StringIO()
+            self.addSection("Steady State")
+            info.write("The Steady State is to determine if a test has reached a steady performance level. ")
+            info.write("Each test has a different dependence variable to check if the state has already been reached. ")
+            info.write("To check for the steady state the performance values of a test measurement window are taken (the last 5 rounds).\n")
+            info.write("The steady state is reached if:\n\n")
+            info.write("- The maximum data excursion is less than 20% of the average in the measurement window.\n")
+            info.write("- The slope of the linear best fit line is less than 10% of the average in the measurement window\n\n")
+            
+            info.write("If these two conditions are met the steady state has been reach for the specific dependence variable. ")
+            info.write("Therefore the test can be stopped and the performance values of the measurement window can be taken ")
+            info.write("for the measurement plots. If the steady state has not been reached after a maximum number of rounds the test ")
+            info.write("can be stopped as well. The numbers for these two variables are:\n\n")
+            print >>info, "- Measurement Window: " + str(ssd.StdyTest.testMesWindow)
+            print >>info, "- Max. number of rounds: " + str(ssd.StdyTest.testRnds) + '\n'
+            self.addString(info.getvalue())
+            info.close()
     
     def addSteadyInfo(self,test):
         ''' 
