@@ -79,9 +79,9 @@ if __name__ == '__main__':
         iod = 1
     else:
         iod = args.iodepth
-
+        
+    # In xml mode only load objects, don't run tests
     if args.fromxml == True:
-        #in xml mode only load objects, don't run tests
         print "Loading from xml file..."
         if args.mode == "ssd":
             myTest = SsdPerfTest(args.testname, args.filename,nj, iod)
@@ -97,11 +97,15 @@ if __name__ == '__main__':
             HddPerfTest.testKeys = args.hddt
         myTest = HddPerfTest(args.testname,args.filename,nj,iod)
         #hdparm -I should work for HDDs
-        myTest.readDevInfoHdparm()
+        if args.desc_file != None:
+            myTest.readDevInfoFile(args.desc_file)
+        else:
+            myTest.readDevInfoHdparm()
         if args.feature_matrix != None:
             myTest.readFeatureMatrix(args.feature_matrix)
         print myTest.getDevInfo()
         myTest.run()
+        
     if args.mode == "ssd":
         print "Starting SSD mode..."
         #modify the test types if available
