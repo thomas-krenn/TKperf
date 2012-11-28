@@ -1,3 +1,9 @@
+== Disclaimer ==
+* !!!!! ATTENTION !!!!!
+  * All data on the tested device is lost! The given device becomes overwritten multiple times,
+    for SSDs a secure erase is carried out also.
+  !!!!!!!!!!!!!!!!!!!!!
+
 == Installation ==
 * The following python packages are required:
   * logging
