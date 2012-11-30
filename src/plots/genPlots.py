@@ -175,6 +175,9 @@ def mes2DPlt(toPlot,mode):
             mixWLds[i].append(0)
     matrices = toPlot.getRndMatrices()
     
+    #as j does not necessarily start from 0, we need k
+    #to calculate the average iteratively
+    k = 0
     #limit the matrices to the measurement window
     for j in mesWin:
         rndMat = matrices[j]
@@ -189,12 +192,12 @@ def mes2DPlt(toPlot,mode):
                         if row[bs][1] > mixWLds[i][bs]:
                             mixWLds[i][bs] = row[bs][1]#max latency
                     else:
-                        mixWLds[i][bs] *= bs
+                        mixWLds[i][bs] *= k
                         if mode == "IOPS":
                             mixWLds[i][bs] += row[bs]#IOPS
                         if mode == "avg-LAT":
                             mixWLds[i][bs] += row[bs][2]#mean latency
-                        mixWLds[i][bs] = (mixWLds[i][bs]) / (bs+1)
+                        mixWLds[i][bs] = (mixWLds[i][bs]) / (k+1)
                 else:
                     if mode == "IOPS":
                         mixWLds[i][bs] = row[bs]#IOPS
@@ -202,6 +205,7 @@ def mes2DPlt(toPlot,mode):
                         mixWLds[i][bs] = row[bs][1]#max latency
                     if mode == "avg-LAT":
                         mixWLds[i][bs] = row[bs][2]#mean latency
+        k += 1
                         
     plt.clf()#clear plot
     if mode == "IOPS":
@@ -493,15 +497,21 @@ def tpMes2DPlt(toPlot):
     for j,bs in enumerate(matrices):
         #each block size has read and write
         for i,row in enumerate(bs):
+            #as rnd does not need to start at 0
+            #we need k to calculate average
+            k = 0
             #read and write have their round values
             for rnd in toPlot.getStdyRnds():
                 #calculate average iteratively
                 if wlds[i][j] != 0:
-                    wlds[i][j] *= rnd
+                    wlds[i][j] *= k
                     wlds[i][j] += row[rnd]
-                    wlds[i][j] = (wlds[i][j]) / (rnd+1)
+                    wlds[i][j] = (wlds[i][j]) / (k+1)
                 else:
                     wlds[i][j] = row[rnd]
+                k += 1
+                
+    #start plotting
     plt.clf()#clear
     x = getBS(pT.SsdTest.TPTest.bsLabels)
     for i in range(len(wlds)):

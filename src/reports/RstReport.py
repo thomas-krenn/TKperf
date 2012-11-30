@@ -27,17 +27,17 @@ class RstReport(object):
     
     def addTitle(self):
         print >>self.__rst,"===================="
-        print >>self.__rst,"IO perf test report"
+        print >>self.__rst,"TKperf Test Report"
         print >>self.__rst,"====================\n"
         print >>self.__rst,".. contents::"
         print >>self.__rst,".. sectnum::"
         print >>self.__rst,".. include:: <isonum.txt>\n"
         
     def addFooter(self):
-        print >>self.__rst,".. |logo| image:: ../../../TK_Logo_RGB.png"
-        print >>self.__rst,"\t:height: 70px"
+        print >>self.__rst,".. |logo| image:: ../../pics/TKperf_logo.png"
+        print >>self.__rst,"\t:height: 90px"
         print >>self.__rst,".. footer::"
-        print >>self.__rst,"\t|logo| http://www.thomas-krenn.com - Page ###Page### of ###Total###\n"
+        print >>self.__rst,"\t http://www.thomas-krenn.com |logo| Page ###Page### of ###Total###\n"
     
     def addChapter(self,chap):
         print >>self.__rst, chap
@@ -213,7 +213,7 @@ class RstReport(object):
         ''' 
         self.addChapter("Setup Information")
         print >>self.__rst,"Performance System:"
-        print >>self.__rst," - IO Perf Version: " + ioVer
+        print >>self.__rst," - TKperf Version: " + ioVer
         print >>self.__rst," - Fio Version: " + fioVer
         print >>self.__rst," - Date of test run: " + dateStr
         

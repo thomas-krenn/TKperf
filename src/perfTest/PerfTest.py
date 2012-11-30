@@ -3,7 +3,7 @@ Created on 07.08.2012
 
 @author: gschoenb
 '''
-__version__ = '1.0'
+__version__ = '1.1'
 
 import logging
 import subprocess
@@ -247,8 +247,9 @@ class PerfTest(object):
         e = self.getXmlReport().getXml()
         
         #add the current date to the xml
-        dev = etree.SubElement(e,'testdate')
-        dev.text = json.dumps(self.__testDate)
+        if self.__testDate != None:
+            dev = etree.SubElement(e,'testdate')
+            dev.text = json.dumps(self.__testDate)
         
         #Add the device information to the xml file
         dev = etree.SubElement(e,'devinfo')
@@ -335,8 +336,11 @@ class SsdPerfTest(PerfTest):
         self.resetTests()
         root = self.getXmlReport().getXml()
 
-        self.setTestDate(json.loads(root.findtext('testdate')))
-
+        if(root.findtext('testdate')):
+            self.setTestDate(json.loads(root.findtext('testdate')))
+        else:
+            self.setTestDate('n.a.')    
+        
         #first read the device information from xml
         self.setDevInfo(json.loads(root.findtext('devinfo')))
         
@@ -347,11 +351,16 @@ class SsdPerfTest(PerfTest):
         #read the operating system information        
         if(root.findtext('kernel')):
             self.setOSInfo('kernel',json.loads(root.findtext('kernel')))
+        else:
+            self.setOSInfo('kernel','n.a.')
         if(root.findtext('lsb')):
             self.setOSInfo('lsb',json.loads(root.findtext('lsb')))
+        else:
+            self.setOSInfo('lsb','n.a.')
         
         #first read the device information from xml
-        self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
+        if(root.findtext('ioperfversion')):
+            self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
         
         for tag in SsdPerfTest.testKeys:
             #check which test tags are in the xml file
@@ -502,7 +511,8 @@ class HddPerfTest(PerfTest):
         self.resetTests()
         root = self.getXmlReport().getXml()
 
-        self.setTestDate(json.loads(root.findtext('testdate')))
+        if(root.findtext('testdate')):
+            self.setTestDate(json.loads(root.findtext('testdate')))
 
         #first read the device information from xml
         self.setDevInfo(json.loads(root.findtext('devinfo')))
@@ -518,7 +528,8 @@ class HddPerfTest(PerfTest):
             self.setOSInfo('lsb',json.loads(root.findtext('lsb')))
         
         #first read the device information from xml
-        self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
+        if(root.findtext('ioperfversion')):
+            self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
 
         for tag in HddPerfTest.testKeys:
             for elem in root.iterfind(tag):

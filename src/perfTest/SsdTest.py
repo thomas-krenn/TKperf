@@ -267,8 +267,11 @@ class StdyTest(SsdTest):
         the object attributes.
         @param root The given element containing the information about
         the object to be initialized.
-        ''' 
-        self.getFioJob().setFioVersion(json.loads(root.findtext('fioversion')))
+        '''
+        if(root.findtext('fioversion')):
+            self.getFioJob().setFioVersion(json.loads(root.findtext('fioversion')))
+        else:
+            self.getFioJob().setFioVersion('n.a.')
         self.setNj(json.loads(root.findtext('numjobs')))
         self.setIod(json.loads(root.findtext('iodepth')))
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
@@ -745,7 +748,10 @@ class WriteSatTest(SsdTest):
         return r
         
     def fromXml(self,root):
-        self.getFioJob().setFioVersion(json.loads(root.findtext('fioversion')))
+        if(root.findtext('fioversion')):
+            self.getFioJob().setFioVersion(json.loads(root.findtext('fioversion')))
+        else:
+            self.getFioJob().setFioVersion('n.a.')
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__rounds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
