@@ -7,6 +7,7 @@ Created on 27.06.2012
 '''
 import argparse
 import logging
+import sys
 
 from fio.FioJob import FioJob
 from perfTest.DeviceTest import DeviceTest
@@ -97,6 +98,7 @@ if __name__ == '__main__':
         if args.hddt != None:
             HddPerfTest.testKeys = args.hddt
         myTest = HddPerfTest(args.testname,args.filename,nj,iod)
+        myTest.readCmdLineArgs(sys.argv)
         #hdparm -I should work for HDDs
         if args.desc_file != None:
             myTest.readDevInfoFile(args.desc_file)
@@ -113,6 +115,7 @@ if __name__ == '__main__':
         if args.ssdt != None:
             SsdPerfTest.testKeys = args.ssdt
         myTest = SsdPerfTest(args.testname, args.filename, nj, iod)
+        myTest.readCmdLineArgs(sys.argv)
         if args.refill_buffers == True:
             myTest.addSglArgToTests('refill_buffers')
         if myTest.readDevInfoHdparm() != True:

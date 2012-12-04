@@ -33,7 +33,9 @@ class RstReport(object):
         print >>self.__rst,"====================\n"
         print >>self.__rst,".. contents::"
         print >>self.__rst,".. sectnum::"
-        print >>self.__rst,".. include:: <isonum.txt>\n"
+        print >>self.__rst,".. include:: <isonum.txt>"
+        print >>self.__rst,".. raw:: pdf\n"
+        print >>self.__rst,"\tPageBreak\n"
         
     def addFooter(self):
         print >>self.__rst,".. |logo| image:: " + os.path.dirname(inspect.getfile(RstReport)) + "/pics/TKperf_logo.png"
@@ -195,7 +197,7 @@ class RstReport(object):
         @param devStr The device information from hdparm or the dsc file.
         @param featMat The extra feature matrix given via a csv table. 
         ''' 
-        self.addChapter("Device Information")
+        self.addChapter("Setup Information")
         print >>self.__rst,"Tested Device:"
         if devStr[-1] == '\n':
             devStr = devStr[:-1]
@@ -206,6 +208,10 @@ class RstReport(object):
         if featMat != None:
             print >>self.__rst,"Feature Matrix:"
             print >>self.__rst,featMat + "\n"
+            
+    def addCmdLine(self,cmdLineStr):
+        print >>self.__rst,"Used command line:"
+        print >>self.__rst," - " + cmdLineStr
         
     def addSetupInfo(self,ioVer,fioVer,dateStr):
         '''
@@ -213,7 +219,6 @@ class RstReport(object):
         @param setupStr The Fio version string, fetched via str-method of a FioJob.
         @param dateStr The date string the test was carried out.
         ''' 
-        self.addChapter("Setup Information")
         print >>self.__rst,"Performance System:"
         print >>self.__rst," - TKperf Version: " + ioVer
         print >>self.__rst," - Fio Version: " + fioVer

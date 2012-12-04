@@ -56,6 +56,9 @@ class PerfTest(object):
         ## Information about the used operating system
         self.__OSInfo = {}
         self.collOSInfos()
+        
+        ## Hold the command line used to call the test
+        self.__cmdLineArgs = None
 
     def getTestname(self):
         return self.__testname
@@ -74,6 +77,9 @@ class PerfTest(object):
     
     def getIOPerfVersion(self):
         return self.__IOPerfVersion
+    
+    def getCmdLineArgs(self):
+        return self.__cmdLineArgs
     
     def readDevInfoHdparm(self):
         '''
@@ -154,6 +160,17 @@ class PerfTest(object):
         else:
             self.__OSInfo['lsb'] = stdout
         return True
+    
+    def readCmdLineArgs(self,argv):
+        '''
+        Reads the command line argument list argv and sets it as
+        __cmdLineArgs
+        @param argv The command line argument list
+        '''
+        self.__cmdLineArgs = ''
+        for arg in argv:
+            self.__cmdLineArgs += arg
+        self.__cmdLineArgs = self.__cmdLineArgs.rstrip()
         
     def getOSInfo(self):
         return self.__OSInfo
@@ -194,6 +211,9 @@ class PerfTest(object):
         @param verStr The version string.
         '''
         self.__IOPerfVersion = verStr
+        
+    def setCmdLineArgs(self,cmdLineStr):
+        self.__cmdLineArgs = cmdLineStr
     
     def getTests(self):
         return self.__tests
@@ -271,6 +291,11 @@ class PerfTest(object):
         #Add the current test suite version to the xml file
         dev = etree.SubElement(e,'ioperfversion')
         dev.text = json.dumps(self.__IOPerfVersion)
+        
+        #add the command line to xml
+        if self.__cmdLineArgs != None:
+            dev = etree.SubElement(e,'cmdline')
+            dev.text = json.dumps(self.__cmdLineArgs)
         
         #call the xml function for every test in the dictionary
         sorted(self.__tests.items())
@@ -361,6 +386,11 @@ class SsdPerfTest(PerfTest):
         #first read the device information from xml
         if(root.findtext('ioperfversion')):
             self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
+            
+        if(root.findtext('cmdline')):
+            self.setCmdLineArgs(json.loads(root.findtext('cmdline')))
+        else:
+            self.setCmdLineArgs('n.a.')  
         
         for tag in SsdPerfTest.testKeys:
             #check which test tags are in the xml file
@@ -389,6 +419,8 @@ class SsdPerfTest(PerfTest):
         rst.addFooter()
         rst.addTitle()
         rst.addDevInfo(self.getDevInfo(),self.getFeatureMatrix())
+        rst.addCmdLine(self.getCmdLineArgs())
+        
         #add the fio version, nj, iod and general info of one test to the report
         for keys in tests.iterkeys():
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
@@ -530,6 +562,11 @@ class HddPerfTest(PerfTest):
         #first read the device information from xml
         if(root.findtext('ioperfversion')):
             self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
+            
+        if(root.findtext('cmdline')):
+            self.setCmdLineArgs(json.loads(root.findtext('cmdline')))
+        else:
+            self.setCmdLineArgs('n.a.')  
 
         for tag in HddPerfTest.testKeys:
             for elem in root.iterfind(tag):
@@ -551,6 +588,7 @@ class HddPerfTest(PerfTest):
         rst.addFooter()
         rst.addTitle()
         rst.addDevInfo(self.getDevInfo(),self.getFeatureMatrix())
+        rst.addCmdLine(self.getCmdLineArgs())
         
         #Setup and OS infos are the same for all tests, just take one
         for keys in tests.iterkeys():
