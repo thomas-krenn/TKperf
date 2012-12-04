@@ -242,8 +242,30 @@ class DeviceTest(object):
                                         if line.find("Master password") > -1:
                                             if lines[i+2].find("not") > -1 and lines[i+2].find("enabled") > -1:
                                                 security = False
-                                                logging.info("#Successfully deactivated security for hdparm")
+                                                logging.info("#Successfully deactivated security for hdparm.")
                                                 return True
                                             else:
-                                                logging.info("#Security still enabled for hdparm")
+                                                #Try to disable security manually
+                                                logging.info("#Security still enabled for hdparm, therefore calling disable.")
+                                                out = subprocess.Popen(['hdparm', '--user-master','u',
+                                                    '--security-disable','pwd',self.__filename],
+                                                   stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                                                stdout,stderr = out.communicate()
+                                                out.wait()
+                                                if out.returncode != 0:
+                                                    logging.error("#Error: command 'hdparm --user-master u --security-disable pwd returned an error code.")
+                                                    logging.error(stderr)
+                                                    return False
+                                                else:
+                                                    logging.info("#Successfully deactivated security for hdparm.")
+                                                    return True
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
+                                                
                                                 return False
