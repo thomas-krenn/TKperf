@@ -3,7 +3,7 @@
 Created on 27.06.2012
 
 @author: gschoenb
-@version: 1.0
+@version: 1.1
 '''
 import argparse
 import logging
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     
     parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
     parser.add_argument("testname",help="name of the fio job, corresponds to the result output file")
-    parser.add_argument("filename",help="device name to run fio test on")
+    parser.add_argument("device",help="device to run fio test on")
     
     parser.add_argument("-v","--version", help="get the version information", action='version',version=fioVersion)
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
@@ -46,23 +46,23 @@ if __name__ == '__main__':
   
     args = parser.parse_args()
     if args.debug == True:
-        logging.basicConfig(filename=args.testname+'.log',level=logging.DEBUG)
+        logging.basicConfig(device=args.testname+'.log',level=logging.DEBUG)
     if args.quiet == True:
-        logging.basicConfig(filename=args.testname+'.log',level=logging.WARNING)
+        logging.basicConfig(device=args.testname+'.log',level=logging.WARNING)
     else:
-        logging.basicConfig(filename=args.testname+'.log',level=logging.INFO)
+        logging.basicConfig(device=args.testname+'.log',level=logging.INFO)
     
     #Don't print a warning if force is given or loading from xml
     if args.force_test == False:
         if args.fromxml == False:
-            toTest = DeviceTest(args.testname,args.filename)
+            toTest = DeviceTest(args.testname,args.device)
             if toTest.checkDevIsMounted() == True:
                 print "!!!WARNING!!!"
                 print "You are writing to a mounted device, this is highly dangerous!"
                 exit(0)
             if toTest.checkDevIsAvbl() == True:
                 print "!!!Attention!!!"
-                print "All data on " + args.filename + " will be lost!"
+                print "All data on " + args.device + " will be lost!"
                 print "Are you sure you want to continue? (In case you really know what you are doing.)"
                 print "Press 'y' to continue, any key to stop:"
                 key = raw_input()
@@ -86,9 +86,9 @@ if __name__ == '__main__':
     if args.fromxml == True:
         print "Loading from xml file..."
         if args.mode == "ssd":
-            myTest = SsdPerfTest(args.testname, args.filename,nj, iod)
+            myTest = SsdPerfTest(args.testname, args.device,nj, iod)
         if args.mode == "hdd":
-            myTest = HddPerfTest(args.testname, args.filename,nj, iod)
+            myTest = HddPerfTest(args.testname, args.device,nj, iod)
         myTest.fromXml()
         exit(0)
         
@@ -97,7 +97,7 @@ if __name__ == '__main__':
         #modify the test types if available
         if args.hddt != None:
             HddPerfTest.testKeys = args.hddt
-        myTest = HddPerfTest(args.testname,args.filename,nj,iod)
+        myTest = HddPerfTest(args.testname,args.device,nj,iod)
         myTest.readCmdLineArgs(sys.argv)
         #hdparm -I should work for HDDs
         if args.desc_file != None:
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         #modify the test types if available
         if args.ssdt != None:
             SsdPerfTest.testKeys = args.ssdt
-        myTest = SsdPerfTest(args.testname, args.filename, nj, iod)
+        myTest = SsdPerfTest(args.testname, args.device, nj, iod)
         myTest.readCmdLineArgs(sys.argv)
         if args.refill_buffers == True:
             myTest.addSglArgToTests('refill_buffers')

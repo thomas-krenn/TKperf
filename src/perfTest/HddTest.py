@@ -18,13 +18,13 @@ class HddTest(DeviceTest):
     ##Number of rounds to carry out the tests
     maxRnds = 128 
       
-    def __init__(self,testname,filename,nj,iod):
+    def __init__(self,testname,devicename,nj,iod):
         '''
         Constructor
         @param nj Number of jobs for Fio.
         @param iod IO depth for libaio used by Fio.
         '''
-        DeviceTest.__init__(self,testname,filename)
+        DeviceTest.__init__(self,testname,devicename)
         
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
@@ -37,7 +37,7 @@ class HddTest(DeviceTest):
         
         ##The fio job for the current SSD test
         self.__fioJob = FioJob()
-        self.__fioJob.addKVArg("filename",self.getFilename())
+        self.__fioJob.addKVArg("filename",self.getDevName())
         self.__fioJob.addKVArg("name",self.getTestname())
         self.__fioJob.addKVArg("direct","1")
         self.__fioJob.addKVArg("minimal","1")
@@ -112,12 +112,12 @@ class IopsTest(HddTest):
     ##Percentages of mixed workloads for IOPS test.
     mixWlds = [100,50,0]
     
-    def __init__(self,testname,filename,nj,iod):
+    def __init__(self,testname,devicename,nj,iod):
         '''
         Constructor.
         '''
 
-        HddTest.__init__(self,testname,filename,nj,iod)
+        HddTest.__init__(self,testname,devicename,nj,iod)
         self.getFioJob().addKVArg("rw","randrw")
         #TODO Remove the runtime to test the whole sector
         self.getFioJob().addKVArg("runtime","60")
@@ -211,14 +211,11 @@ class TPTest(HddTest):
     ##Labels of block sizes for throughput test
     bsLabels = ["1024k","4k"]
      
-    def __init__(self,testname,filename,nj,iod):
+    def __init__(self,testname,devicename,nj,iod):
         '''
         Constructor.
         '''
-        HddTest.__init__(self, testname, filename, nj, iod)
-        #FIXME Remove it to really read all sectors of device
-        #self.getFioJob().addKVArg("runtime","60")
-        
+        HddTest.__init__(self, testname, devicename, nj, iod)
         
     def testRound(self,bs,offset,size):
         '''

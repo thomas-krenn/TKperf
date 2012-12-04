@@ -4,7 +4,7 @@
     for SSDs a secure erase is carried out also.
   !!!!!!!!!!!!!!!!!!!!!
 
-== Installation ==
+== Requirements ==
 * The following python packages are required:
   * logging
   * json
@@ -31,20 +31,15 @@
 * An installation howto (currently only in german):
 	http://www.thomas-krenn.com/de/wiki/Fio_kompilieren
 
+== Installation ==
+* To install TKperf simply call
+	$ sudo python setup.py install
+
 == Running a test ==
-* Suppose the following directory setup:
-  ->io_perf_test
-	-src
-	-doc
-	-examples
-	-pics
-	
-* The main script file is located under:
-	io_perf_test/src/perfTest/runTest.py
-* You have to modify your PYTHONPATH so that the other packages can be loaded (absolute):
-	$ export PYTHONPATH=/home/gschoenb/io_perf_test/src/
-* To run the test you need root privileges. To preserve the PYTHONPATH with 'sudo' use:
-	$ sudo PYTHONPATH=$PYTHONPATH python runTest.py
+* The main script file is called tkperf:
+	$ which tkperf
+	/usr/local/bin/tkperf
+* Call tkperf with the command line options described below.
 
 == Log File ==
 * The log file is named after the given test name (e.g. 'intel320' in the example above).
@@ -61,10 +56,10 @@
   for more information. Basically it is sufficient to call 'screen', start the script
   and then detach with 'Ctrl-a d'.
 * As root:
-	# python runTest.py ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
+	# tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
 * Start with nohup and disable the warning that the device will be erase ('-ft', '--force-test'). Note
   that with nohup it is difficult to use sudo and redirect stdout/stderr to output files.
-	# nohup python ../runTest.py ssd intel320 /dev/sde -ft -nj 2 -iod 16 -rfb 1>runTest.out 2>runTest.err &
+	# nohup tkperf ssd intel320 /dev/sde -ft -nj 2 -iod 16 -rfb 1>runTest.out 2>runTest.err &
 
 == Description File ==
 * If 'hdparm -I' does not provide any valuable information about a drive, you have to provide a
@@ -78,7 +73,7 @@
 
 == Loading from XML ==
 * To load an already carried out test from the generated xml file, use the '-xml' option:
-	$ sudo PYTHONPATH=$PYTHONPATH python runTest.py ssd intel520 /dev/sdb1 -xml
+	$ sudo tkperf ssd intel520 /dev/sdb1 -xml
 * In this case nothing happens with /dev/sdb1, it is just there as a placeholder. You can
   for example insert an usb drive as a dummy device.
 * Loading from an xml file is useful if something has changed in the plotting methods and you
@@ -90,15 +85,16 @@
   standard these tests are based on.
 
 == Help Text ==
-usage: runTest.py [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-xml]
-                  [-rfb] [-dsc DESC_FILE] [-ft] [-fm FEATURE_MATRIX]
-                  {hdd,ssd} testname filename
+usage: tkperf [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-xml] [-rfb]
+              [-dsc DESC_FILE] [-ft] [-fm FEATURE_MATRIX] [-hddt {iops,tp}]
+              [-ssdt {iops,lat,tp,writesat}]
+              {hdd,ssd} testname device
 
 positional arguments:
   {hdd,ssd}             specify the test mode for the device
   testname              name of the fio job, corresponds to the result output
                         file
-  filename              device name to run fio test on
+  device                device to run fio test on
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -120,3 +116,7 @@ optional arguments:
                         warnings and force starting the test
   -fm FEATURE_MATRIX, --feature_matrix FEATURE_MATRIX
                         add a feature matrix of the given device to the report
+  -hddt {iops,tp}, --hdd_type {iops,tp}
+                        choose which tests are run
+  -ssdt {iops,lat,tp,writesat}, --ssd_type {iops,lat,tp,writesat}
+                        choose which tests are run

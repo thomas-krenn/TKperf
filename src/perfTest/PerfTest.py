@@ -22,15 +22,15 @@ class PerfTest(object):
     A performance test, consists of multiple Device Tests
     '''
     
-    def __init__(self,testname,filename):
+    def __init__(self,testname,devicename):
         '''
         A performance test has several reports and plots.
         '''
         ## The output file for the fio job test results.
         self.__testname = testname
         
-        ## The data file for the test, can be a whole device also.
-        self.__filename = filename
+        ## The device to run test on.
+        self.__devicename = devicename
         
         ## Xml file to write test results to
         self.__xmlReport = XmlReport(testname)
@@ -63,8 +63,8 @@ class PerfTest(object):
     def getTestname(self):
         return self.__testname
     
-    def getFilename(self):
-        return self.__filename
+    def getDevName(self):
+        return self.__devicename
     
     def getDevInfo(self):
         return self.__deviceInfo
@@ -92,7 +92,7 @@ class PerfTest(object):
         if self.__deviceInfo != None:
             return True
         
-        out = subprocess.Popen(['hdparm','-I',self.__filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['hdparm','-I',self.__devicename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("hdparm -I encountered an error: " + stderr)
@@ -317,8 +317,8 @@ class SsdPerfTest(PerfTest):
     tpKey = 'tp'
     wrKey = 'writesat'
     
-    def __init__(self,testname,filename,nj,iod):
-        PerfTest.__init__(self, testname, filename)
+    def __init__(self,testname,devicename,nj,iod):
+        PerfTest.__init__(self, testname, devicename)
         
         ## Number of jobs for fio.
         self.__nj = nj
@@ -333,13 +333,13 @@ class SsdPerfTest(PerfTest):
         #Add every test to the performance test
         for testType in SsdPerfTest.testKeys:
             if testType == SsdPerfTest.iopsKey:
-                test = ssd.IopsTest(testname,filename,nj,iod)
+                test = ssd.IopsTest(testname,devicename,nj,iod)
             if testType == SsdPerfTest.latKey:
-                test = ssd.LatencyTest(testname,filename,nj,iod)
+                test = ssd.LatencyTest(testname,devicename,nj,iod)
             if testType == SsdPerfTest.tpKey:
-                test = ssd.TPTest(testname,filename,nj,iod)
+                test = ssd.TPTest(testname,devicename,nj,iod)
             if testType == SsdPerfTest.wrKey:
-                test = ssd.WriteSatTest(testname,filename,nj,iod)
+                test = ssd.WriteSatTest(testname,devicename,nj,iod)
             #add the test to the key/value structure
             self.addTest(testType, test)
         
@@ -397,13 +397,13 @@ class SsdPerfTest(PerfTest):
             for elem in root.iterfind(tag):
                 test = None
                 if elem.tag == SsdPerfTest.iopsKey:
-                    test = ssd.IopsTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                    test = ssd.IopsTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
                 if elem.tag == SsdPerfTest.latKey:
-                    test = ssd.LatencyTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                    test = ssd.LatencyTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
                 if elem.tag == SsdPerfTest.tpKey:
-                    test = ssd.TPTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                    test = ssd.TPTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
                 if elem.tag == SsdPerfTest.wrKey:
-                    test = ssd.WriteSatTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                    test = ssd.WriteSatTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
                 #we found a tag in the xml file, now we ca read the data from xml
                 if test != None:
                     test.fromXml(elem)
@@ -503,8 +503,8 @@ class HddPerfTest(PerfTest):
     iopsKey = 'iops'
     tpKey = 'tp'
     
-    def __init__(self,testname,filename, nj, iod):
-        PerfTest.__init__(self, testname, filename)
+    def __init__(self,testname,devicename, nj, iod):
+        PerfTest.__init__(self, testname, devicename)
         
         ## Number of jobs for fio.
         self.__nj = nj
@@ -519,9 +519,9 @@ class HddPerfTest(PerfTest):
                 #Add every test to the performance test
         for testType in HddPerfTest.testKeys:
             if testType == HddPerfTest.iopsKey:
-                test = hdd.IopsTest(testname,filename,nj,iod)
+                test = hdd.IopsTest(testname,devicename,nj,iod)
             if testType == HddPerfTest.tpKey:
-                test = hdd.TPTest(testname,filename,nj,iod)
+                test = hdd.TPTest(testname,devicename,nj,iod)
             #add the test to the key/value structure
             self.addTest(testType, test)
         
@@ -572,9 +572,9 @@ class HddPerfTest(PerfTest):
             for elem in root.iterfind(tag):
                 test = None
                 if elem.tag == HddPerfTest.iopsKey:
-                    test = hdd.IopsTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                    test = hdd.IopsTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
                 if elem.tag == HddPerfTest.tpKey:
-                    test = hdd.TPTest(self.getTestname(),self.getFilename,self.__nj,self.__iod)
+                    test = hdd.TPTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
                 if test != None:
                     test.fromXml(elem)
                     self.addTest(tag, test)

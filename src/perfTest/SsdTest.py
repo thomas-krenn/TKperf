@@ -21,13 +21,13 @@ class SsdTest(DeviceTest):
     ## Number of rounds to carry out workload independent preconditioning.
     wlIndPrecRnds = 2
     
-    def __init__(self,testname,filename,nj,iod):
+    def __init__(self,testname,devicename,nj,iod):
         '''
         Constructor
         @param nj Number of jobs for Fio.
         @param iod IO depth for libaio used by Fio. 
         '''
-        super(SsdTest,self).__init__(testname,filename)
+        super(SsdTest,self).__init__(testname,devicename)
         
         ##Number of jobs started by fio
         self.__numJobs = nj
@@ -37,7 +37,7 @@ class SsdTest(DeviceTest):
         
         ##The fio job for the current SSD test
         self.__fioJob = FioJob()
-        self.__fioJob.addKVArg("filename",self.getFilename())
+        self.__fioJob.addKVArg("filename",self.getDevName())
         self.__fioJob.addKVArg("name",self.getTestname())
         self.__fioJob.addKVArg("direct","1")
         self.__fioJob.addKVArg("minimal","1")
@@ -67,7 +67,7 @@ class SsdTest(DeviceTest):
         Write two times the device with streaming I/O.
         '''
         job = FioJob()
-        job.addKVArg("filename",self.getFilename())
+        job.addKVArg("filename",self.getDevName())
         job.addKVArg("bs","128k")
         job.addKVArg("rw","write")
         job.addKVArg("direct","1")
@@ -296,11 +296,11 @@ class IopsTest(StdyTest):
     ##Percentages of mixed workloads
     mixWlds = [100,95,65,50,35,5,0]
     
-    def __init__(self,testname,filename,nj,iod):
+    def __init__(self,testname,devicename,nj,iod):
         '''
         Constructor.
         '''
-        SsdTest.__init__(self, testname, filename, nj, iod)
+        SsdTest.__init__(self, testname, devicename, nj, iod)
         StdyTest.__init__(self)
         self.getFioJob().addKVArg("rw","randrw")
     
@@ -399,12 +399,12 @@ class LatencyTest(StdyTest):
     ##Labels of block sizes.
     bsLabels = ["8k","4k","512"]
     
-    def __init__(self,testname,filename,nj,iod):
+    def __init__(self,testname,devicename,nj,iod):
         '''
         Constructor.
         '''
         
-        SsdTest.__init__(self, testname, filename, nj, iod)
+        SsdTest.__init__(self, testname, devicename, nj, iod)
         StdyTest.__init__(self)
         self.getFioJob().addKVArg("rw","randrw")
         #For latency the specification says to use 1 job/thread, 1 outstanding IO
@@ -513,11 +513,11 @@ class TPTest(StdyTest):
     ##Labels of block sizes for throughput test
     bsLabels = ["1024k","64k","8k","4k","512",]
     
-    def __init__(self,testname,filename,nj,iod):
+    def __init__(self,testname,devicename,nj,iod):
         '''
         Constructor.
         '''
-        SsdTest.__init__(self, testname, filename, nj, iod)
+        SsdTest.__init__(self, testname, devicename, nj, iod)
         StdyTest.__init__(self)
     
     def testRound(self,bs):
@@ -634,11 +634,11 @@ class WriteSatTest(SsdTest):
     A class to carry out the Write Saturation test.
     '''
     
-    def __init__(self,testname,filename,nj,iod):
+    def __init__(self,testname,devicename,nj,iod):
         '''
         Constructor.
         '''
-        SsdTest.__init__(self, testname, filename, nj, iod)
+        SsdTest.__init__(self, testname, devicename, nj, iod)
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
         self.getFioJob().addKVArg("runtime","60")
