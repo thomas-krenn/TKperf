@@ -5,7 +5,7 @@ then
 	exit 1
 fi
 
-pyStartScript="/home/pmtest/bin/runTest.py"
+pyStartScript="tkperf"
 
 echo "Test name:"
 read testName
@@ -99,6 +99,6 @@ then
 	exit 1
 fi
 
-echo "Please check runTest.out, runTest.err, $testName.log if test is running!"
+echo "Please check $testName.log if test is running!"
 
 

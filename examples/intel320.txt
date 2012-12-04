@@ -1,0 +1,1 @@
+sudo tkperf ssd intel320 /dev/sdb -nj 2 -iod 16 -rfb

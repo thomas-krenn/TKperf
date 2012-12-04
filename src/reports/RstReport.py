@@ -5,6 +5,8 @@ Created on 9 Aug 2012
 '''
 from cStringIO import StringIO
 from copy import deepcopy
+import os
+import inspect
 
 import perfTest.SsdTest as ssd
 import perfTest.HddTest as hdd
@@ -34,7 +36,7 @@ class RstReport(object):
         print >>self.__rst,".. include:: <isonum.txt>\n"
         
     def addFooter(self):
-        print >>self.__rst,".. |logo| image:: ../../pics/TKperf_logo.png"
+        print >>self.__rst,".. |logo| image:: " + os.path.dirname(inspect.getfile(RstReport)) + "/pics/TKperf_logo.png"
         print >>self.__rst,"\t:height: 90px"
         print >>self.__rst,".. footer::"
         print >>self.__rst,"\t http://www.thomas-krenn.com |logo| Page ###Page### of ###Total###\n"
