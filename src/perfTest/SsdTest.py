@@ -680,7 +680,7 @@ class WriteSatTest(SsdTest):
         '''
         Carry out the write saturation test rounds
         '''
-        (call,devSzKB) = self.getDevSizeKB()
+        (call,devSzB) = self.getDevSizeB()
         if call == False:
             logging.error("#Could not get size of device.")
             exit(1)
@@ -705,10 +705,10 @@ class WriteSatTest(SsdTest):
             totWriteIO += writeIO
             if i == 0:
                 logging.info("#If write IO stays steady, it will take "
-                             +str((devSzKB*4)/writeIO)+" rounds to complete.")
+                             +str((devSzB * 4) / (writeIO * 1024))+" rounds to complete.")
             
             #Check if 4 times the device size has been reached
-            if totWriteIO >= (devSzKB * 4):
+            if (totWriteIO * 1024) >= (devSzB * 4):
                 self.__rounds = i
                 break
         self.__roundMatrices.append(iops_l)

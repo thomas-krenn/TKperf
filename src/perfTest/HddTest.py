@@ -258,14 +258,14 @@ class TPTest(HddTest):
     
     def runRounds(self):
         
-        (call,devSizeKB) = self.getDevSizeKB()
+        (call,devSizeB) = self.getDevSizeB()
         if call == False:
             logging.error("#Could not get size of device.")
             exit(1)
         
         #in each round the offset is incremented
-        #if it can be divided by 1024, we can also divide it by 128
-        increment = (devSizeKB * 1024) / HddTest.maxRnds
+        #if it can be divided by 512, we can also divide it by 128
+        increment = devSizeB / HddTest.maxRnds
         #we must ensure that increment can be divided by 4096
         #as we need to align the direct IO to block size. If it
         #is an advanced sector format with 4k 4096 is ok, if the 

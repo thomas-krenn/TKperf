@@ -100,6 +100,25 @@ class DeviceTest(object):
                 logging.info("#Device" + self.__devicename + " sector size: " + str(sectorSize))
                 logging.info("#Device" + self.__devicename + " size in KB: " + str(devSzKB))
                 return [True,devSzKB]
+    
+    def getDevSizeB(self):
+        '''
+        Get the device size in Byte.
+        The function calls 'blockdev' to determine device sector size
+        and sector count.
+        @return [True,size] on success, [False,0] if an error occured.
+        '''
+        out = subprocess.Popen(['blockdev','--getsize64',self.__devicename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("blockdev --getss encountered an error: " + stderr)
+            return [False,0]
+        else:
+            byteSize = long(stdout)
+            if byteSize == 0:
+                logging.error("blockdev --getsize64 returned zero.")
+                return[False,0]
+            return [True,byteSize]
             
     def getNumSecKB(self):
         '''
