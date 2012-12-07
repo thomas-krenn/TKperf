@@ -684,6 +684,8 @@ class WriteSatTest(SsdTest):
         if call == False:
             logging.error("#Could not get size of device.")
             exit(1)
+        else:
+            logging.info("#Device size in Byte: " + str(devSzB))
         totWriteIO = 0 #total written IO in KB, must be greater than 4xDevice 
         #carry out the test for a maximum of 24h, one round runs for 1 minute
         maxRounds = 60*24
