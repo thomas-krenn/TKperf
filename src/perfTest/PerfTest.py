@@ -169,7 +169,7 @@ class PerfTest(object):
         '''
         self.__cmdLineArgs = ''
         for arg in argv:
-            self.__cmdLineArgs += arg
+            self.__cmdLineArgs += (arg + ' ')
         self.__cmdLineArgs = self.__cmdLineArgs.rstrip()
         
     def getOSInfo(self):
