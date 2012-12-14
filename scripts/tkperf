@@ -46,11 +46,20 @@ if __name__ == '__main__':
   
     args = parser.parse_args()
     if args.debug == True:
-        logging.basicConfig(filename=args.testname+'.log',level=logging.DEBUG)
+        if args.fromxml == False:
+            logging.basicConfig(filename=args.testname+'.log',level=logging.DEBUG)
+        if args.fromxml == True:
+            logging.basicConfig(filename=args.testname+'xml.log',level=logging.DEBUG)
     if args.quiet == True:
-        logging.basicConfig(filename=args.testname+'.log',level=logging.WARNING)
+        if args.fromxml == False:
+            logging.basicConfig(filename=args.testname+'.log',level=logging.WARNING)
+        if args.fromxml == True:
+            logging.basicConfig(filename=args.testname+'xml.log',level=logging.WARNING)
     else:
-        logging.basicConfig(filename=args.testname+'.log',level=logging.INFO)
+        if args.fromxml == False:
+            logging.basicConfig(filename=args.testname+'.log',level=logging.INFO)
+        if args.fromxml == True:
+            logging.basicConfig(filename=args.testname+'xml.log',level=logging.INFO)
     
     #Don't print a warning if force is given or loading from xml
     if args.force_test == False:
