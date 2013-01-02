@@ -10,6 +10,7 @@ import subprocess
 from lxml import etree
 import json
 import datetime
+import os
 
 import perfTest.SsdTest as ssd
 import perfTest.HddTest as hdd
@@ -142,7 +143,7 @@ class PerfTest(object):
         
     def collOSInfos(self):
         '''
-        Collects some information about the curren OS in use
+        Collects some information about the current OS in use
         @return True if all infos are present, False on error
         '''
         out = subprocess.Popen(['uname','-r'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -152,10 +153,14 @@ class PerfTest(object):
             return False
         else:
             self.__OSInfo['kernel'] = stdout
-        out = subprocess.Popen(['lsb_release','-d'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        #Check if we are on red hat based distributions
+        if os.path.isfile('/etc/redhat-release'):
+            out = subprocess.Popen(['cat','/etc/redhat-release'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        else:
+            out = subprocess.Popen(['lsb_release','-d'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
-            logging.error("lsb_release -d encountered an error: " + stderr)
+            logging.error("getting OS information encountered an error: " + stderr)
             return False
         else:
             self.__OSInfo['lsb'] = stdout
