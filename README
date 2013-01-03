@@ -16,39 +16,51 @@
   * collections
   * numpy
   * matplotlib
-
-* Under Ubuntu it is normally sufficient to install:
-	sudo apt-get install python-argparse python-matplotlib python-lxml python-numpy
-
+  * os
+  Under Ubuntu it is normally sufficient to install:
+	$ sudo apt-get install python-argparse python-matplotlib python-lxml python-numpy
+* The following software is required:
+  * Fio
+  * hdparm
+  
 == Setup ==
-* The io_perf_test checks if FIO is found with:
+* TKperf checks if FIO is found with:
 	$ which fio
   Please ensure that FIO is in your path and executable.
 * To install FIO visit
 	http://freecode.com/projects/fio
 * To fetch FIO per git use:
 	$ git clone git://git.kernel.dk/fio.git
-* An installation howto (currently only in german):
+* An installation howto (currently only in German):
 	http://www.thomas-krenn.com/de/wiki/Fio_kompilieren
 
 == Installation ==
 * To install TKperf simply call
 	$ sudo python setup.py install
+* If the source is updated with git ensure to reinstall TKperf.
+
+== Hardware Prerequisites ==
+* To carry out a Secure Erase it is necessary that the SSD is NOT in the
+  frozen state (http://www.thomas-krenn.com/en/wiki/SSD_Secure_Erase#Step_1:_NOT_Frozen).
+  If the SSD is frozen un- and replug the device while the host is on.
 
 == Running a test ==
 * The main script file is called tkperf:
 	$ which tkperf
 	/usr/local/bin/tkperf
-* Call tkperf with the command line options described below.
+* Call tkperf with the command line options described below. To get the help output use:
+	$ tkperf -h
 
 == Log File ==
-* The log file is named after the given test name (e.g. 'intel320' in the example above).
-  Inspect the log from time to time to ensure that no errors occured. In the log all
+* The log file is named after the given test name (e.g. 'intel320' in the example below).
+  Inspect the log from time to time to ensure that no errors occur. In the log all
   calls to FIO are stated out. Also the results from the steady rounds are written
   to the log file. If you have any doubts that the results in the pdf report are
   correct check the log what performance values Fio returned. As the log file
   contains the FIO output in terse version, read the FIO HOWTO to find out how
   to interpret it.
+  If a report is generated from the xml file a seperate log is created. This log
+  gets '.xml' appended.
 
 == Examples ==
 * To run a test on a remote machine and ensure it is not stopped if the connection
@@ -57,9 +69,14 @@
   and then detach with 'Ctrl-a d'.
 * As root:
 	# tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
-* Start with nohup and disable the warning that the device will be erase ('-ft', '--force-test'). Note
+* Also nohup could be used to start a test. To disable the warning that the device will be erased ('-ft', '--force-test'). Note
   that with nohup it is difficult to use sudo and redirect stdout/stderr to output files.
 	# nohup tkperf ssd intel320 /dev/sde -ft -nj 2 -iod 16 -rfb 1>runTest.out 2>runTest.err &
+
+== SSD Compression ==
+* If the SSD controller uses compression use the '-rfb' switch to circumvent ensure that
+  data buffers used by Fio are completely random. This option enables the 'refill_buffers'
+  from Fio.
 
 == Description File ==
 * If 'hdparm -I' does not provide any valuable information about a drive, you have to provide a
@@ -73,11 +90,11 @@
 
 == Loading from XML ==
 * To load an already carried out test from the generated xml file, use the '-xml' option:
-	$ sudo tkperf ssd intel520 /dev/sdb1 -xml
-* In this case nothing happens with /dev/sdb1, it is just there as a placeholder. You can
-  for example insert an usb drive as a dummy device.
+	$ sudo tkperf ssd intel520 none -xml
+* In this case as tested device 'none' is used, it is there just as a placeholder.
 * Loading from an xml file is useful if something has changed in the plotting methods and you
-  want to re-plot the results. This is mainly required during a development process.
+  want to re-plot the results. This is mainly required during a development process or if a major
+  update/bugfix has been made to tkperf.
 
 == Further information ==
 * To get more information about how the SSD tests are carried out, visit
