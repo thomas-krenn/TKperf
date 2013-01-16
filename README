@@ -21,10 +21,10 @@
 	$ sudo apt-get install python-argparse python-matplotlib \
 	  python-lxml python-numpy
 * The following software is required:
-  * Fio version 2.0.3 or higher.
-    Please note that older Fio versions are not supported due to an incompatibility
-    in the terse output of Fio. The tests will not produce any valuable 
-    information if Fio is older than 2.0.3.
+  * FIO version 2.0.3 or higher.
+    Please note that older FIO versions are not supported due to an incompatibility
+    in the terse output of FIO. The tests will not produce any valuable 
+    information if FIO is older than 2.0.3.
   * hdparm
 
 == Setup ==
@@ -63,7 +63,7 @@
   occur. In the log all calls to FIO are stated out. Also the results from the
   steady rounds are written to the log file. If you have any doubts that the 
   results in the pdf report are correct check the log what performance values
-  Fio returned. As the log file contains the FIO output in terse version, read
+  FIO returned. As the log file contains the FIO output in terse version, read
   the FIO HOWTO to find out how to interpret it.
   If a report is generated from the xml file a seperate log is created. This log
   gets '.xml' appended.
@@ -74,6 +74,9 @@
   See 'man screen' for more information. Basically it is sufficient to call
   'screen', start the script and then detach with 'Ctrl-a d'.
 * As root:
+	# tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb
+* If hdparm does not output any valuable information for your device,
+  use a description file to provide the device informations:
 	# tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
 * Also nohup could be used to start a test. To disable the warning that the
   device will be erased ('-ft', '--force-test'). Note that with nohup it is
@@ -83,8 +86,8 @@
 
 == SSD Compression ==
 * If the SSD controller uses compression use the '-rfb' switch to ensure that
-  data buffers used by Fio are completely random. This option enables the
-  'refill_buffers' from Fio.
+  data buffers used by FIO are completely random. This option enables the
+  'refill_buffers' from FIO.
 
 == Description File ==
 * If 'hdparm -I' does not provide any valuable information about a drive, you

@@ -1,6 +1,28 @@
-################################################################################
-Changelog for io_perf_test, performance tests for ssd and hdd
-################################################################################
+####################################################################
+Changelog for TKperf, performance tests for ssd and hdd
+####################################################################
+
+Visit http://git.thomas-krenn.com/TKperf_v1.git to get current development
+versions of TKperf.
+
+Version 1.1 20130116
+  * Checking for correct FIO version
+  * Added more hdparm informations about a device (e.g. write-cache)
+  * Description files to provide informations for devices that
+    cannot be checked with hdparm
+  * Loading from Xml is possible if plotting or reporting functions
+    changed and the report should be generated again
+  * With setup.py an installations script is provided to ease TKperf
+    installation
+  * FIO version is included in the report
+  * Date of test run is included in the report
+  * Number of jobs and number of outstanding I/Os can be changed
+  * Added option "refill_buffers" to circumvent any compression of
+    SSD controllers
+  * OS distribution information is included in the report
+  * tkperf_dialog.sh is a shell script to start a simple test script
+    via answering interactive questions
+
 
 Version 1.0-dev 20121123
   * SSD
@@ -9,7 +31,7 @@ Version 1.0-dev 20121123
       * Latency
       * Write Saturation
       * Throughput
-    * Plots and measurment tables required by SNIA spec
+    * Plots and measurement tables required by SNIA spec
     * Logging all FIO calls to log file
     * Xml file with test results
     * Rst file with restructured text
