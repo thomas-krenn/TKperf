@@ -119,6 +119,19 @@ class PerfTest(object):
                     self.__deviceInfo += line + '\n'
                 if line.find("device size with M = 1000*1000") > -1:
                     self.__deviceInfo += line + '\n'
+            #Check for write caching state
+            stdout = ''
+            stderr = ''
+            out = subprocess.Popen(['hdparm','-W',self.__devicename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if stderr != '':
+                logging.error("hdparm -W encountered an error: " + stderr)
+                logging.error("Please use a description file to set device information!")
+                return False
+            for line in stdout.split('\n'):
+                if line.find("write-caching") > -1:
+                    self.__deviceInfo += line + '\n'
+            
             logging.info("# Testing device: " + self.__deviceInfo)
             return True
 
