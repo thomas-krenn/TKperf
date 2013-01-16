@@ -3,6 +3,7 @@ A module realizing a fio job run.
 '''
 import subprocess
 import logging
+import re
 
 class FioJob(object):
     '''
@@ -43,6 +44,22 @@ class FioJob(object):
         self.__fioPath = stdout.rstrip("\n");
         fio = subprocess.Popen(['fio','--version'],stdout=subprocess.PIPE)
         self.__fioVersion = fio.communicate()[0]
+        fio.wait()
+        
+        #check if the fio version is high enough
+        match = re.search(r'[\d\.]+',self.__fioVersion)
+        if match == None:
+            logging.error("# Error: checking fio version returned a none string.")
+            exit(1)
+        version = match.group().split('.')
+        if int(version[0]) < 2:
+            logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
+            exit(1)
+        if int(version[0]) > 2:
+            if int(version[1]) == 0:
+                if int(version[2]) < 3:
+                    logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
+                    exit(1)
         ## Key value arguments e.g. name="test"
         self.__fioKVArgs = {}
         ## Single arguments e.g. group_reporting
