@@ -130,6 +130,8 @@ class PerfTest(object):
                 return False
             for line in stdout.split('\n'):
                 if line.find("write-caching") > -1:
+                    line = line.lstrip(' ')
+                    line = '\t' + line
                     self.__deviceInfo += line + '\n'
             
             logging.info("# Testing device: " + self.__deviceInfo)
