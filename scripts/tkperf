@@ -13,18 +13,20 @@ from fio.FioJob import FioJob
 from perfTest.DeviceTest import DeviceTest
 from perfTest.PerfTest import SsdPerfTest
 from perfTest.PerfTest import HddPerfTest
+import perfTest.PerfTest as pT
 
 if __name__ == '__main__':
     vTest = FioJob()
     fioVersion = vTest.__str__()#Fetch the fio version
-    
+    tkPerfVersion = "TKperf Version: " + pT.__version__
+    tkPerfVersion += " using " + fioVersion
     parser = argparse.ArgumentParser()
     
     parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
     parser.add_argument("testname",help="name of the fio job, corresponds to the result output file")
     parser.add_argument("device",help="device to run fio test on")
     
-    parser.add_argument("-v","--version", help="get the version information", action='version',version=fioVersion)
+    parser.add_argument("-v","--version", help="get the version information", action='version',version=tkPerfVersion)
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
     parser.add_argument("-nj","--numjobs",help="specify number of jobs for fio",type=int)

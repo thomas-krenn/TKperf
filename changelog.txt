@@ -5,7 +5,7 @@ Changelog for TKperf, performance tests for ssd and hdd
 Visit http://git.thomas-krenn.com/TKperf_v1.git to get current development
 versions of TKperf.
 
-Version 1.1 20130116
+Version 1.1 20130117
   * Checking for correct FIO version
   * Added more hdparm informations about a device (e.g. write-cache)
   * Description files to provide informations for devices that
@@ -22,7 +22,6 @@ Version 1.1 20130116
   * OS distribution information is included in the report
   * tkperf_dialog.sh is a shell script to start a simple test script
     via answering interactive questions
-
 
 Version 1.0-dev 20121123
   * SSD
