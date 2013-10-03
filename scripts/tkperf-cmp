@@ -47,6 +47,17 @@ if __name__ == '__main__':
         if file.endswith('.xml'):
             file = file[:-4]
         args.xmls[i] = file
+
+    toCompare = []
+    for file in args.xmls:
+        if args.mode == "ssd":
+            myTest = SsdPerfTest(file, 'none', nj, iod)
+        if args.mode == "hdd":
+            myTest = HddPerfTest(file, 'none', nj, iod)
+        myTest.fromXml()
+        toCompare.append(myTest)
+        
+    exit(0)
 #         
 #         
 #         
