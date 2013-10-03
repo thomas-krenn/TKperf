@@ -41,12 +41,12 @@ if __name__ == '__main__':
     #check iodepth and number of jobs are not used in compare mode
     nj = 1
     iod = 1
-    print '[%s]' % ', '.join(map(str, args.xmls))
-    exit(0)
-#     #strip the filename suffix
-#     
-#     #if url.endswith('.com'):
-#     #url = url[:-4]
+
+    #strip the filename suffix
+    for i,file in enumerate(args.xmls):
+        if file.endswith('.xml'):
+            file = file[:-4]
+        args.xmls[i] = file
 #         
 #         
 #         
@@ -66,7 +66,7 @@ if __name__ == '__main__':
 #         #modify the test types if available
 #         if args.hddt != None:
 #             HddPerfTest.testKeys = args.hddt
-#         myTest = HddPerfTest(args.testname,args.device,nj,iod)
+#         myTest = HddPerfTest(args.testnam    e,args.device,nj,iod)
 #         myTest.readCmdLineArgs(sys.argv)
 #         #hdparm -I should work for HDDs
 #         if args.desc_file != None:
