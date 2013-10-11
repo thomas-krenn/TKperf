@@ -14,6 +14,7 @@ from perfTest.DeviceTest import DeviceTest
 from perfTest.PerfTest import SsdPerfTest
 from perfTest.PerfTest import HddPerfTest
 import perfTest.PerfTest as pT
+import plots.compPlots as pcp
 
 if __name__ == '__main__':
     vTest = FioJob()
@@ -56,7 +57,8 @@ if __name__ == '__main__':
             myTest = HddPerfTest(file, 'none', nj, iod)
         myTest.fromXml()
         toCompare.append(myTest)
-        
+    
+    pcp.compWriteSatIOPSPlt(toCompare)
     exit(0)
 #         
 #         

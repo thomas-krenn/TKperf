@@ -7,26 +7,43 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import perfTest as pT
+import plots.genPlots as pgp
 
 
-def writeSatIOPSPlt(toPlot):
+def compWriteSatIOPSPlt(testsToPlot):
+    """
+    Compare multiple tests and create a write saturation IOPS plot.
+    All test objects in testsToPlot are plotted.
+    
+    Keyword arguments:
+    testsToPlot -- an array of test objects
+    """
     #fetch number of rounds, we want to include all rounds
     #as stdy state was reached at rnds, it must be included
-    rnds = toPlot.getRnds()
-    x = range(rnds + 1)
+    plt.clf()#clear plot
+    min_y = 0
+    max_y = 0
+    max_x = 0
+    for tests in testsToPlot:
+        test = tests.getTests()['writesat']
+        rnds = test.getRnds()
+        x = range(rnds + 1)
+        #first elem in matrix are iops
+        iops_l = test.getRndMatrices()[0]
+        plt.plot(x,iops_l,'-',label=test.getTestname()+'-Avg IOPS')
+        #fetch new min and max from current test values
+        min_y,max_y = pgp.getMinMax(iops_l, min_y, max_y)
+        if max(x) > max_x:
+            max_x = max(x)
     
-    iops_l = toPlot.getRndMatrices()[0]#first elem in matrix are iops
-
-    plt.clf()#clear plot        
-    plt.plot(x,iops_l,'-',label='Avg IOPS')
-    plt.ylim(min(iops_l)*0.75,max(iops_l)*1.25)
-    #every 10 rounds print the round number
-    x = range(0,rnds + 1,50)
+    plt.ylim(min_y * 0.75, max_y * 1.25)
+    #every 50 rounds print the round number
+    x = range(0, max_x, 50)
     plt.xticks(x)
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
     plt.ylabel("IOPS")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
-               ncol=1, fancybox=True, shadow=True,prop={'size':12})
-    plt.savefig(toPlot.getTestname()+'-writeSatIOPSPlt.png',dpi=300)
-    toPlot.addFigure(toPlot.getTestname()+'-writeSatIOPSPlt.png')
+               ncol=1, fancybox=True, shadow=True,prop={'size':10})
+    plt.savefig('compWriteSatIOPSPlt.png',dpi=300)
+    #toPlot.addFigure(toPlot.getTestname()+'-writeSatIOPSPlt.png')
