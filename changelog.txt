@@ -5,6 +5,9 @@ Changelog for TKperf, performance tests for ssd and hdd
 Visit http://git.thomas-krenn.com/TKperf_v1.git to get current development
 versions of TKperf.
 
+Version 1.2 20131017
+  * Return an error if hdparm doesn't work for HDD
+
 Version 1.1 20130117
   * Checking for correct FIO version
   * Added more hdparm informations about a device (e.g. write-cache)
