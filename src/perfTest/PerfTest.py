@@ -3,7 +3,7 @@ Created on 07.08.2012
 
 @author: gschoenb
 '''
-__version__ = '1.1'
+__version__ = '1.2'
 
 import logging
 import subprocess
