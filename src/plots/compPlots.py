@@ -16,7 +16,7 @@ def compWriteSatIOPSPlt(testsToPlot):
     All test objects in testsToPlot are plotted.
     
     Keyword arguments:
-    testsToPlot -- an array of test objects
+    testsToPlot -- an array of perfTest objects
     """
     #fetch number of rounds, we want to include all rounds
     #as stdy state was reached at rnds, it must be included
