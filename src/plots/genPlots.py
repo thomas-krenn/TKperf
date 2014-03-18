@@ -279,7 +279,7 @@ def mes3DPlt(toPlot,mode):
     
     plt.clf
     fig = plt.figure()
-    if __matplotVersion__ > 1.0:
+    if __matplotVersion__ >= 1.0:
         ax = fig.gca(projection='3d')
     else:
         ax = Axes3D(fig)
@@ -329,7 +329,7 @@ def latMes3DPlt(toPlot):
     
     plt.clf()
     fig = plt.figure()
-    if __matplotVersion__ > 1.0:
+    if __matplotVersion__ >= 1.0:
         ax = fig.add_subplot(2, 1, 1, projection='3d')
     else:
         rect = fig.add_subplot(2, 1, 1).get_position()
@@ -343,7 +343,7 @@ def latMes3DPlt(toPlot):
     ax.set_zlabel('Latency (ms)',rotation='vertical')
             
     #Second subplot
-    if __matplotVersion__ > 1.0:
+    if __matplotVersion__ >= 1.0:
         ax = fig.add_subplot(2,1,2, projection='3d')
     else:
         rect = fig.add_subplot(2, 1, 2).get_position()
