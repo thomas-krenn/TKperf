@@ -14,6 +14,8 @@ from copy import deepcopy
 
 import perfTest as pT
 
+__matplotVersion__=float('.'.join(matplotlib.__version__.split('.')[0:2]))
+
 def stdyStVerPlt(toPlot,mode):
     '''
     Generate a steady state verification plot.
@@ -277,7 +279,10 @@ def mes3DPlt(toPlot,mode):
     
     plt.clf
     fig = plt.figure()
-    ax = Axes3D(fig)
+    if __matplotVersion__ > 1.0:
+        ax = fig.gca(projection='3d')
+    else:
+        ax = Axes3D(fig)
     for j,wl in enumerate(matrix):
         ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
         for pos in range(len(ypos)):
@@ -324,7 +329,11 @@ def latMes3DPlt(toPlot):
     
     plt.clf()
     fig = plt.figure()
-    ax = fig.add_subplot(2, 1, 1, projection='3d')
+    if __matplotVersion__ > 1.0:
+        ax = fig.add_subplot(2, 1, 1, projection='3d')
+    else:
+        rect = fig.add_subplot(2, 1, 1).get_position()
+        ax = Axes3D(fig, rect)
     for j,wl in enumerate(avgMatrix):
         ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
         for pos in range(len(ypos)):
@@ -334,7 +343,11 @@ def latMes3DPlt(toPlot):
     ax.set_zlabel('Latency (ms)',rotation='vertical')
             
     #Second subplot
-    ax = fig.add_subplot(2,1,2, projection='3d')
+    if __matplotVersion__ > 1.0:
+        ax = fig.add_subplot(2,1,2, projection='3d')
+    else:
+        rect = fig.add_subplot(2, 1, 2).get_position()
+        ax = Axes3D(fig, rect)
     #reset ypos
     ypos = np.array([0.25] * len(bsLabels)) 
     for j,wl in enumerate(maxMatrix):
