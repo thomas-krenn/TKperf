@@ -3,7 +3,7 @@
 Created on 27.06.2012
 
 @author: gschoenb
-@version: 1.1
+@version: 1.2
 '''
 import argparse
 import logging
@@ -110,11 +110,16 @@ if __name__ == '__main__':
             HddPerfTest.testKeys = args.hddt
         myTest = HddPerfTest(args.testname,args.device,nj,iod)
         myTest.readCmdLineArgs(sys.argv)
-        #hdparm -I should work for HDDs
-        if args.desc_file != None:
-            myTest.readDevInfoFile(args.desc_file)
-        else:
-            myTest.readDevInfoHdparm()
+        #read description file if hdparm doesn't work
+        if myTest.readDevInfoHdparm() != True:
+            if args.desc_file == None:
+                print "### Error! ###"
+                print "Please use a description file for the current device."
+                print "The information via hdparm -I is not reliable."
+                print "Use -dsc DESC_FILE to provide the information"
+                exit(0)
+            else:
+                myTest.readDevInfoFile(args.desc_file)
         if args.feature_matrix != None:
             myTest.readFeatureMatrix(args.feature_matrix)
         print myTest.getDevInfo()

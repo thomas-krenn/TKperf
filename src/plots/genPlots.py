@@ -7,12 +7,15 @@ from __future__ import division
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
 
 import numpy as np
 from copy import deepcopy
 
 import perfTest as pT
+
+__matplotVersion__=float('.'.join(matplotlib.__version__.split('.')[0:2]))
 
 def stdyStVerPlt(toPlot,mode):
     '''
@@ -277,7 +280,10 @@ def mes3DPlt(toPlot,mode):
     
     plt.clf
     fig = plt.figure()
-    ax = Axes3D(fig)
+    if __matplotVersion__ >= 1.0:
+        ax = fig.gca(projection='3d')
+    else:
+        ax = Axes3D(fig)
     for j,wl in enumerate(matrix):
         ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
         for pos in range(len(ypos)):
@@ -285,11 +291,16 @@ def mes3DPlt(toPlot,mode):
             
     ticksx = np.arange(0.5, len(bsLabels), 1)
     bsLabels.reverse()
-    plt.xticks(ticksx, bsLabels)
-
     ticksy = np.arange(0.5, len(mixWlds), 1)
     mixWlds.reverse()
-    plt.yticks(ticksy,mixWlds)
+    if __matplotVersion__ >= 1.0:
+        plt.yticks(ticksy,mixWlds)
+        plt.xticks(ticksx, bsLabels)
+    else:
+        ax.w_xaxis.set_major_locator(ticker.FixedLocator(ticksx))
+        ax.w_xaxis.set_ticklabels(bsLabels)
+        ax.w_yaxis.set_major_locator(ticker.FixedLocator(ticksy))
+        ax.w_yaxis.set_ticklabels(mixWlds)
     
     plt.suptitle(mode+" 3D Measurement Plot",fontweight='bold')
     ax.set_xlabel('Block Size (Byte)')
@@ -324,17 +335,25 @@ def latMes3DPlt(toPlot):
     
     plt.clf()
     fig = plt.figure()
-    ax = fig.add_subplot(2, 1, 1, projection='3d')
+    if __matplotVersion__ >= 1.0:
+        ax = fig.add_subplot(2, 1, 1, projection='3d')
+    else:
+        rect = fig.add_subplot(2, 1, 1).get_position()
+        ax = Axes3D(fig, rect)
     for j,wl in enumerate(avgMatrix):
         ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
         for pos in range(len(ypos)):
             ypos[pos] += 1
-    ax.xaxis.set_ticks([None]) 
-    ax.yaxis.set_ticks([None])
+    ax.xaxis.set_ticks([]) 
+    ax.yaxis.set_ticks([])
     ax.set_zlabel('Latency (ms)',rotation='vertical')
             
     #Second subplot
-    ax = fig.add_subplot(2,1,2, projection='3d')
+    if __matplotVersion__ >= 1.0:
+        ax = fig.add_subplot(2,1,2, projection='3d')
+    else:
+        rect = fig.add_subplot(2, 1, 2).get_position()
+        ax = Axes3D(fig, rect)
     #reset ypos
     ypos = np.array([0.25] * len(bsLabels)) 
     for j,wl in enumerate(maxMatrix):
@@ -343,10 +362,15 @@ def latMes3DPlt(toPlot):
             ypos[pos] += 1
             
     ticksx = np.arange(0.5, len(bsLabels), 1)
-    plt.xticks(ticksx, bsLabels)
     ticksy = np.arange(0.5, len(mixWlds), 1)
-    plt.yticks(ticksy,mixWlds)
-    
+    if __matplotVersion__ >= 1.0:
+        plt.xticks(ticksx, bsLabels)
+        plt.yticks(ticksy,mixWlds)
+    else:
+        ax.w_xaxis.set_major_locator(ticker.FixedLocator(ticksx))
+        ax.w_xaxis.set_ticklabels(bsLabels)
+        ax.w_yaxis.set_major_locator(ticker.FixedLocator(ticksy))
+        ax.w_yaxis.set_ticklabels(mixWlds)
 
     plt.suptitle("LAT 3D Measurement Plot",fontweight='bold')
     #ax.set_xlabel('Block Size (Byte)')

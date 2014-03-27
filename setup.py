@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='TKperf',
-	version='1.1',
+	version='1.2',
 	description='TK IO Performance Tests',
 	author='Georg Schoenberger',
 	author_email='gschoenberger@thomas-krenn.com',
