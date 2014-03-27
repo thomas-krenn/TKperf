@@ -7,6 +7,7 @@ from __future__ import division
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
 
 import numpy as np
@@ -290,11 +291,16 @@ def mes3DPlt(toPlot,mode):
             
     ticksx = np.arange(0.5, len(bsLabels), 1)
     bsLabels.reverse()
-    plt.xticks(ticksx, bsLabels)
-
     ticksy = np.arange(0.5, len(mixWlds), 1)
     mixWlds.reverse()
-    plt.yticks(ticksy,mixWlds)
+    if __matplotVersion__ >= 1.0:
+        plt.yticks(ticksy,mixWlds)
+        plt.xticks(ticksx, bsLabels)
+    else:
+        ax.w_xaxis.set_major_locator(ticker.FixedLocator(ticksx))
+        ax.w_xaxis.set_ticklabels(bsLabels)
+        ax.w_yaxis.set_major_locator(ticker.FixedLocator(ticksy))
+        ax.w_yaxis.set_ticklabels(mixWlds)
     
     plt.suptitle(mode+" 3D Measurement Plot",fontweight='bold')
     ax.set_xlabel('Block Size (Byte)')
@@ -356,10 +362,15 @@ def latMes3DPlt(toPlot):
             ypos[pos] += 1
             
     ticksx = np.arange(0.5, len(bsLabels), 1)
-    plt.xticks(ticksx, bsLabels)
     ticksy = np.arange(0.5, len(mixWlds), 1)
-    plt.yticks(ticksy,mixWlds)
-    
+    if __matplotVersion__ >= 1.0:
+        plt.xticks(ticksx, bsLabels)
+        plt.yticks(ticksy,mixWlds)
+    else:
+        ax.w_xaxis.set_major_locator(ticker.FixedLocator(ticksx))
+        ax.w_xaxis.set_ticklabels(bsLabels)
+        ax.w_yaxis.set_major_locator(ticker.FixedLocator(ticksy))
+        ax.w_yaxis.set_ticklabels(mixWlds)
 
     plt.suptitle("LAT 3D Measurement Plot",fontweight='bold')
     #ax.set_xlabel('Block Size (Byte)')
