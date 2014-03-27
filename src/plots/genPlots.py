@@ -338,8 +338,8 @@ def latMes3DPlt(toPlot):
         ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
         for pos in range(len(ypos)):
             ypos[pos] += 1
-    ax.xaxis.set_ticks([None]) 
-    ax.yaxis.set_ticks([None])
+    ax.xaxis.set_ticks([]) 
+    ax.yaxis.set_ticks([])
     ax.set_zlabel('Latency (ms)',rotation='vertical')
             
     #Second subplot
