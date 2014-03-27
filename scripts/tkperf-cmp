@@ -39,11 +39,7 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(filename='tkperf-cmp.log',level=logging.INFO)
 
-    #check iodepth and number of jobs are not used in compare mode
-    nj = 1
-    iod = 1
-
-    #strip the filename suffix
+    #strip the filename suffix as it is appended automatically
     for i,file in enumerate(args.xmls):
         if file.endswith('.xml'):
             file = file[:-4]
@@ -52,9 +48,9 @@ if __name__ == '__main__':
     toCompare = []
     for file in args.xmls:
         if args.mode == "ssd":
-            myTest = SsdPerfTest(file, 'none', nj, iod)
+            myTest = SsdPerfTest(file, 'none', 0, 0)
         if args.mode == "hdd":
-            myTest = HddPerfTest(file, 'none', nj, iod)
+            myTest = HddPerfTest(file, 'none', 0, 0)
         myTest.fromXml()
         toCompare.append(myTest)
     

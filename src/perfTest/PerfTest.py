@@ -429,9 +429,6 @@ class SsdPerfTest(PerfTest):
                     test.fromXml(elem)
                     self.addTest(tag, test)
 
-        self.getPlots()
-        self.toRst()
-    
     def toRst(self):
         tests = self.getTests()
         rst = self.getRstReport()
@@ -599,9 +596,6 @@ class HddPerfTest(PerfTest):
                     test.fromXml(elem)
                     self.addTest(tag, test)
 
-        self.getPlots()
-        self.toRst()
-    
     def toRst(self):
         tests = self.getTests()
         rst = self.getRstReport()

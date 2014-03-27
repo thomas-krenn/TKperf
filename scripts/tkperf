@@ -101,6 +101,8 @@ if __name__ == '__main__':
         if args.mode == "hdd":
             myTest = HddPerfTest(args.testname, args.device,nj, iod)
         myTest.fromXml()
+        myTest.getPlots()
+        myTest.toRst()
         exit(0)
         
     if args.mode == "hdd":
@@ -109,21 +111,6 @@ if __name__ == '__main__':
         if args.hddt != None:
             HddPerfTest.testKeys = args.hddt
         myTest = HddPerfTest(args.testname,args.device,nj,iod)
-        myTest.readCmdLineArgs(sys.argv)
-        #read description file if hdparm doesn't work
-        if myTest.readDevInfoHdparm() != True:
-            if args.desc_file == None:
-                print "### Error! ###"
-                print "Please use a description file for the current device."
-                print "The information via hdparm -I is not reliable."
-                print "Use -dsc DESC_FILE to provide the information"
-                exit(0)
-            else:
-                myTest.readDevInfoFile(args.desc_file)
-        if args.feature_matrix != None:
-            myTest.readFeatureMatrix(args.feature_matrix)
-        print myTest.getDevInfo()
-        myTest.run()
         
     if args.mode == "ssd":
         print "Starting SSD mode..."
@@ -131,20 +118,22 @@ if __name__ == '__main__':
         if args.ssdt != None:
             SsdPerfTest.testKeys = args.ssdt
         myTest = SsdPerfTest(args.testname, args.device, nj, iod)
-        myTest.readCmdLineArgs(sys.argv)
         if args.refill_buffers == True:
             myTest.addSglArgToTests('refill_buffers')
-        if myTest.readDevInfoHdparm() != True:
-            if args.desc_file == None:
-                print "### Error! ###"
-                print "Please use a description file for the current device."
-                print "The information via hdparm -I is not reliable."
-                print "Use -dsc DESC_FILE to provide the information"
-                exit(0)
-            else:
-                myTest.readDevInfoFile(args.desc_file)
-        #add an extra feature matrix to the performance test
-        if args.feature_matrix != None:
-            myTest.readFeatureMatrix(args.feature_matrix)
-        print myTest.getDevInfo()
-        myTest.run()
+
+    myTest.readCmdLineArgs(sys.argv)
+    # Call device and feature matrix functions
+    if myTest.readDevInfoHdparm() != True:
+        if args.desc_file == None:
+            print "### Error! ###"
+            print "Please use a description file for the current device."
+            print "The information via hdparm -I is not reliable."
+            print "Use -dsc DESC_FILE to provide the information"
+            exit(0)
+        else:
+            myTest.readDevInfoFile(args.desc_file)
+    #add an extra feature matrix to the performance test
+    if args.feature_matrix != None:
+        myTest.readFeatureMatrix(args.feature_matrix)
+    print myTest.getDevInfo()
+    myTest.run()
