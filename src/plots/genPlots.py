@@ -463,47 +463,18 @@ def tpMes2DPlt(toPlot):
     The figure is saved as SsdTest.Testname-bw-mes2DPlt.png.
     @param toPlot A SsdTest object.
     '''
-    wlds = [] #read and write workload mode
-    
-    #one row for read, one for write
-    for i in range(2):
-        wlds.append([])
-        #in each row will be the different block sizes
-        for bs in range(len(pT.SsdTest.TPTest.bsLabels)):
-            wlds[i].append(0)
-    matrices = deepcopy(toPlot.getRndMatrices())
-    
-    #each row of the matrix is a block size
-    for j,bs in enumerate(matrices):
-        #each block size has read and write
-        for i,row in enumerate(bs):
-            #as rnd does not need to start at 0
-            #we need k to calculate average
-            k = 0
-            #read and write have their round values
-            for rnd in toPlot.getStdyRnds():
-                #calculate average iteratively
-                if wlds[i][j] != 0:
-                    wlds[i][j] *= k
-                    wlds[i][j] += row[rnd]
-                    wlds[i][j] = (wlds[i][j]) / (k+1)
-                else:
-                    wlds[i][j] = row[rnd]
-                k += 1
-                
+    calcMsmtTPTable(toPlot)
+    wlds = toPlot.getTables()[0]
     #start plotting
     plt.clf()#clear
     x = getBS(pT.SsdTest.TPTest.bsLabels)
     for i in range(len(wlds)):
-        #Convert to MB/s
-        for v in range(len(wlds[i])):
-            wlds[i][v] = (wlds[i][v]) / 1024
         if i == 0:
             label = "read"
         else:
             label = "write"
         plt.plot(x,wlds[i],'o-',label=label)
-    
+
     plt.xscale('log')
     plt.suptitle("TP Measurement Plot",fontweight='bold')
     plt.xlabel("Block Size (Byte)")
@@ -513,7 +484,6 @@ def tpMes2DPlt(toPlot):
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-TP-mes2DPlt.png')
-    toPlot.addTable(wlds)
 
 ######### PLOTS FOR HDD TESTS #########
 def TPplot(toPlot):
@@ -727,6 +697,43 @@ def calcMsmtTable(toPlot,mode):
             for v in range(len(mixWLds[i])):
                 mixWLds[i][v] = (mixWLds[i][v]) / 1000
     toPlot.addTable(mixWLds)
+
+def calcMsmtTPTable(toPlot):
+    '''
+    Generate the measurement overview table for Throughput. The table is
+    an overview over the average values in the measurement window. 
+    @param toPlot A SsdTest object.
+    '''
+    wlds = [] #read and write workload mode
+    #one row for read, one for write
+    for i in range(2):
+        wlds.append([])
+        #in each row will be the different block sizes
+        for bs in range(len(pT.SsdTest.TPTest.bsLabels)):
+            wlds[i].append(0)
+    matrices = deepcopy(toPlot.getRndMatrices())
+    #each row of the matrix is a block size
+    for j,bs in enumerate(matrices):
+        #each block size has read and write
+        for i,row in enumerate(bs):
+            #as rnd does not need to start at 0
+            #we need k to calculate average
+            k = 0
+            #read and write have their round values
+            for rnd in toPlot.getStdyRnds():
+                #calculate average iteratively
+                if wlds[i][j] != 0:
+                    wlds[i][j] *= k
+                    wlds[i][j] += row[rnd]
+                    wlds[i][j] = (wlds[i][j]) / (k+1)
+                else:
+                    wlds[i][j] = row[rnd]
+                k += 1
+    #Convert to MB/s
+    for i in range(len(wlds)):
+        for v in range(len(wlds[i])):
+            wlds[i][v] = (wlds[i][v]) / 1024
+    toPlot.addTable(wlds)
 
 def getBS(bsLabels):
     '''
