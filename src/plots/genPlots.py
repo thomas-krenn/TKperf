@@ -238,7 +238,6 @@ def mes3DPlt(toPlot,mode):
     fig = plt.figure()
     if __matplotVersion__ >= 1.0:
         ax = fig.gca(projection='3d')
-        print "foo"
     else:
         ax = Axes3D(fig)
     for j,wl in enumerate(matrix):
