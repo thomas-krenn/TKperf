@@ -3,8 +3,6 @@ Created on Oct 3, 2013
 
 @author: gschoenb
 '''
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import perfTest as pT
 import plots.genPlots as pgp

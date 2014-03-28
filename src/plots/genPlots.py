@@ -160,56 +160,20 @@ def mes2DPlt(toPlot,mode):
     @param toPlot A SsdTest object.
     @param mode A string representing the test mode (IOPS|max-LAT|avg-LAT)
     '''
-    mixWLds = []
-    mesWin = toPlot.getStdyRnds() #get measurement window, only include these values
-    
+    # Generate the measurement table
+    calcMsmtTable(toPlot, mode)
     if mode == "IOPS":
         wlds = pT.SsdTest.IopsTest.mixWlds
         bsLabels = pT.SsdTest.IopsTest.bsLabels
+        mixWLds = toPlot.getTables()[0]
     if mode == "avg-LAT" or mode == "max-LAT":
         wlds = pT.SsdTest.LatencyTest.mixWlds
         bsLabels = pT.SsdTest.LatencyTest.bsLabels
-    
-    #each row will be a workload percentage
-    for i in range(len(wlds)):
-        mixWLds.append([])
-        #in each row will be the different block sizes
-        for bs in range(len(bsLabels)):
-            mixWLds[i].append(0)
-    matrices = toPlot.getRndMatrices()
-    
-    #as j does not necessarily start from 0, we need k
-    #to calculate the average iteratively
-    k = 0
-    #limit the matrices to the measurement window
-    for j in mesWin:
-        rndMat = matrices[j]
-        #each row is a percentage of a workload
-        for i,row in enumerate(rndMat):
-            #in each row are the different block sizes
-            for bs in range(len(row)):
-                #calculate average iteratively
-                if mixWLds[i][bs] != 0:
-                    #calculate max latency or continue with average
-                    if mode == "max-LAT":
-                        if row[bs][1] > mixWLds[i][bs]:
-                            mixWLds[i][bs] = row[bs][1]#max latency
-                    else:
-                        mixWLds[i][bs] *= k
-                        if mode == "IOPS":
-                            mixWLds[i][bs] += row[bs]#IOPS
-                        if mode == "avg-LAT":
-                            mixWLds[i][bs] += row[bs][2]#mean latency
-                        mixWLds[i][bs] = (mixWLds[i][bs]) / (k+1)
-                else:
-                    if mode == "IOPS":
-                        mixWLds[i][bs] = row[bs]#IOPS
-                    if mode == "max-LAT":
-                        mixWLds[i][bs] = row[bs][1]#max latency
-                    if mode == "avg-LAT":
-                        mixWLds[i][bs] = row[bs][2]#mean latency
-        k += 1
-                        
+        if mode == "avg-LAT":
+            mixWLds = toPlot.getTables()[0]
+        if mode == "max-LAT":
+            mixWLds = toPlot.getTables()[1]
+
     plt.clf()#clear plot
     if mode == "IOPS":
         x = getBS(pT.SsdTest.IopsTest.bsLabels)
@@ -219,16 +183,10 @@ def mes2DPlt(toPlot,mode):
     max_y = 0
     min_y = 0
     for i in range(len(mixWLds)):
-        #for latency convert to ms
-        if mode == "avg-LAT" or mode == "max-LAT":
-            for v in range(len(mixWLds[i])):
-                mixWLds[i][v] = (mixWLds[i][v]) / 1000
-                
         min_y,max_y = getMinMax(mixWLds[i], min_y, max_y)
         #the labels are r/w percentage of mixed workload
         plt.plot(x,mixWLds[i],'o-',
                   label=str(wlds[i])+'/'+str(100-wlds[i]))
-    
     if mode == 'IOPS':
         plt.yscale('log')
         plt.xscale('log')
@@ -246,8 +204,6 @@ def mes2DPlt(toPlot,mode):
     plt.suptitle(mode+" Measurement Plot",fontweight='bold')
     plt.savefig(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-'+mode+'-mes2DPlt.png')
-    #For latency and IOPS we also want the overview table
-    toPlot.addTable(mixWLds)
 
 def mes3DPlt(toPlot,mode):
     '''
@@ -282,6 +238,7 @@ def mes3DPlt(toPlot,mode):
     fig = plt.figure()
     if __matplotVersion__ >= 1.0:
         ax = fig.gca(projection='3d')
+        print "foo"
     else:
         ax = Axes3D(fig)
     for j,wl in enumerate(matrix):
@@ -709,6 +666,69 @@ def TPBoxPlot(toPlot):
     
     
 ######### HELPER FUNCTIONS TO GENERATE PLOTS #########
+def calcMsmtTable(toPlot,mode):
+    '''
+    Generate the measurement overview table for IOPS and Latency. The table is
+    an overview over the average values in the measurement window. For latency
+    the values are converted from us to ms also.
+    @param toPlot A SsdTest object.
+    @param mode A string representing the test mode (IOPS|max-LAT|avg-LAT)
+    '''
+    mixWLds = []
+    mesWin = toPlot.getStdyRnds() #get measurement window, only include these values
+    if mode == "IOPS":
+        wlds = pT.SsdTest.IopsTest.mixWlds
+        bsLabels = pT.SsdTest.IopsTest.bsLabels
+    if mode == "avg-LAT" or mode == "max-LAT":
+        wlds = pT.SsdTest.LatencyTest.mixWlds
+        bsLabels = pT.SsdTest.LatencyTest.bsLabels
+
+    #each row will be a workload percentage
+    for i in range(len(wlds)):
+        mixWLds.append([])
+        #in each row will be the different block sizes
+        for bs in range(len(bsLabels)):
+            mixWLds[i].append(0)
+    matrices = toPlot.getRndMatrices()
+
+    #as j does not necessarily start from 0, we need k
+    #to calculate the average iteratively
+    k = 0
+    #limit the matrices to the measurement window
+    for j in mesWin:
+        rndMat = matrices[j]
+        #each row is a percentage of a workload
+        for i,row in enumerate(rndMat):
+            #in each row are the different block sizes
+            for bs in range(len(row)):
+                #calculate average iteratively
+                if mixWLds[i][bs] != 0:
+                    #calculate max latency or continue with average
+                    if mode == "max-LAT":
+                        if row[bs][1] > mixWLds[i][bs]:
+                            mixWLds[i][bs] = row[bs][1]#max latency
+                    else:
+                        mixWLds[i][bs] *= k
+                        if mode == "IOPS":
+                            mixWLds[i][bs] += row[bs]#IOPS
+                        if mode == "avg-LAT":
+                            mixWLds[i][bs] += row[bs][2]#mean latency
+                        mixWLds[i][bs] = (mixWLds[i][bs]) / (k+1)
+                else:
+                    if mode == "IOPS":
+                        mixWLds[i][bs] = row[bs]#IOPS
+                    if mode == "max-LAT":
+                        mixWLds[i][bs] = row[bs][1]#max latency
+                    if mode == "avg-LAT":
+                        mixWLds[i][bs] = row[bs][2]#mean latency
+        k += 1
+    #for latency convert to ms
+    for i in range(len(mixWLds)):
+        if mode == "avg-LAT" or mode == "max-LAT":
+            for v in range(len(mixWLds[i])):
+                mixWLds[i][v] = (mixWLds[i][v]) / 1000
+    toPlot.addTable(mixWLds)
+
 def getBS(bsLabels):
     '''
     Convert a list of string block size labels to a list of integers.
