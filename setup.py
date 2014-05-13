@@ -11,6 +11,6 @@ setup(name='TKperf',
 	package_dir = {'': 'src'},
 	packages = ['fio', 'perfTest','plots','reports'],
 	package_data  = {'reports':['pics/TKperf_logo.png']},
-	scripts = ["scripts/tkperf","scripts/tkperf_dialog.sh"],
+	scripts = ["scripts/tkperf","scripts/tkperf_dialog.sh","scripts/tkperf-cmp"],
 	license = 'GPL'
 	)

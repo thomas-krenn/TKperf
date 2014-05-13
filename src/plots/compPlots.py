@@ -5,7 +5,6 @@ Created on Oct 3, 2013
 '''
 from __future__ import division
 import matplotlib.pyplot as plt
-import perfTest as pT
 import plots.genPlots as pgp
 
 __colorTable__ = ['#0000FF','#008080','#00FFFF','#FFFF00','#00FF00','#FF00FF','#800000']
@@ -54,8 +53,6 @@ def compIOPSPlt(testsToPlot):
     testsToPlot -- an array of perfTest objects
     """
     plt.clf()#clear plot
-    wlds = pT.SsdTest.IopsTest.mixWlds
-    bsLabels = pT.SsdTest.IopsTest.bsLabels
     x = range(3)
     width = 1/len(testsToPlot)
     for i in range(len(x)):
@@ -86,8 +83,14 @@ def compTPPlt(testsToPlot):
     testsToPlot -- an array of perfTest objects
     """
     plt.clf()#clear plot
-    y = range(3)
     height = 1/len(testsToPlot)
+    ticksy = [(len(testsToPlot)/2) * height, 1 + height + 0.5, 2 + (2 * height) + 0.5 ]
+    labelsy = ['8k','64k','1024k']
+    max_x = 0
+    fig = plt.figure()
+    # Plot read throughput
+    ax = fig.add_subplot(2, 1, 2)
+    y = range(3)
     for i in range(len(y)):
         y[i] = y[i] + (i * height)
     for i,tests in enumerate(testsToPlot):
@@ -95,17 +98,34 @@ def compTPPlt(testsToPlot):
         pgp.calcMsmtTPTable(test)
         wlds = test.getTables()[0]
         testRTP = [wlds[0][2],wlds[0][1],wlds[0][0]]
-        print testRTP
-        print y
-        plt.barh(y, testRTP, height, label=test.getTestname(),color = __colorTable__[i])
+        ax.barh(y, testRTP, height, label=test.getTestname(),color = __colorTable__[i])
         y = [v + height for v in y]
-    ticksy = [(len(testsToPlot)/2) * height, 1 + height + 0.5, 2 + (2 * height) + 0.5 ]
-    labelsy = ['8k','64k','1024k']
+        if max(testRTP) > max_x:
+            max_x = max(testRTP)
+    plt.xlabel("Read Bandwidth (MB/s)")
+    plt.xlim(0,max_x*1.05)
     plt.yticks(ticksy, labelsy)
-    plt.grid()
-    plt.suptitle("TP Measurement Test",fontweight='bold')
-    plt.xlabel("Bandwidth (MB/s)")
     plt.ylabel("Block Size (Byte)")
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
-               ncol=3,fancybox=True, shadow=True,prop={'size':10})
+    plt.grid()
+    
+    # Plot write throughput
+    ax = fig.add_subplot(2, 1, 1)
+    y = range(3)
+    for i in range(len(y)):
+        y[i] = y[i] + (i * height)
+    for i,tests in enumerate(testsToPlot):
+        test = tests.getTests()['tp']
+        wlds = test.getTables()[0]
+        testRTP = [wlds[1][2],wlds[1][1],wlds[1][0]]
+        ax.barh(y, testRTP, height, label=test.getTestname(),color = __colorTable__[i])
+        y = [v + height for v in y]
+    plt.xlabel("Write Bandwidth (MB/s)")
+    plt.xlim(0,max_x*1.05)
+    plt.yticks(ticksy, labelsy)
+    plt.ylabel("Block Size (Byte)")
+    plt.grid()
+    plt.legend()
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.18),
+       ncol=3,fancybox=True, shadow=True,prop={'size':9})
+    plt.suptitle("TP R/W Measurement Test",fontweight='bold')
     plt.savefig('compTPPlt.png',dpi=300)
