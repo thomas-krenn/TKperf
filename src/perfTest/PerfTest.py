@@ -11,6 +11,7 @@ from lxml import etree
 import json
 import datetime
 import os
+import time
 
 import perfTest.SsdTest as ssd
 import perfTest.HddTest as hdd
@@ -261,6 +262,9 @@ class PerfTest(object):
         sorted(self.__tests.items())
         for k,v in self.__tests.items():
             print "Starting test: " + k
+            #before each test sleep, to ensure device operations of previous
+            #tests are finished
+            time.sleep(15)
             v.run()
     
     def addSglArgToTests(self,key):
