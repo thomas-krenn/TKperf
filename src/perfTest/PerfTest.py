@@ -264,6 +264,7 @@ class PerfTest(object):
             print "Starting test: " + k
             #before each test sleep, to ensure device operations of previous
             #tests are finished
+            logging.info("# Sleeping for 15 seconds...")
             time.sleep(15)
             v.run()
     
