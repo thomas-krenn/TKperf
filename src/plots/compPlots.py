@@ -7,7 +7,7 @@ from __future__ import division
 import matplotlib.pyplot as plt
 import plots.genPlots as pgp
 
-__colorTable__ = ['#0000FF','#008080','#00FFFF','#FFFF00','#00FF00','#FF00FF','#800000']
+__colorTable__ = ['#0000FF','#32cd32','#ffff00','#00ffff','#b22222','#9932cc','#ff4500']
 
 def compWriteSatIOPSPlt(testsToPlot):
     """
