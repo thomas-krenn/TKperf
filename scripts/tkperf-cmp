@@ -25,12 +25,11 @@ if __name__ == '__main__':
 
     parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
     parser.add_argument("xmls", help="XML files to read from", type=str, nargs='+')
- 
+
     parser.add_argument("-v","--version", help="get the version information", action='version',version=tkPerfVersion)
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
-  
-    
+
     args = parser.parse_args()
     if args.debug == True:
         logging.basicConfig(filename='tkperf-cmp.log',level=logging.DEBUG)
@@ -53,63 +52,9 @@ if __name__ == '__main__':
             myTest = HddPerfTest(file, 'none', 0, 0)
         myTest.fromXml()
         toCompare.append(myTest)
-    
+
     pcp.compWriteSatIOPSPlt(toCompare)
     pcp.compILPlt(toCompare,'IOPS')
     pcp.compILPlt(toCompare,'LAT')
     pcp.compTPPlt(toCompare)
     exit(0)
-#         
-#         
-#         
-#     # In xml mode only load objects, don't run tests
-#     if args.fromxml == True:
-#         print "Loading from xml file..."
-#         if args.mode == "ssd":
-#             
-#             myTest = SsdPerfTest(args.testname, args.device,nj, iod)
-#         if args.mode == "hdd":
-#             myTest = HddPerfTest(args.testname, args.device,nj, iod)
-#         myTest.fromXml()
-#         exit(0)
-#         
-#     if args.mode == "hdd":
-#         print "Starting HDD mode..."
-#         #modify the test types if available
-#         if args.hddt != None:
-#             HddPerfTest.testKeys = args.hddt
-#         myTest = HddPerfTest(args.testnam    e,args.device,nj,iod)
-#         myTest.readCmdLineArgs(sys.argv)
-#         #hdparm -I should work for HDDs
-#         if args.desc_file != None:
-#             myTest.readDevInfoFile(args.desc_file)
-#         else:
-#             myTest.readDevInfoHdparm()
-#         if args.feature_matrix != None:
-#             myTest.readFeatureMatrix(args.feature_matrix)
-#         print myTest.getDevInfo()
-#         myTest.run()
-#         
-#     if args.mode == "ssd":
-#         print "Starting SSD mode..."
-#         #modify the test types if available
-#         if args.ssdt != None:
-#             SsdPerfTest.testKeys = args.ssdt
-#         myTest = SsdPerfTest(args.testname, args.device, nj, iod)
-#         myTest.readCmdLineArgs(sys.argv)
-#         if args.refill_buffers == True:
-#             myTest.addSglArgToTests('refill_buffers')
-#         if myTest.readDevInfoHdparm() != True:
-#             if args.desc_file == None:
-#                 print "### Error! ###"
-#                 print "Please use a description file for the current device."
-#                 print "The information via hdparm -I is not reliable."
-#                 print "Use -dsc DESC_FILE to provide the information"
-#                 exit(0)
-#             else:
-#                 myTest.readDevInfoFile(args.desc_file)
-#         #add an extra feature matrix to the performance test
-#         if args.feature_matrix != None:
-#             myTest.readFeatureMatrix(args.feature_matrix)
-#         print myTest.getDevInfo()
-#         myTest.run()
