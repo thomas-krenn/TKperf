@@ -81,7 +81,7 @@ def compILPlt(testsToPlot,mode):
         title = "LAT"
     plt.suptitle(title + " Measurement Test",fontweight='bold')
     plt.xlabel("R/W Workload")
-    plt.ylabel(title + " 4kB Block Size")
+    plt.ylabel("Avg. "+title + " at 4kB Block Size")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3,fancybox=True, shadow=True,prop={'size':10})
     plt.savefig('comp'+title+'Plt.png',dpi=300)
