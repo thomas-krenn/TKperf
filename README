@@ -109,12 +109,20 @@
   methods and you want to re-plot the results. This is mainly required during a
   development process or if a major update/bugfix has been made to tkperf.
 
+== Creating compare plots ==
+* With the help of the generated xml files multiple devices can be compared (up
+  to seven devices). The script 'tkperf-cmp' generates the compare plots for
+  write saturation, throughput, IOPS and latency. To generate the plots use:
+  $ tkperf-cmp ssd Samsung840PRO-256GB.xml Samsung840EVO-250GB.xml
+
 == Further information ==
 * To get more information about how the SSD tests are carried out, visit
   http://www.snia.org/tech_activities/standards/curr_standards/pts for the
   standard these tests are based on.
 
 == Help Text ==
+=== tkperf ===
+$ tkperf -h
 usage: tkperf [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-xml] [-rfb]
               [-dsc DESC_FILE] [-ft] [-fm FEATURE_MATRIX] [-hddt {iops,tp}]
               [-ssdt {iops,lat,tp,writesat}]
@@ -150,3 +158,16 @@ optional arguments:
                         choose which tests are run
   -ssdt {iops,lat,tp,writesat}, --ssd_type {iops,lat,tp,writesat}
                         choose which tests are run
+=== tkperf-cmp ===
+$ tkperf-cmp -h
+usage: tkperf-cmp [-h] [-v] [-d] [-q] {hdd,ssd} xmls [xmls ...]
+
+positional arguments:
+  {hdd,ssd}      specify the test mode for the device
+  xmls           XML files to read from
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -v, --version  get the version information
+  -d, --debug    get detailed debug information
+  -q, --quiet    turn off logging of info messages
