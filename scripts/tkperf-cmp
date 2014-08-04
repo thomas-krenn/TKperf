@@ -55,7 +55,8 @@ if __name__ == '__main__':
         toCompare.append(myTest)
     
     pcp.compWriteSatIOPSPlt(toCompare)
-    pcp.compIOPSPlt(toCompare)
+    pcp.compILPlt(toCompare,'IOPS')
+    pcp.compILPlt(toCompare,'LAT')
     pcp.compTPPlt(toCompare)
     exit(0)
 #         

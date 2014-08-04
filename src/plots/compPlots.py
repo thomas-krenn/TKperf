@@ -44,13 +44,14 @@ def compWriteSatIOPSPlt(testsToPlot):
                ncol=3, fancybox=True, shadow=True,prop={'size':10})
     plt.savefig('compWriteSatIOPSPlt.png',dpi=300)
     
-def compIOPSPlt(testsToPlot):
+def compILPlt(testsToPlot,mode):
     """
-    Compare multiple tests and create an IOPS plot.
+    Compare multiple tests and create an IOPS or Latency plot.
     All test objects in testsToPlot are plotted.
     
     Keyword arguments:
     testsToPlot -- an array of perfTest objects
+    mode -- the desired test mode (IOPS or Latency)
     """
     plt.clf()#clear plot
     x = range(3)
@@ -58,21 +59,32 @@ def compIOPSPlt(testsToPlot):
     for i in range(len(x)):
         x[i] = x[i] + (i * width)
     for i,tests in enumerate(testsToPlot):
-        test = tests.getTests()['iops']
-        pgp.calcMsmtTable(test, 'IOPS')
+        if mode == "IOPS":
+            test = tests.getTests()['iops']
+            pgp.calcMsmtTable(test, 'IOPS')
+        if mode == "LAT":
+            test = tests.getTests()['iops']
+            pgp.calcMsmtTable(test, 'avg-LAT')
         mixWLds = test.getTables()[0]
-        testIOPS = [mixWLds[0][6],mixWLds[3][6],mixWLds[6][6]]
-        plt.bar(x, testIOPS, width,label=test.getTestname(),color = __colorTable__[i])
+        if mode == "IOPS":
+            testVal = [mixWLds[0][6],mixWLds[3][6],mixWLds[6][6]]
+        if mode == "LAT":
+            testVal = [mixWLds[0][1],mixWLds[1][1],mixWLds[2][1]]
+        plt.bar(x, testVal, width,label=test.getTestname(),color = __colorTable__[i])
         x = [v + width for v in x]
     ticksx = [(len(testsToPlot)/2) * width, 1 + width + 0.5, 2 + (2 * width) + 0.5 ]
     labelsx = ['Read','50/50','Write']
     plt.xticks(ticksx, labelsx)
-    plt.suptitle("IOPS Measurement Test",fontweight='bold')
+    if mode == "IOPS":
+        title = "IOPS"
+    if mode == "LAT":
+        title = "LAT"
+    plt.suptitle(title + " Measurement Test",fontweight='bold')
     plt.xlabel("R/W Workload")
-    plt.ylabel("IOPS 4kB Block Size")
+    plt.ylabel(title + " 4kB Block Size")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3,fancybox=True, shadow=True,prop={'size':10})
-    plt.savefig('compIOPSPlt.png',dpi=300)
+    plt.savefig('comp'+title+'Plt.png',dpi=300)
 
 def compTPPlt(testsToPlot):
     """
