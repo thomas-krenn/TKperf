@@ -63,7 +63,7 @@ def compILPlt(testsToPlot,mode):
             test = tests.getTests()['iops']
             pgp.calcMsmtTable(test, 'IOPS')
         if mode == "LAT":
-            test = tests.getTests()['iops']
+            test = tests.getTests()['lat']
             pgp.calcMsmtTable(test, 'avg-LAT')
         mixWLds = test.getTables()[0]
         if mode == "IOPS":
