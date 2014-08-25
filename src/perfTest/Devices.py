@@ -17,6 +17,9 @@ class Device(object):
     def __init__(self, devtype, devname, vendor=None):
         '''
         Constructor
+        @param devtype Type of the device, ssd, hdd etc.
+        @param devname Name of the device to test, e.g. /dev/sda.
+        @param vendor A specific vendor if desired.
         '''
         ## The type of the device
         self.__devtype = devtype
@@ -117,6 +120,13 @@ class Device(object):
 class SSD(Device):
     '''
     Representing a SSD.
+    '''
+    def secureErase(self):
+        return True
+
+class HDD(Device):
+    '''
+    Representing a HDD.
     '''
     def secureErase(self):
         return True
