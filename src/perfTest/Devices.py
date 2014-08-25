@@ -27,11 +27,14 @@ class Device(object):
             self.__devsizeb = self.calcDevSizeB()
             ## The size of the device in kilo bytes
             self.__devsizekb = self.calcDevSizeKB()
+            ## Check if the device is mounted
+            self.__devismounted = self.checkDevIsMounted()
         except RuntimeError:
             logging.error("error getting size of " + self.__devname)
 
     def getDevSizeKB(self): return self.__devsizekb
     def getDevSizeB(self): return self.__devsizeb
+    def isMounted(self): return self.__devismounted
 
     def calcDevSizeKB(self):
         '''
@@ -83,6 +86,25 @@ class Device(object):
                 logging.error("blockdev --getsize64 returned zero.")
                 raise RuntimeError, "blockdev error"
             return byteSize
+
+    def checkDevIsMounted(self):
+        '''
+        Check if the given device is mounted. As we work as
+        super user it is slightly dangerous to overwrite
+        a mounted partition.
+        @return True if device is mounted, False if not.
+        '''
+        out = subprocess.Popen(['mount','-l'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("mount -l encountered an error: " + stderr)
+            raise RuntimeError, "mount command error"
+        else:
+            for line in stdout.split('\n'):
+                if line.find(self.__devname) > -1:
+                    logging.info("#"+line)
+                    return True
+            return False
 
     @abstractmethod
     def secureErase(self):
