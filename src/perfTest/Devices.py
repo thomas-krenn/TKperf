@@ -14,7 +14,7 @@ class Device(object):
     '''
     __metaclass__ = ABCMeta
 
-    def __init__(self, devtype, devname):
+    def __init__(self, devtype, devname, vendor=None):
         '''
         Constructor
         '''
@@ -22,6 +22,8 @@ class Device(object):
         self.__devtype = devtype
         ## The path name of the device
         self.__devname = devname
+        ## A specific vendor for the device
+        self.__vendor = vendor
         try:
             ## The size of the device in bytes
             self.__devsizeb = self.calcDevSizeB()
@@ -34,6 +36,7 @@ class Device(object):
 
     def getDevSizeKB(self): return self.__devsizekb
     def getDevSizeB(self): return self.__devsizeb
+    def getVendor(self): return self.__vendor
     def isMounted(self): return self.__devismounted
 
     def calcDevSizeKB(self):
@@ -92,7 +95,8 @@ class Device(object):
         Check if the given device is mounted. As we work as
         super user it is slightly dangerous to overwrite
         a mounted partition.
-        @return True if device is mounted, False if not.
+        @return True if device is mounted, False if not
+        @exception RuntimeError if mount command fails
         '''
         out = subprocess.Popen(['mount','-l'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
