@@ -16,12 +16,14 @@ class Device(object):
     '''
     __metaclass__ = ABCMeta
 
-    def __init__(self, devtype, path, devname, vendor=None):
+    def __init__(self, devtype, path, devname, vendor=None, intfce=None):
         '''
         Constructor
         @param devtype Type of the device, ssd, hdd etc.
-        @param devname Name of the device to test, e.g. /dev/sda
+        @param path Path of the device, e.g. /dev/sda
+        @param devname Name of the device to test, intel320
         @param vendor A specific vendor if desired.
+        
         '''
         ## The type of the device
         self.__devtype = devtype
@@ -31,6 +33,9 @@ class Device(object):
         self.__devame = devname
         ## A specific vendor for the device
         self.__vendor = vendor
+        ## A specific interface for the device, e.g. sas
+        self.__intfce = intfce
+
         try:
             ## The size of the device in bytes
             self.__devsizeb = self.calcDevSizeB()
@@ -39,7 +44,7 @@ class Device(object):
             ## Check if the device is mounted
             self.__devismounted = self.checkDevIsMounted()
         except RuntimeError:
-            logging.error("# Could not get size of " + self.__path)
+            logging.error("# Could not fetch initial information for " + self.__path)
 
     def getDevType(self): return self.__devtype
     def getDevPath(self): return self.__path
@@ -47,6 +52,7 @@ class Device(object):
     def getDevSizeKB(self): return self.__devsizekb
     def getDevSizeB(self): return self.__devsizeb
     def getVendor(self): return self.__vendor
+    def getIntfce(self): return self.__intfce
     def isMounted(self): return self.__devismounted
 
     def calcDevSizeKB(self):
