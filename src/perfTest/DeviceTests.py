@@ -31,6 +31,11 @@ class DeviceTest(object):
         ## A fio job used to run the tests
         self.__fioJob = self.initFio()
 
+    def getTestname(self): return self.__testname
+    def getDevice(self): return self.__device
+    def getOptions(self): return self.__options
+    def getFioJob(self): return self.__fioJob
+
     def initFio(self):
         '''
         Initializes the fio job to run a performance test.
@@ -72,6 +77,8 @@ class SsdIopsTest(DeviceTest):
         '''
         super(SsdIopsTest,self).__init__(testname,device,options)
         self.getFioJob().addKVArg("rw","randrw")
+        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addSglArg("time_based")
 
     def testRound(self):
         #TODO
