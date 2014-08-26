@@ -7,6 +7,7 @@ Created on Aug 25, 2014
 from abc import ABCMeta, abstractmethod
 import logging
 from perfTest.Devices import Device
+from perfTest.Options import Options
 
 class DeviceTest(object):
     '''
@@ -14,7 +15,7 @@ class DeviceTest(object):
     '''
     __metaclass__ = ABCMeta
 
-    def __init__(self,testname,device):
+    def __init__(self,testname,device,options=None):
         '''
         Constructor
         @param testname Name of the test, specifies the output file
@@ -24,6 +25,8 @@ class DeviceTest(object):
         self.__testname = testname
         ## The tested device, a Device object
         self.__device = device
+        ## User defined options
+        self.__options = options
 
     @abstractmethod
     def testRound(self):
