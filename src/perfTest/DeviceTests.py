@@ -53,6 +53,9 @@ class DeviceTest(object):
         if self.__options == None:
             job.addKVArg("numjobs",str(1))
             job.addKVArg("iodepth",str(1))
+        else:
+            job.addKVArg("numjobs",str(self.getOptions().getNj()))
+            job.addKVArg("iodepth",str(self.getOptions().getIod()))
         job.addSglArg("group_reporting")
         return job
 
@@ -169,6 +172,8 @@ class SsdIopsTest(DeviceTest):
         try:
             if self.getOptions() == None:
                 self.getDevice().precondition(1,1)
+            else:
+                self.getDevice().precondition(self.getOptions().getNj(),self.getOptions().getIod())
         except RuntimeError:
             logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevPath())
         logging.info("########### Starting IOPS Test ###########")
