@@ -4,6 +4,7 @@ Created on Aug 26, 2014
 @author: gschoenb
 '''
 
+import logging
 import numpy as np
 
 class StdyState(object):
@@ -15,7 +16,7 @@ class StdyState(object):
     ## Always use a sliding window of 4 to measure performance values.
     testMesWindow = 4
 
-    def __init__(self, params):
+    def __init__(self):
         '''
         Constructor
         '''
@@ -33,6 +34,11 @@ class StdyState(object):
         self.__reachStdyState = None
 
     def isSteady(self):
+        '''
+        Return if the current state is steady.
+        @return: True if yes, False if no
+        @exception RuntimeError if state is not set (None)
+        '''
         if self.__reachStdyState == None:
             raise RuntimeError, "steady state is none"
         return self.__reachStdyState
@@ -44,7 +50,7 @@ class StdyState(object):
         the allowed slope excursion of the linear regression best fit line (+-5%).
         @param xs Values on x axis
         @param ys Corresponding values for xs on y axis 
-        @return [True,avg,k,d] (k*x+d is slope line) if steady state is reached, [False,avg,k,d] if not
+        @return True (k*x+d is slope line) if steady state is reached, False if not
         '''
         stdyState = True
         maxY = max(ys)
@@ -77,3 +83,21 @@ class StdyState(object):
         self.__stdySlope.extend([k,d])
         self.__reachStdyState = stdyState
         return stdyState
+    
+    def toLog(self):
+        '''
+        Log information about the steady state and how it 
+        has been reached.
+        '''
+        logging.info("Rounds of steady state:")
+        logging.info(self.__stdyRnds)
+        logging.info("Steady values:")
+        logging.info(self.__stdyValues)
+        logging.info("K and d of steady best fit slope:")
+        logging.info(self.__stdySlope)
+        logging.info("Steady average:")
+        logging.info(self.__stdyAvg)
+        logging.info("Stopped after round number:")
+        logging.info(self.__rounds)
+        logging.info("Reached steady state:")
+        logging.info(self.__reachStdyState)
