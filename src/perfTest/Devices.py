@@ -18,7 +18,7 @@ class Device(object):
         '''
         Constructor
         @param devtype Type of the device, ssd, hdd etc.
-        @param devname Name of the device to test, e.g. /dev/sda.
+        @param devname Name of the device to test, e.g. /dev/sda
         @param vendor A specific vendor if desired.
         '''
         ## The type of the device
@@ -116,12 +116,19 @@ class Device(object):
     @abstractmethod
     def secureErase(self):
         ''' Erase a device. '''
-        
+    @abstractmethod
+    def precondition(self):
+        ''' Carry out workload independent preconditioning. '''
+
 class SSD(Device):
     '''
     Representing a SSD.
     '''
     def secureErase(self):
+        #TODO
+        return True
+    def precondition(self):
+        #TODO
         return True
 
 class HDD(Device):
