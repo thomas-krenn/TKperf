@@ -45,13 +45,14 @@ class StdyState(object):
             raise RuntimeError, "steady state is none"
         return self.__reachStdyState
 
-    def checkSteadyState(self,xs,ys):
+    def checkSteadyState(self,xs,ys,i):
         '''
         Checks if the steady is reached for the given values.
         The steady state is defined by the allowed data excursion from the average (+-10%), and
         the allowed slope excursion of the linear regression best fit line (+-5%).
         @param xs Values on x axis
-        @param ys Corresponding values for xs on y axis 
+        @param ys Corresponding values for xs on y axis
+        @param i Number of carried out rounds
         @return True (k*x+d is slope line) if steady state is reached, False if not
         '''
         stdyState = True
@@ -79,6 +80,7 @@ class StdyState(object):
         if slopeExc > maxSlopeExc:
             stdyState = False
 
+        self.__rounds = i
         self.__stdyRnds = xs
         self.__stdyValues = ys
         self.__stdyAvg = avg
@@ -88,7 +90,7 @@ class StdyState(object):
 
     def toXml(self,root):
         '''
-        Dump the information about a steady state test to xml. 
+        Dump the information about a steady state test to XML. 
         @param root The xml root tag to append the new elements to
         @return An xml root element containing the information about the test.
         ''' 
@@ -117,6 +119,21 @@ class StdyState(object):
         e = etree.SubElement(r,'rndnr')
         e.text = data
         return r
+
+    def fromXml(self,root):
+        '''
+        Loads the information about a steady state from XML.
+        @param root The given element containing the information about
+        the object to be initialized.
+        '''
+        self.__stdyRnds = json.loads(root.findtext('stdyrounds'))
+        self.__stdyValues = json.loads(root.findtext('stdyvalues'))
+        self.__stdySlope = json.loads(root.findtext('stdyslope'))
+        self.__stdyAvg = json.loads(root.findtext('stdyavg'))
+        self.__reachStdyState = json.loads(root.findtext('reachstdystate'))
+        self.__rounds = json.loads(root.findtext('rndnr'))
+        logging.info("########### Loading steady state from xml ###########")
+        self.toLog()
 
     def toLog(self):
         '''
