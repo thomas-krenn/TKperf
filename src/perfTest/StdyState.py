@@ -45,7 +45,7 @@ class StdyState(object):
             raise RuntimeError, "steady state is none"
         return self.__reachStdyState
 
-    def checkSteadyState(self,xs,ys,i):
+    def checkSteadyState(self,xs,ys,rounds):
         '''
         Checks if the steady is reached for the given values.
         The steady state is defined by the allowed data excursion from the average (+-10%), and
@@ -80,7 +80,7 @@ class StdyState(object):
         if slopeExc > maxSlopeExc:
             stdyState = False
 
-        self.__rounds = i
+        self.__rounds = rounds
         self.__stdyRnds = xs
         self.__stdyValues = ys
         self.__stdyAvg = avg

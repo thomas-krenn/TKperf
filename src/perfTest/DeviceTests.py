@@ -6,8 +6,11 @@ Created on Aug 25, 2014
 
 from abc import ABCMeta, abstractmethod
 import logging
+from collections import deque
+
 from perfTest.Devices import Device
 from perfTest.Options import Options
+from perfTest.StdyState import StdyState
 from fio import FioJob
 
 class DeviceTest(object):
@@ -76,18 +79,101 @@ class SsdIopsTest(DeviceTest):
         Constructor.
         '''
         super(SsdIopsTest,self).__init__(testname,device,options)
+        ## A list of matrices with the collected fio measurement values of each round.
+        self.__roundMatrices = []
+        self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
         self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
 
+    def getRndMatrices(self): return self.__roundMatrices
+    def getStdyState(self): return self.__stdyState
+
+    def toLog(self):
+        '''
+        Log information about the steady state and how it 
+        has been reached.
+        '''
+        logging.info("Round matrices: ")
+        logging.info(self.__roundMatrices)
+        self.getStdyState().toLog()
+
     def testRound(self):
-        #TODO
-        return True
+        '''
+        Carry out one IOPS test round.
+        The round consists of two inner loops: one iterating over the
+        percentage of random reads/writes in the mixed workload, the other
+        over different block sizes.
+        @return A matrix containing the sum of average IOPS.
+        '''
+        jobOut = '' #Fio job output
+        rndMatrix = []
+        for i in SsdIopsTest.mixWlds:
+            rwRow = []
+            for j in SsdIopsTest.bsLabels:
+                self.getFioJob().addKVArg("rwmixread",str(i))
+                self.getFioJob().addKVArg("bs",j)
+                call,jobOut = self.getFioJob().start()
+                if call == False:
+                    exit(1)
+                logging.info("mixLoad: " +str(i))
+                logging.info("bs: "+j)
+                logging.info(jobOut)
+                logging.info("######")
+                rwRow.append(self.getFioJob().getIOPS(jobOut))
+            rndMatrix.append(rwRow)
+        return rndMatrix
+
     def runRounds(self):
-        #TODO
-        return True
+        '''
+        Carry out the IOPS test rounds and check if the steady state is reached.
+        For a maximum of 25 rounds the test loop is carried out. After each
+        test round we check for a measurement window of the last 5 rounds if
+        the steady state has been reached.
+        @return True if the steady state has been reached, False if not.
+        '''
+        rndMatrix = []
+        steadyValues = deque([])#List of 4k random writes IOPS
+        xranges = deque([])#Rounds of current measurement window
+        
+        for i in range(StdyState.testRnds):
+            logging.info("#################")
+            logging.info("Round nr. "+str(i))
+            rndMatrix = self.testRound()
+            self.getRndMatrices().append(rndMatrix)
+            # Use the last row and its next to last value
+            #-> 0/100% r/w and 4k for steady state detection
+            steadyValues.append(rndMatrix[-1][-2])
+            xranges.append(i)
+            if i > 4:
+                xranges.popleft()
+                steadyValues.popleft()
+            #check if the steady state has been reached in the last 5 rounds
+            if i >= 4:
+                steadyState = self.getStdyState().checkSteadyState(xranges,steadyValues,i)
+                if steadyState == True:
+                    break
+        #Return current steady state
+        return self.getStdyState().isSteady()
+
     def run(self):
-        #TODO
+        '''
+        Start the rounds, log the steady state infos.
+        @return True if all tests were run
+        '''
+        try: 
+            self.getDevice().secureErase()
+        except RuntimeError:
+            logging.error("# Could not carry out secure erase for "+self.getDevice().getDevName())
+        try:
+            self.getDevice().precondition()
+        except RuntimeError:
+            logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevName())
+        logging.info("########### Starting IOPS Test ###########")
+        steadyState = self.runRounds()
+        if steadyState == False:
+            logging.info("# Steady State has not been reached for IOPS Test.")
+        self.toLog()
         return True
 
 class HddIopsTest(DeviceTest):

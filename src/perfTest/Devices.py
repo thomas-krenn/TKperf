@@ -37,7 +37,7 @@ class Device(object):
             ## Check if the device is mounted
             self.__devismounted = self.checkDevIsMounted()
         except RuntimeError:
-            logging.error("error getting size of " + self.__devname)
+            logging.error("# Could not get size of " + self.__devname)
 
     def getDevType(self): return self.__devtype
     def getDevName(self): return self.__devname
