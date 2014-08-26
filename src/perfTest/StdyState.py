@@ -6,6 +6,8 @@ Created on Aug 26, 2014
 
 import logging
 import numpy as np
+import json
+from lxml import etree
 
 class StdyState(object):
     '''
@@ -83,7 +85,39 @@ class StdyState(object):
         self.__stdySlope.extend([k,d])
         self.__reachStdyState = stdyState
         return stdyState
-    
+
+    def toXml(self,root):
+        '''
+        Dump the information about a steady state test to xml. 
+        @param root The xml root tag to append the new elements to
+        @return An xml root element containing the information about the test.
+        ''' 
+        r = etree.Element(root)
+        data = json.dumps(list(self.__stdyRnds))
+        e = etree.SubElement(r,'stdyrounds')
+        e.text = data
+        
+        data = json.dumps(list(self.__stdyValues))
+        e = etree.SubElement(r,'stdyvalues')
+        e.text = data
+        
+        data = json.dumps(self.__stdySlope)
+        e = etree.SubElement(r,'stdyslope')
+        e.text = data
+        
+        data = json.dumps(self.__stdyAvg)
+        e = etree.SubElement(r,'stdyavg')
+        e.text = data
+        
+        data = json.dumps(self.__reachStdyState)
+        e = etree.SubElement(r,'reachstdystate')
+        e.text = data
+        
+        data = json.dumps(self.__rounds)
+        e = etree.SubElement(r,'rndnr')
+        e.text = data
+        return r
+
     def toLog(self):
         '''
         Log information about the steady state and how it 
