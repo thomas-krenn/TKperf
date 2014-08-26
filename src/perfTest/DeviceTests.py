@@ -11,7 +11,7 @@ from collections import deque
 from perfTest.Devices import Device
 from perfTest.Options import Options
 from perfTest.StdyState import StdyState
-from fio import FioJob
+from fio.FioJob import FioJob
 
 class DeviceTest(object):
     '''
@@ -45,14 +45,15 @@ class DeviceTest(object):
         @return An initialized fio job object
         '''
         job = FioJob()
-        self.__fioJob.addKVArg("filename",self.__device.getDevName())
-        self.__fioJob.addKVArg("name",self.__testname)
-        self.__fioJob.addKVArg("direct","1")
-        self.__fioJob.addKVArg("minimal","1")
-        self.__fioJob.addKVArg("ioengine","libaio")
-        self.__fioJob.addKVArg("numjobs",str(self.__numJobs))
-        self.__fioJob.addKVArg("iodepth",str(self.__ioDepth))
-        self.__fioJob.addSglArg("group_reporting")
+        job.addKVArg("filename",self.__device.getDevPath())
+        job.addKVArg("name",self.__testname)
+        job.addKVArg("direct","1")
+        job.addKVArg("minimal","1")
+        job.addKVArg("ioengine","libaio")
+        if self.__options == None:
+            job.addKVArg("numjobs",str(1))
+            job.addKVArg("iodepth",str(1))
+        job.addSglArg("group_reporting")
         return job
 
     @abstractmethod
@@ -164,11 +165,12 @@ class SsdIopsTest(DeviceTest):
         try: 
             self.getDevice().secureErase()
         except RuntimeError:
-            logging.error("# Could not carry out secure erase for "+self.getDevice().getDevName())
+            logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
         try:
-            self.getDevice().precondition()
+            if self.getOptions() == None:
+                self.getDevice().precondition(1,1)
         except RuntimeError:
-            logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevName())
+            logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevPath())
         logging.info("########### Starting IOPS Test ###########")
         steadyState = self.runRounds()
         if steadyState == False:

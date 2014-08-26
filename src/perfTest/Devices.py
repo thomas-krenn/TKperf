@@ -8,7 +8,7 @@ from abc import ABCMeta, abstractmethod
 import logging
 import subprocess
 
-from fio import FioJob
+from fio.FioJob import FioJob
 
 class Device(object):
     '''
@@ -16,7 +16,7 @@ class Device(object):
     '''
     __metaclass__ = ABCMeta
 
-    def __init__(self, devtype, devname, vendor=None):
+    def __init__(self, devtype, path, devname, vendor=None):
         '''
         Constructor
         @param devtype Type of the device, ssd, hdd etc.
@@ -26,7 +26,9 @@ class Device(object):
         ## The type of the device
         self.__devtype = devtype
         ## The path name of the device
-        self.__devname = devname
+        self.__path = path
+        ## The common name of the device
+        self.__devame = devname
         ## A specific vendor for the device
         self.__vendor = vendor
         try:
@@ -37,10 +39,11 @@ class Device(object):
             ## Check if the device is mounted
             self.__devismounted = self.checkDevIsMounted()
         except RuntimeError:
-            logging.error("# Could not get size of " + self.__devname)
+            logging.error("# Could not get size of " + self.__path)
 
     def getDevType(self): return self.__devtype
-    def getDevName(self): return self.__devname
+    def getDevPath(self): return self.__path
+    def getDevName(self): return self.__devame
     def getDevSizeKB(self): return self.__devsizekb
     def getDevSizeB(self): return self.__devsizeb
     def getVendor(self): return self.__vendor
@@ -54,14 +57,14 @@ class Device(object):
         @return Size on success
         @exception RuntimeError if blockdev fails
         '''
-        out = subprocess.Popen(['blockdev','--getss',self.__devname],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['blockdev','--getss',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("blockdev --getss encountered an error: " + stderr)
             raise RuntimeError, "blockdev error"
         else:
             sectorSize = int(stdout)
-            out = subprocess.Popen(['blockdev','--getsz',self.__devname],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['blockdev','--getsz',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
             if stderr != '':
                 logging.error("blockdev --getsz encountered an error: " + stderr)
@@ -72,9 +75,9 @@ class Device(object):
                         logging.error("blockdev sector count cannot be divided by 1024")
                         raise RuntimeError, "blockdev error"
                 devSzKB = (sectorCount * sectorSize) / 1024
-                logging.info("#Device" + self.__devname + " sector count: " + str(sectorCount))
-                logging.info("#Device" + self.__devname + " sector size: " + str(sectorSize))
-                logging.info("#Device" + self.__devname + " size in KB: " + str(devSzKB))
+                logging.info("#Device" + self.__path + " sector count: " + str(sectorCount))
+                logging.info("#Device" + self.__path + " sector size: " + str(sectorSize))
+                logging.info("#Device" + self.__path + " size in KB: " + str(devSzKB))
                 return devSzKB
 
     def calcDevSizeB(self):
@@ -85,7 +88,7 @@ class Device(object):
         @return Size on success
         @exception RuntimeError if blockdev fails
         '''
-        out = subprocess.Popen(['blockdev','--getsize64',self.__devname],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['blockdev','--getsize64',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("blockdev --getss encountered an error: " + stderr)
@@ -112,7 +115,7 @@ class Device(object):
             raise RuntimeError, "mount command error"
         else:
             for line in stdout.split('\n'):
-                if line.find(self.__devname) > -1:
+                if line.find(self.__path) > -1:
                     logging.info("#"+line)
                     return True
             return False
@@ -143,7 +146,7 @@ class SSD(Device):
         @exception RuntimeError if fio command fails
         '''
         job = FioJob()
-        job.addKVArg("filename",self.getDevName())
+        job.addKVArg("filename",self.getDevPath())
         job.addKVArg("bs","128k")
         job.addKVArg("rw","write")
         job.addKVArg("direct","1")
