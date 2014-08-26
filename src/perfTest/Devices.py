@@ -8,6 +8,8 @@ from abc import ABCMeta, abstractmethod
 import logging
 import subprocess
 
+from fio import FioJob
+
 class Device(object):
     '''
     Representing the tested device.
@@ -37,6 +39,7 @@ class Device(object):
         except RuntimeError:
             logging.error("error getting size of " + self.__devname)
 
+    def getDevType(self): return self.__devtype
     def getDevName(self): return self.__devname
     def getDevSizeKB(self): return self.__devsizekb
     def getDevSizeB(self): return self.__devsizeb
@@ -125,11 +128,42 @@ class SSD(Device):
     '''
     Representing a SSD.
     '''
+    ## Number of rounds to carry out workload independent preconditioning.
+    wlIndPrecRnds = 2
+    
     def secureErase(self):
         #TODO
         return True
-    def precondition(self):
-        #TODO
+
+    def precondition(self,nj,iod):
+        ''' 
+        Workload independent preconditioning for SSDs.
+        Write two times the device with streaming I/O.
+        @return True if precontioning succeded
+        @exception RuntimeError if fio command fails
+        '''
+        job = FioJob()
+        job.addKVArg("filename",self.getDevName())
+        job.addKVArg("bs","128k")
+        job.addKVArg("rw","write")
+        job.addKVArg("direct","1")
+        job.addKVArg("minimal","1")
+        job.addKVArg("numjobs",str(nj))
+        job.addKVArg("ioengine","libaio")
+        job.addKVArg("iodepth",str(iod))
+        job.addSglArg("group_reporting")
+        job.addSglArg('refill_buffers')
+
+        for i in range(SSD.wlIndPrecRnds):
+            logging.info("# Starting preconditioning round "+str(i))
+            job.addKVArg("name", self.getDevType() + '-run' + str(i))
+            call,out = job.start()
+            if call == False:
+                logging.error("# Could not carry out workload independent preconditioning")
+                raise RuntimeError, "precondition error, fio command error"
+            else:
+                logging.info(out)
+        logging.info("# Finished workload independent preconditioning")
         return True
 
 class HDD(Device):
