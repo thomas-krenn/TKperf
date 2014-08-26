@@ -37,6 +37,7 @@ class Device(object):
         except RuntimeError:
             logging.error("error getting size of " + self.__devname)
 
+    def getDevName(self): return self.__devname
     def getDevSizeKB(self): return self.__devsizekb
     def getDevSizeB(self): return self.__devsizeb
     def getVendor(self): return self.__vendor

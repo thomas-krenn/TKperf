@@ -230,21 +230,3 @@ class FioJob(object):
         #index 47 write total IO
         fioTerse = fioOut.split(';')
         return int(fioTerse[FioJob.terseTPWritePos])
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
