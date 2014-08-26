@@ -23,7 +23,7 @@ class Device(object):
         @param path Path of the device, e.g. /dev/sda
         @param devname Name of the device to test, intel320
         @param vendor A specific vendor if desired.
-        
+        @param intfce A specific device interface if desired.
         '''
         ## The type of the device
         self.__devtype = devtype
