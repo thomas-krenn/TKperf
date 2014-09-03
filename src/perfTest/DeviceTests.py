@@ -325,6 +325,128 @@ class SsdLatencyTest(DeviceTest):
         self.toLog()
         return True
 
+class SsdTPTest(DeviceTest):
+    '''
+    A class to carry out the Throughput test.
+    '''
+    ##Labels of block sizes for throughput test
+    bsLabels = ["1024k","64k","8k","4k","512",]
+    
+    def __init__(self,testname,device,options):
+        '''
+        Constructor.
+        '''
+        super(SsdTPTest,self).__init__(testname,device,options)
+        ## A list of matrices with the collected fio measurement values of each round.
+        self.__roundMatrices = []
+        self.__stdyState = StdyState()
+        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addSglArg("time_based")
+
+    def testRound(self,bs):
+        '''    
+        Carry out one test round of the throughput test.
+        Read and Write throughput is tested with the given block size
+        @param bs The current block size to use.
+        @return Read and Write bandwidths [tpRead,tpWrite]
+        '''
+        self.getFioJob().addKVArg("bs",bs)
+        jobOut = ''
+        tpRead = 0 #read bandwidth
+        tpWrite = 0#write bandwidth
+
+        #start read tests
+        self.getFioJob().addKVArg("rw","read")
+        call,jobOut = self.getFioJob().start()
+        if call == False:
+            exit(1)
+        logging.info("Read TP test:")
+        logging.info(jobOut)
+        logging.info("######")
+        tpRead = self.getFioJob().getTPRead(jobOut)
+    
+        #start write tests
+        self.getFioJob().addKVArg("rw","write")
+        call,jobOut = self.getFioJob().start()
+        if call == False:
+            exit(1)
+        logging.info("Write TP test:")
+        logging.info(jobOut)
+        logging.info("######")
+        tpWrite = self.getFioJob().getTPWrite(jobOut)
+        return [tpRead,tpWrite]
+    
+    def runRounds(self):
+        '''
+        Carry out the throughput/bandwidth test rounds and check if the steady state is reached.
+         @return True if the steady state has been reached, False if not.
+        '''
+        stdyValsWrite = deque([])#List of 1M sequential write IOPS
+        xrangesWrite = deque([])#Rounds of current measurement window
+        
+        #rounds are the same for IOPS and throughput
+        for j in SsdTPTest.bsLabels:
+            try: 
+                self.getDevice().secureErase()
+            except RuntimeError:
+                logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
+
+            tpRead_l = []
+            tpWrite_l = []
+            logging.info("#################")
+            logging.info("Current block size. "+str(j))
+            
+            for i in range(StdyState.testRnds):
+                logging.info("######")
+                logging.info("Round nr. "+str(i))
+                tpRead,tpWrite = self.testRound(j)
+                tpRead_l.append(tpRead)
+                tpWrite_l.append(tpWrite)
+                
+                #if the rounds have been set by steady state for 1M block size
+                #we need to carry out only i rounds for the other block sizes
+                #as steady state has already been reached
+                if self.getRnds() != 0 and self.getRnds() == i:
+                    self.getRndMatrices().append([tpRead_l,tpWrite_l])
+                    break
+                
+                # Use 1M block sizes sequential write for steady state detection
+                if j == "1024k":
+                    stdyValsWrite.append(tpWrite)
+                    xrangesWrite.append(i)
+                    if i > 4:
+                        xrangesWrite.popleft()
+                        stdyValsWrite.popleft()
+                        #check if the steady state has been reached in the last 5 rounds
+                    if i >= 4:
+                        steadyState = self.getStdyState().checkSteadyState(xrangesWrite,stdyValsWrite,i)
+                        #reached a steady state
+                        if steadyState == True:
+                            logging.info("Reached steady state at round %d",i)
+                        #running from 0 to 24
+                        if i == ((StdyState.testRnds) - 1):
+                            self.setReachStdyState(False)
+                            logging.warn("#Did not reach steady state for bs %s",j)
+                        #In both cases we are done with steady state checking
+                        if steadyState == True or i == ((StdyState.testRnds) - 1):
+                            self.getRndMatrices().append([tpRead_l,tpWrite_l])
+                            #Done with 1M block size
+                            break
+        #Return current steady state
+        return self.getStdyState().isSteady()
+        
+    def run(self):
+        '''
+        Start the rounds, log the steady state infos.
+        @return True if the steady state has been reached, False if not.
+        '''
+        logging.info("########### Starting Throughput Test ###########")
+        steadyState = self.runRounds()
+        if steadyState == False:
+            logging.info("# Steady State has not been reached for Throughput Test.")
+        self.toLog()
+        return True
+
 class HddIopsTest(DeviceTest):
     '''
     Representing an IOPS test for a hdd based device.
