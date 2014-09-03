@@ -52,7 +52,7 @@ class StdyState(object):
         the allowed slope excursion of the linear regression best fit line (+-5%).
         @param xs Values on x axis
         @param ys Corresponding values for xs on y axis
-        @param i Number of carried out rounds
+        @param rounds Number of carried out rounds
         @return True (k*x+d is slope line) if steady state is reached, False if not
         '''
         stdyState = True
