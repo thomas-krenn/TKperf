@@ -21,9 +21,9 @@ class Device(object):
         Constructor
         @param devtype Type of the device, ssd, hdd etc.
         @param path Path of the device, e.g. /dev/sda
-        @param devname Name of the device to test, intel320
-        @param vendor A specific vendor if desired.
-        @param intfce A specific device interface if desired.
+        @param devname Name of the device to test, e.g. intel320
+        @param vendor A specific vendor if desired
+        @param intfce A specific device interface if desired
         '''
         ## The type of the device
         self.__devtype = devtype
@@ -45,7 +45,8 @@ class Device(object):
             self.__devsizekb = self.calcDevSizeKB()
             ## Check if the device is mounted
             self.__devismounted = self.checkDevIsMounted()
-            self.__devinfo = self.readDevInfo()
+            ## readDevInfo sets self.__devinfo and returns True/False
+            self.readDevInfo()
         except RuntimeError:
             logging.error("# Could not fetch initial information for " + self.__path)
 
@@ -57,8 +58,16 @@ class Device(object):
     def getVendor(self): return self.__vendor
     def getIntfce(self): return self.__intfce
     def getDevInfo(self): return self.__devinfo
+    def isInitialized(self):
+        '''
+        Checks if the device info was read correctly.
+        @return True if yes, False if not.
+        '''
+        if self.__devinfo != None:
+            return True
+        else:
+            return False
     def isMounted(self): return self.__devismounted
-    
 
     def calcDevSizeKB(self):
         '''
@@ -163,7 +172,6 @@ class Device(object):
                     logging.error("hdparm sense data may be incorrect!")
                     logging.error("Please use a description file to set device information!")
                     return False
-                
                 if line.find("Model Number") > -1:
                     self.__devinfo += line + '\n'
                 if line.find("Serial Number") > -1:
@@ -190,7 +198,6 @@ class Device(object):
                     line = line.lstrip(' ')
                     line = '\t' + line
                     self.__devinfo += line + '\n'
-            
             logging.info("# Testing device: " + self.__devinfo)
             return True
 
@@ -201,6 +208,9 @@ class SSD(Device):
     ## Number of rounds to carry out workload independent preconditioning.
     wlIndPrecRnds = 2
     
+    def readDevInfo(self):
+        super(SSD, self).readDevInfo()
+
     def secureErase(self):
         #TODO
         return True
@@ -240,5 +250,8 @@ class HDD(Device):
     '''
     Representing a HDD.
     '''
+    def readDevInfo(self):
+        super(SSD, self).readDevInfo()
+
     def secureErase(self):
         return True
