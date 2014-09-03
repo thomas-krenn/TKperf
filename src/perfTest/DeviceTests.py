@@ -7,6 +7,8 @@ Created on Aug 25, 2014
 from abc import ABCMeta, abstractmethod
 import logging
 from collections import deque
+from lxml import etree
+import json
 
 from perfTest.Devices import Device
 from perfTest.Options import Options
@@ -343,6 +345,18 @@ class SsdTPTest(DeviceTest):
         self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
 
+    def getRndMatrices(self): return self.__roundMatrices
+    def getStdyState(self): return self.__stdyState
+
+    def toLog(self):
+        '''
+        Log information about the steady state and how it 
+        has been reached.
+        '''
+        logging.info("Round matrices: ")
+        logging.info(self.__roundMatrices)
+        self.getStdyState().toLog()
+
     def testRound(self,bs):
         '''    
         Carry out one test round of the throughput test.
@@ -364,7 +378,7 @@ class SsdTPTest(DeviceTest):
         logging.info(jobOut)
         logging.info("######")
         tpRead = self.getFioJob().getTPRead(jobOut)
-    
+        
         #start write tests
         self.getFioJob().addKVArg("rw","write")
         call,jobOut = self.getFioJob().start()
@@ -438,7 +452,7 @@ class SsdTPTest(DeviceTest):
     def run(self):
         '''
         Start the rounds, log the steady state infos.
-        @return True if the steady state has been reached, False if not.
+        @return True if all tests were run
         '''
         logging.info("########### Starting Throughput Test ###########")
         steadyState = self.runRounds()
@@ -446,6 +460,138 @@ class SsdTPTest(DeviceTest):
             logging.info("# Steady State has not been reached for Throughput Test.")
         self.toLog()
         return True
+
+class SsdWriteSatTest(DeviceTest):
+    '''
+    A class to carry out the Write Saturation test.
+    '''
+    
+    def __init__(self,testname,device,options=None):
+        '''
+        Constructor.
+        '''
+        super(SsdWriteSatTest,self).__init__(testname,device,options)
+        ##Number of rounds until write saturation test ended
+        self.__rounds = 0
+        ##Write saturation results: [iops_l,lats_l]
+        self.__roundMatrices = []
+        self.getFioJob().addKVArg("rw","randwrite")
+        self.getFioJob().addKVArg("bs","4k")   
+        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addSglArg("time_based")
+
+    def getRnds(self): return self.__rounds
+    def getRndMatrices(self): return self.__roundMatrices
+
+    def testRound(self):
+        '''
+        Carry out one test round of the write saturation test.
+        The round consists of random writing with 4k bs for one minute
+        @return [TotWriteIO,IOPS,[min,max,mean lats]]
+        '''
+        (call,jobOut) = self.getFioJob().start()
+        if call == False:
+            exit(1)
+        
+        writeIO = self.getFioJob().getTotIOWrite(jobOut)
+        iops = self.getFioJob().getIOPS(jobOut)
+        lats = self.getFioJob().getWriteLats(jobOut)
+        
+        logging.info(jobOut)
+        logging.info("#IOPS: " + str(iops))
+        logging.info("#Tot Write IO: " + str(writeIO))
+        logging.info("#Latencies: " + str(lats))
+        logging.info("######")
+        return [writeIO,iops,lats]
+    
+    def runRounds(self):
+        '''
+        Carry out the write saturation test rounds
+        '''
+        (call,devSzB) = self.getDevSizeB()
+        if call == False:
+            logging.error("#Could not get size of device.")
+            exit(1)
+        else:
+            logging.info("#Device size in Byte: " + str(devSzB))
+        totWriteIO = 0 #total written IO in KB, must be greater than 4xDevice 
+        #carry out the test for a maximum of 24h, one round runs for 1 minute
+        maxRounds = 60*24
+        
+        writeIO = 0
+        iops_l = [] #overall list of iops
+        iops = 0 #IOPS per round
+        lats_l = []#overall list of latencies
+        lats = []#latencies per round
+        
+        self.__rounds = maxRounds
+        #assume all rounds must be carried out            
+        for i in range(maxRounds):
+            logging.info("#################")
+            logging.info("Round nr. "+str(i))
+            writeIO,iops,lats = self.testRound()
+            iops_l.append(iops)
+            lats_l.append(lats)
+            totWriteIO += writeIO
+            if i == 0:
+                logging.info("#If write IO stays steady, it will take "
+                             +str((devSzB * 4) / (writeIO * 1024))+" rounds to complete.")
+            
+            #Check if 4 times the device size has been reached
+            if (totWriteIO * 1024) >= (devSzB * 4):
+                self.__rounds = i
+                break
+        self.__roundMatrices.append(iops_l)
+        self.__roundMatrices.append(lats_l)
+        logging.info("#Write saturation has written " + str(totWriteIO) + "KB")
+
+    def run(self):
+        '''
+        Start the rounds, log number of rounds until 4 times device size was written.
+        @return True if all tests were run
+        '''
+        try: 
+            self.getDevice().secureErase()
+        except RuntimeError:
+            logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
+        logging.info("########### Starting Write Saturation Test ###########")
+        self.runRounds()
+        logging.info("Write Sat rounds: ")
+        logging.info(self.__rounds)
+        logging.info("Round Write Saturation results: ")
+        logging.info(self.__roundMatrices)
+        return True
+
+    def toXml(self,root):
+        '''
+        Get the XML representation of the write saturation test.
+        @param root Name of root element to append xml childs to
+        @return Etree XML node
+        '''
+        #root element of current xml child
+        r = etree.Element(root)
+        
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(r,'roundmat')
+        e.text = data
+        
+        data = json.dumps(self.__rounds)
+        e = etree.SubElement(r,'rndnr')
+        e.text = data
+        return r
+
+    def fromXml(self,root):
+        '''
+        Load an set from an XML representation of the write saturation test.
+        @param root Name of root element to append xml childs to
+        '''
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.__rounds = json.loads(root.findtext('rndnr'))
+        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        logging.info("Write Sat rounds: ")
+        logging.info(self.__rounds)
+        logging.info("Round matrices: ")
+        logging.info(self.__roundMatrices)
 
 class HddIopsTest(DeviceTest):
     '''
