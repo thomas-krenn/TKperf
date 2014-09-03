@@ -35,6 +35,8 @@ class Device(object):
         self.__vendor = vendor
         ## A specific interface for the device, e.g. sas
         self.__intfce = intfce
+        ## Device specific information for reporting
+        self.__devinfo = None
 
         try:
             ## The size of the device in bytes
@@ -43,6 +45,7 @@ class Device(object):
             self.__devsizekb = self.calcDevSizeKB()
             ## Check if the device is mounted
             self.__devismounted = self.checkDevIsMounted()
+            self.__devinfo = self.readDevInfo()
         except RuntimeError:
             logging.error("# Could not fetch initial information for " + self.__path)
 
@@ -53,7 +56,9 @@ class Device(object):
     def getDevSizeB(self): return self.__devsizeb
     def getVendor(self): return self.__vendor
     def getIntfce(self): return self.__intfce
+    def getDevInfo(self): return self.__devinfo
     def isMounted(self): return self.__devismounted
+    
 
     def calcDevSizeKB(self):
         '''
@@ -132,6 +137,62 @@ class Device(object):
     @abstractmethod
     def precondition(self):
         ''' Carry out workload independent preconditioning. '''
+
+    @abstractmethod
+    def readDevInfo(self):
+        '''
+        Per default read the device information via hdparm -I. If an error occured
+        the method returns False and an error message is logged to use a description
+        file is.
+        @return True if the device info was set, False if not.
+        '''
+        #device info has already been set
+        if self.__devinfo != None:
+            return True
+        
+        out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("hdparm -I encountered an error: " + stderr)
+            logging.error("Please use a description file to set device information!")
+            return False
+        else:
+            self.__devinfo = ""
+            for line in stdout.split('\n'):
+                if line.find("questionable sense data") > -1 or line.find("bad/missing sense data") > -1:
+                    logging.error("hdparm sense data may be incorrect!")
+                    logging.error("Please use a description file to set device information!")
+                    return False
+                
+                if line.find("Model Number") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("Serial Number") > -1:
+                    self.__devinfo += line +'\n'
+                if line.find("Firmware Revision") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("Media Serial Num") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("Media Manufacturer") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("device size with M = 1000*1000") > -1:
+                    self.__devinfo += line + '\n'
+            #Check for write caching state
+            stdout = ''
+            stderr = ''
+            out = subprocess.Popen(['hdparm','-W',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if stderr != '':
+                logging.error("hdparm -W encountered an error: " + stderr)
+                logging.error("Please use a description file to set device information!")
+                return False
+            for line in stdout.split('\n'):
+                if line.find("write-caching") > -1:
+                    line = line.lstrip(' ')
+                    line = '\t' + line
+                    self.__devinfo += line + '\n'
+            
+            logging.info("# Testing device: " + self.__devinfo)
+            return True
 
 class SSD(Device):
     '''
