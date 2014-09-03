@@ -140,6 +140,17 @@ class Device(object):
                     return True
             return False
 
+    def readDevInfoFile(self,fd):
+        '''
+        Reads the device description from a file. This is necessary if
+        the device information cannot be fetched via hdparm.
+        @param fd The path to the description file, has to be opened already.
+        '''
+        self.__devinfo = fd.read()
+        logging.info("# Read device info from file")
+        logging.info("# Testing device: " + self.__devinfo)
+        fd.close()
+
     @abstractmethod
     def secureErase(self):
         ''' Erase a device. '''
@@ -215,7 +226,7 @@ class SSD(Device):
         #TODO
         return True
 
-    def precondition(self,nj,iod):
+    def precondition(self,nj=1,iod=1):
         ''' 
         Workload independent preconditioning for SSDs.
         Write two times the device with streaming I/O.
@@ -236,7 +247,7 @@ class SSD(Device):
 
         for i in range(SSD.wlIndPrecRnds):
             logging.info("# Starting preconditioning round "+str(i))
-            job.addKVArg("name", self.getDevType() + '-run' + str(i))
+            job.addKVArg("name", self.getDevName() + '-run' + str(i))
             call,out = job.start()
             if call == False:
                 logging.error("# Could not carry out workload independent preconditioning")

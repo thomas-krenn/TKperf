@@ -54,8 +54,13 @@ class DeviceTest(object):
             job.addKVArg("numjobs",str(1))
             job.addKVArg("iodepth",str(1))
         else:
-            job.addKVArg("numjobs",str(self.getOptions().getNj()))
-            job.addKVArg("iodepth",str(self.getOptions().getIod()))
+            if self.getOptions().getNj() != None:
+                job.addKVArg("numjobs",str(self.getOptions().getNj()))
+            if self.getOptions().getIod() != None:
+                job.addKVArg("iodepth",str(self.getOptions().getIod()))
+            if self.getOptions().getXargs() != None:
+                for arg in self.getOptions().getXargs():
+                    job.addSglArg(arg)
         job.addSglArg("group_reporting")
         return job
 
@@ -173,13 +178,150 @@ class SsdIopsTest(DeviceTest):
             if self.getOptions() == None:
                 self.getDevice().precondition(1,1)
             else:
-                self.getDevice().precondition(self.getOptions().getNj(),self.getOptions().getIod())
+                if self.getOptions().getNj() != None:
+                    nj = self.getOptions().getNj()
+                if self.getOptions().getIod() != None:
+                    iod = self.getOptions().getIod()
+                self.getDevice().precondition(nj,iod)
         except RuntimeError:
             logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevPath())
         logging.info("########### Starting IOPS Test ###########")
         steadyState = self.runRounds()
         if steadyState == False:
             logging.info("# Steady State has not been reached for IOPS Test.")
+        self.toLog()
+        return True
+
+class SsdLatencyTest(DeviceTest):
+    '''
+    Representing a Latency test for a ssd based device.
+    '''
+    ##Percentages of mixed workloads.
+    mixWlds = [100,65,0]
+    ##Labels of block sizes.
+    bsLabels = ["8k","4k","512"]
+
+    def __init__(self,testname,device,options=None):
+        '''
+        Constructor.
+        '''
+        if options != None:
+            #For latency the specification says to use 1 job/thread, 1 outstanding IO
+            options.setNj(1)
+            options.setNj(1)
+        super(SsdLatencyTest,self).__init__(testname,device,options)
+        ## A list of matrices with the collected fio measurement values of each round.
+        self.__roundMatrices = []
+        self.__stdyState = StdyState()
+        self.getFioJob().addKVArg("rw","randrw")
+        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addSglArg("time_based")
+
+    def getRndMatrices(self): return self.__roundMatrices
+    def getStdyState(self): return self.__stdyState
+
+    def toLog(self):
+        '''
+        Log information about the steady state and how it 
+        has been reached.
+        '''
+        logging.info("Round matrices: ")
+        logging.info(self.__roundMatrices)
+        self.getStdyState().toLog()
+
+    def testRound(self):
+        '''
+        Carry out one latency test round.
+        The round consists of two inner loops: one iterating over the
+        percentage of random reads/writes in the mixed workload, the other
+        over different block sizes.
+        @return A matrix containing [min,max,mean] latencies of the round.
+        '''
+        jobOut = ''
+        rndMatrix = []        
+        for i in SsdLatencyTest.mixWlds:
+            rwRow = []
+            for j in SsdLatencyTest.bsLabels:
+                self.getFioJob().addKVArg("rwmixread",str(i))
+                self.getFioJob().addKVArg("bs",j)
+                call,jobOut = self.getFioJob().start()
+                if call == False:
+                    exit(1)
+                logging.info("mixLoad: " +str(i))
+                logging.info("bs: "+j)
+                logging.info(jobOut)
+                logging.info("######")
+                if i == 65:
+                    #if we have a mixed workload weight the latencies
+                    l = [0,0,0]
+                    r = self.getFioJob().getReadLats(jobOut)
+                    w = self.getFioJob().getWriteLats(jobOut)
+                    #FIXME Is this also correct for Min and Max?
+                    l[0] = (0.65 * r[0]) + (0.35 * w[0])
+                    l[1] = (0.65 * r[1]) + (0.35 * w[1])
+                    l[2] = (0.65 * r[2]) + (0.35 * w[2])
+                else:
+                    l = self.getFioJob().getTotLats(jobOut)
+                rwRow.append(l)
+            rndMatrix.append(rwRow)
+        return rndMatrix
+
+    def runRounds(self):
+        '''
+        Carry out the latency test rounds and check if the steady state is reached.
+        For a maximum of 25 rounds the test loop is carried out. After each
+        test round we check for a measurement window of the last 5 rounds if
+        the steady state has been reached.
+        @return True if the steady state has been reached, False if not.
+        '''
+        rndMatrix = []
+        steadyValues = deque([])
+        xranges = deque([])#Rounds of current measurement window
+        
+        for i in range(StdyState.testRnds):
+            logging.info("#################")
+            logging.info("Round nr. "+str(i))
+            rndMatrix = self.testRound()
+            self.getRndMatrices().append(rndMatrix)
+            #Latencies always consist of [min,max,mean] latency
+            #Take mean/average for steady state detection
+            steadyValues.append(rndMatrix[-1][-2][2])
+            xranges.append(i)
+            if i > 4:
+                xranges.popleft()
+                steadyValues.popleft()
+            #check if the steady state has been reached in the last 5 rounds
+            if i >= 4:
+                steadyState = self.getStdyState().checkSteadyState(xranges,steadyValues,i)
+                if steadyState == True:
+                    break
+        #Return current steady state
+        return self.getStdyState().isSteady()
+
+    def run(self):
+        '''
+        Start the rounds, log the steady state infos.
+        @return True if all tests were run
+        '''
+        try: 
+            self.getDevice().secureErase()
+        except RuntimeError:
+            logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
+        try:
+            if self.getOptions() == None:
+                self.getDevice().precondition(1,1)
+            else:
+                if self.getOptions().getNj() != None:
+                    nj = self.getOptions().getNj()
+                if self.getOptions().getIod() != None:
+                    iod = self.getOptions().getIod()
+                self.getDevice().precondition(nj,iod)
+        except RuntimeError:
+            logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevPath())
+        logging.info("########### Starting Latency Test ###########")
+        steadyState = self.runRounds()
+        if steadyState == False:
+            logging.info("# Steady State has not been reached for Latency Test.")
         self.toLog()
         return True
 
