@@ -63,84 +63,8 @@ class PerfTest(object):
     def getDevice(self): return self.__device
     def getTestDate(self): return self.__testDate
     def getIOPerfVersion(self): return self.__IOPerfVersion
+    def getCmdLineArgs(self): return self.__cmdLineArgs
 
-    def getCmdLineArgs(self):
-        return self.__cmdLineArgs
-    
-    def readDevInfoHdparm(self):
-        '''
-        Read the device information via hdparm -I. If an error occured
-        the script is stopped and an error message to use a description
-        file is printed to the log file.
-        @return True if the device info was set, False if not.
-        '''
-        #device info has already been set
-        if self.__deviceInfo != None:
-            return True
-        
-        out = subprocess.Popen(['hdparm','-I',self.__devicename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        (stdout,stderr) = out.communicate()
-        if stderr != '':
-            logging.error("hdparm -I encountered an error: " + stderr)
-            logging.error("Please use a description file to set device information!")
-            return False
-        else:
-            self.__deviceInfo = ""
-            for line in stdout.split('\n'):
-                if line.find("questionable sense data") > -1 or line.find("bad/missing sense data") > -1:
-                    logging.error("hdparm sense data may be incorrect!")
-                    logging.error("Please use a description file to set device information!")
-                    return False
-                
-                if line.find("Model Number") > -1:
-                    self.__deviceInfo += line + '\n'
-                if line.find("Serial Number") > -1:
-                    self.__deviceInfo += line +'\n'
-                if line.find("Firmware Revision") > -1:
-                    self.__deviceInfo += line + '\n'
-                if line.find("Media Serial Num") > -1:
-                    self.__deviceInfo += line + '\n'
-                if line.find("Media Manufacturer") > -1:
-                    self.__deviceInfo += line + '\n'
-                if line.find("device size with M = 1000*1000") > -1:
-                    self.__deviceInfo += line + '\n'
-            #Check for write caching state
-            stdout = ''
-            stderr = ''
-            out = subprocess.Popen(['hdparm','-W',self.__devicename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            (stdout,stderr) = out.communicate()
-            if stderr != '':
-                logging.error("hdparm -W encountered an error: " + stderr)
-                logging.error("Please use a description file to set device information!")
-                return False
-            for line in stdout.split('\n'):
-                if line.find("write-caching") > -1:
-                    line = line.lstrip(' ')
-                    line = '\t' + line
-                    self.__deviceInfo += line + '\n'
-            
-            logging.info("# Testing device: " + self.__deviceInfo)
-            return True
-
-    def readDevInfoFile(self,fd):
-        '''
-        Reads the device description from a file. This is necessary if
-        the device information cannot be fetched via hdparm.
-        @param fd The path to the description file, has to be opened already.
-        '''
-        self.__deviceInfo = fd.read()
-        logging.info("# Read device info from file")
-        logging.info("# Testing device: " + self.__deviceInfo)
-        fd.close()
-    
-    def readFeatureMatrix(self,fd):
-        '''
-        Reads a special feature matrix from a file.
-        @param fd The path to the feature matrix file, has to be opened already.
-        '''
-        self.__featureMatrix = fd.read()
-        fd.close()
-        
     def collOSInfos(self):
         '''
         Collects some information about the current OS in use
