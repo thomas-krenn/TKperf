@@ -19,8 +19,8 @@ import perfTest.HddTest as hdd
 from reports.XmlReport import XmlReport
 from reports.RstReport import RstReport
 import plots.genPlots as pgp
-from perfTest.Devices import Device
-from perfTest import Options
+from perfTest.Devices import SSD
+from perfTest.Options import Options
 
 class PerfTest(object):
     '''
@@ -37,7 +37,7 @@ class PerfTest(object):
         self.__testname = testname
         
         ## The device object to run test on.
-        self.__devicename = device
+        self.__device = device
         
         ## Xml file to write test results to
         self.__xmlReport = XmlReport(self.__testname)
@@ -180,21 +180,13 @@ class PerfTest(object):
         '''
         tests = self.getTests()
         e = self.getXmlReport().getXml()
-        
-        #add the current date to the xml
+        # Add the current date to the xml
         if self.__testDate != None:
             dev = etree.SubElement(e,'testdate')
             dev.text = json.dumps(self.__testDate)
-        
-        #Add the device information to the xml file
-        dev = etree.SubElement(e,'devinfo')
-        dev.text = json.dumps(self.__device.getDevInfo())
-        
-        #if a feature matrix is given, add it to the xml file
-        if self.__device.getFeatureMatrix() != None:
-            dev = etree.SubElement(e,'featmatrix')
-            dev.text = json.dumps(self.__device.getFeatureMatrix())
-            
+        # Add the device information to the xml file
+        self.getDevice().toXml(e)
+        # Add OS information
         if self.__OSInfo != None:
             if 'kernel' in self.__OSInfo:
                 dev = etree.SubElement(e,'kernel')
@@ -202,22 +194,84 @@ class PerfTest(object):
             if 'lsb' in self.__OSInfo:
                 dev = etree.SubElement(e,'lsb')
                 dev.text = json.dumps(self.__OSInfo['lsb'])
-        
         #Add the current test suite version to the xml file
         dev = etree.SubElement(e,'ioperfversion')
         dev.text = json.dumps(self.__IOPerfVersion)
-        
         #Add the command line to xml
         if self.__cmdLineArgs != None:
             dev = etree.SubElement(e,'cmdline')
             dev.text = json.dumps(self.__cmdLineArgs)
-
-        #call the xml function for every test in the dictionary
+        # Add Fio version to xml
+        self.__tests.itervalues().next().getFioJob().appendXml(e)
+        # Add the options to xml, only take it from one test
+        self.__tests.itervalues().next().getOptions().appendXml(e)
+        # Call the xml function for every test in the dictionary
         sorted(self.__tests.items())
         for k,v in tests.iteritems():
             e.append(v.toXml(k))
-
         self.getXmlReport().xmlToFile(self.getTestname())
+
+    def fromXml(self):
+        '''
+        Reads out the xml file name 'testname.xml' and initializes the test
+        specified with xml. The valid tags are "iops,lat,tp,writesat" for ssd,
+        "iops, tp" for ssd. But there isn't always every test run, so xml can
+        miss a test.
+        '''
+        self.getXmlReport().fileToXml(self.getTestname())
+        self.resetTests()
+        root = self.getXmlReport().getXml()
+
+        if(root.findtext('testdate')):
+            self.setTestDate(json.loads(root.findtext('testdate')))
+        else:
+            self.setTestDate('n.a.')
+        # Read the operating system information        
+        if(root.findtext('kernel')):
+            self.setOSInfo('kernel',json.loads(root.findtext('kernel')))
+        else:
+            self.setOSInfo('kernel','n.a.')
+        if(root.findtext('lsb')):
+            self.setOSInfo('lsb',json.loads(root.findtext('lsb')))
+        else:
+            self.setOSInfo('lsb','n.a.')
+        # Read version and command line
+        if(root.findtext('ioperfversion')):
+            self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
+        if(root.findtext('cmdline')):
+            self.setCmdLineArgs(json.loads(root.findtext('cmdline')))
+        else:
+            self.setCmdLineArgs('n.a.')
+        # Read the Fio Version
+        if(root.findtext('fioversion')):
+            fioVersion = json.loads(root.findtext('fioversion'))
+        else:
+            fioVersion = 'n.a.'
+        # Read used options
+        options = Options(None,None)
+        options.fromXml(root)
+        # Initialize device and performance tests
+        if isinstance(self, SsdPerfTest):
+            device = SSD('ssd',None,self.getTestname()) 
+            device.fromXml(root)
+            for tag in SsdPerfTest.testKeys:
+                #check which test tags are in the xml file
+                for elem in root.iterfind(tag):
+                    test = None
+                    if elem.tag == SsdPerfTest.iopsKey:
+                        test = tests.SsdIopsTest(self.getTestname(),device,options)
+                    if elem.tag == SsdPerfTest.latKey:
+                        test = tests.SsdLatencyTest(self.getTestname(),device,options)
+                    if elem.tag == SsdPerfTest.tpKey:
+                        test = tests.SsdTPTest(self.getTestname(),device,options)
+                    if elem.tag == SsdPerfTest.wrKey:
+                        test = tests.SsdWriteSatTest(self.getTestname(),device,options)
+                    #we found a tag in the xml file, now we can read the data from xml
+                    if test != None:
+                        test.fromXml(elem)
+                        test.getFioJob().setFioVersion(fioVersion)
+                        self.addTest(tag, test)
+            #TODO Add HDD test here
 
 class SsdPerfTest(PerfTest):
     '''
@@ -254,66 +308,6 @@ class SsdPerfTest(PerfTest):
         self.toXml()
         self.genPlots()
         self.toRst()
-
-    def fromXml(self):
-        '''
-        Reads out the xml file name 'testname.xml' and initializes the test
-        specified with xml. The valid tags are "iops,lat,tp,writesat", but
-        there don't must be every tag in the file.
-        Afterwards the plotting and rst methods for the specified tests are
-        called.
-        '''
-        self.getXmlReport().fileToXml(self.getTestname())
-        self.resetTests()
-        root = self.getXmlReport().getXml()
-
-        if(root.findtext('testdate')):
-            self.setTestDate(json.loads(root.findtext('testdate')))
-        else:
-            self.setTestDate('n.a.')    
-        
-        #first read the device information from xml
-        self.setDevInfo(json.loads(root.findtext('devinfo')))
-        
-        #read the feature matrix from the xml file
-        if(root.findtext('featmatrix')):
-            self.setFeatureMatrix(json.loads(root.findtext('featmatrix')))
-
-        #read the operating system information        
-        if(root.findtext('kernel')):
-            self.setOSInfo('kernel',json.loads(root.findtext('kernel')))
-        else:
-            self.setOSInfo('kernel','n.a.')
-        if(root.findtext('lsb')):
-            self.setOSInfo('lsb',json.loads(root.findtext('lsb')))
-        else:
-            self.setOSInfo('lsb','n.a.')
-        
-        #first read the device information from xml
-        if(root.findtext('ioperfversion')):
-            self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
-            
-        if(root.findtext('cmdline')):
-            self.setCmdLineArgs(json.loads(root.findtext('cmdline')))
-        else:
-            self.setCmdLineArgs('n.a.')  
-        
-        for tag in SsdPerfTest.testKeys:
-            #check which test tags are in the xml file
-            for elem in root.iterfind(tag):
-                test = None
-                if elem.tag == SsdPerfTest.iopsKey:
-                    test = ssd.IopsTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
-                if elem.tag == SsdPerfTest.latKey:
-                    test = ssd.LatencyTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
-                if elem.tag == SsdPerfTest.tpKey:
-                    test = ssd.TPTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
-                if elem.tag == SsdPerfTest.wrKey:
-                    test = ssd.WriteSatTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
-                #we found a tag in the xml file, now we ca read the data from xml
-                if test != None:
-                    test.fromXml(elem)
-                    self.addTest(tag, test)
 
     def toRst(self):
         tests = self.getTests()
