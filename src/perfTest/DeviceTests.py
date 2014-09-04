@@ -47,6 +47,9 @@ class DeviceTest(object):
     def getFioJob(self): return self.__fioJob
     def getFigures(self): return self.__figures
     def getTables(self): return self.__tables
+    def setDevice(self,d): 
+        self.__device = d
+
     def setFigures(self,fig):
         '''
         Set the list of filenames, representing generated figures.
