@@ -7,6 +7,8 @@ Created on Aug 6, 2014
 from abc import ABCMeta, abstractmethod
 import logging
 import subprocess
+import json
+from lxml import etree
 
 from fio.FioJob import FioJob
 
@@ -60,6 +62,14 @@ class Device(object):
     def getVendor(self): return self.__vendor
     def getIntfce(self): return self.__intfce
     def getDevInfo(self): return self.__devinfo
+    def getFeatureMatrix(self): return self.__featureMatrix
+
+    def setDevInfo(self,dInfo):
+        self.__devinfo = dInfo
+
+    def setFeatureMatrix(self,fm):
+        self.__featureMatrix = fm
+
     def isInitialized(self):
         '''
         Checks if the device info was read correctly.
@@ -223,6 +233,19 @@ class Device(object):
                     self.__devinfo += line + '\n'
             logging.info("# Testing device: " + self.__devinfo)
             return True
+
+    def toXml(self,r):
+        '''
+        Get the Xml representation of the device.
+        @param r The xml root tag to append the new elements to
+        ''' 
+        data = json.dumps(self.__devinfo)
+        e = etree.SubElement(r,'devinfo')
+        e.text = data
+        if self.__featureMatrix != None:
+            data = json.dumps(self.__featureMatrix)
+            e = etree.SubElement(r,'featmatrix')
+            e.text = data
 
 class SSD(Device):
     '''
