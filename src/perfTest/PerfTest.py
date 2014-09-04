@@ -14,11 +14,13 @@ import os
 import time
 
 import perfTest.SsdTest as ssd
+import perfTest.DeviceTests as tests
 import perfTest.HddTest as hdd
 from reports.XmlReport import XmlReport
 from reports.RstReport import RstReport
 import plots.genPlots as pgp
 from perfTest.Devices import Device
+from perfTest import Options
 
 class PerfTest(object):
     '''
@@ -164,6 +166,12 @@ class PerfTest(object):
             time.sleep(15)
             v.run()
 
+    def genPlots(self):
+        sorted(self.__tests.items())
+        for k,v in self.__tests.items():
+            logging.info("# Generating plots for "+k+" test")
+            v.genPlots()
+
     def toXml(self):
         '''
         First the device information is written to the xml file.
@@ -215,7 +223,6 @@ class SsdPerfTest(PerfTest):
     '''
     A performance test for ssds consists of all ssd tests
     '''
-    
     ## Keys for the tests carried out
     testKeys = ['iops','lat','tp','writesat']
     ## Keys valid for tests
@@ -224,38 +231,30 @@ class SsdPerfTest(PerfTest):
     tpKey = 'tp'
     wrKey = 'writesat'
     
-    def __init__(self,testname,devicename,nj,iod):
-        PerfTest.__init__(self, testname, devicename)
-        
-        ## Number of jobs for fio.
-        self.__nj = nj
-        
-        ## Number of iodepth for fio.
-        self.__iod = iod
-        
+    def __init__(self,testname,device,options=None):
+        PerfTest.__init__(self, testname, device)
         #Add current date to test
         now = datetime.datetime.now()
         self.setTestDate(now.strftime("%Y-%m-%d"))
-        
         #Add every test to the performance test
         for testType in SsdPerfTest.testKeys:
             if testType == SsdPerfTest.iopsKey:
-                test = ssd.IopsTest(testname,devicename,nj,iod)
+                test = tests.SsdIopsTest(testname,device,options)
             if testType == SsdPerfTest.latKey:
-                test = ssd.LatencyTest(testname,devicename,nj,iod)
+                test = tests.SsdLatencyTest(testname,device,options)
             if testType == SsdPerfTest.tpKey:
-                test = ssd.TPTest(testname,devicename,nj,iod)
+                test = tests.SsdTPTest(testname,device,options)
             if testType == SsdPerfTest.wrKey:
-                test = ssd.WriteSatTest(testname,devicename,nj,iod)
-            #add the test to the key/value structure
+                test = tests.SsdWriteSatTest(testname,device,options)
+            #Add the test to the key/value structure
             self.addTest(testType, test)
-        
+
     def run(self):
         self.runTests()
         self.toXml()
-        self.getPlots()
+        self.genPlots()
         self.toRst()
-        
+
     def fromXml(self):
         '''
         Reads out the xml file name 'testname.xml' and initializes the test
@@ -370,31 +369,6 @@ class SsdPerfTest(PerfTest):
                 rst.addFigure(fig,'ssd','writesat',i)
 
         rst.toRstFile()
-        
-    def getPlots(self):
-        tests = self.getTests()
-        #plots for iops
-        if SsdPerfTest.iopsKey in tests:
-            pgp.stdyStConvPlt(tests['iops'],"IOPS")
-            pgp.stdyStVerPlt(tests['iops'],"IOPS")
-            pgp.mes2DPlt(tests['iops'],"IOPS")
-            pgp.mes3DPlt(tests['iops'],"IOPS")
-        #plots for latency
-        if SsdPerfTest.latKey in tests:
-            pgp.stdyStConvPlt(tests['lat'],"LAT")
-            pgp.stdyStVerPlt(tests['lat'],"LAT")
-            pgp.mes2DPlt(tests['lat'],"avg-LAT")
-            pgp.mes2DPlt(tests['lat'],"max-LAT")
-            pgp.latMes3DPlt(tests['lat'])
-        #plots for throughout
-        if SsdPerfTest.tpKey in tests:
-            pgp.tpRWStdyStConvPlt(tests['tp'])
-            pgp.stdyStVerPlt(tests['tp'],"TP")
-            pgp.tpMes2DPlt(tests['tp'])
-        #plots for write saturation
-        if SsdPerfTest.wrKey in tests:
-            pgp.writeSatIOPSPlt(tests['writesat'])
-            pgp.writeSatLatPlt(tests['writesat'])
 
 class HddPerfTest(PerfTest):
     '''
