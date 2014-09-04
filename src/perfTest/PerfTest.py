@@ -34,7 +34,7 @@ class PerfTest(object):
         ## The output file for the fio job test results.
         self.__testname = testname
         
-        ## The device to run test on.
+        ## The device object to run test on.
         self.__devicename = device
         
         ## Xml file to write test results to
@@ -66,6 +66,8 @@ class PerfTest(object):
     def getCmdLineArgs(self): return self.__cmdLineArgs
     def getOSInfo(self): return self.__OSInfo
     def getTests(self): return self.__tests
+    def getXmlReport(self): return self.__xmlReport
+    def getRstReport(self): return self.__rstReport
 
     def collOSInfos(self):
         '''
@@ -162,12 +164,6 @@ class PerfTest(object):
             time.sleep(15)
             v.run()
 
-    def getXmlReport(self):
-        return self.__xmlReport
-    
-    def getRstReport(self):
-        return self.__rstReport
-    
     def toXml(self):
         '''
         First the device information is written to the xml file.
@@ -184,12 +180,12 @@ class PerfTest(object):
         
         #Add the device information to the xml file
         dev = etree.SubElement(e,'devinfo')
-        dev.text = json.dumps(self.__deviceInfo)
+        dev.text = json.dumps(self.__device.getDevInfo())
         
         #if a feature matrix is given, add it to the xml file
-        if self.__featureMatrix != None:
+        if self.__device.getFeatureMatrix() != None:
             dev = etree.SubElement(e,'featmatrix')
-            dev.text = json.dumps(self.__featureMatrix)
+            dev.text = json.dumps(self.__device.getFeatureMatrix())
             
         if self.__OSInfo != None:
             if 'kernel' in self.__OSInfo:
@@ -203,16 +199,16 @@ class PerfTest(object):
         dev = etree.SubElement(e,'ioperfversion')
         dev.text = json.dumps(self.__IOPerfVersion)
         
-        #add the command line to xml
+        #Add the command line to xml
         if self.__cmdLineArgs != None:
             dev = etree.SubElement(e,'cmdline')
             dev.text = json.dumps(self.__cmdLineArgs)
-        
+
         #call the xml function for every test in the dictionary
         sorted(self.__tests.items())
         for k,v in tests.iteritems():
             e.append(v.toXml(k))
-        
+
         self.getXmlReport().xmlToFile(self.getTestname())
 
 class SsdPerfTest(PerfTest):
