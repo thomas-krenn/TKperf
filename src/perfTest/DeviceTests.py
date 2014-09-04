@@ -36,11 +36,35 @@ class DeviceTest(object):
         self.__options = options
         ## A fio job used to run the tests
         self.__fioJob = self.initFio()
+        ## A list of filenames representing the generated plots
+        self.__figures = []
+        ## Measurement overview tables, from which plots are generated
+        self.__tables = []
 
     def getTestname(self): return self.__testname
     def getDevice(self): return self.__device
     def getOptions(self): return self.__options
     def getFioJob(self): return self.__fioJob
+    def getFigures(self): return self.__figures
+    def getTables(self): return self.__tables
+    def setFigures(self,fig):
+        '''
+        Set the list of filenames, representing generated figures.
+        @param fig A list of figure filenames.
+        ''' 
+        self.__figures = fig
+
+    def addFigure(self,fig):
+        ''' Add a filename to the figure list.
+        @param fig The figure - a filename - to add
+        '''
+        self.__figures.append(fig)
+
+    def addTable(self,tb):
+        ''' Add an overview measurement table.
+        @param tb The table to add
+        '''
+        self.__tables.append(tb)
 
     def initFio(self):
         '''
