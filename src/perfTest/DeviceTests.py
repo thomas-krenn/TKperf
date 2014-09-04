@@ -75,6 +75,10 @@ class DeviceTest(object):
     @abstractmethod
     def run(self):
         ''' Run the type specific performance test. '''
+    
+    @abstractmethod
+    def toXml(self):
+        ''' Get the Xml representation of a test. '''
 
 class SsdIopsTest(DeviceTest):
     '''
@@ -193,6 +197,19 @@ class SsdIopsTest(DeviceTest):
             logging.info("# Steady State has not been reached for IOPS Test.")
         self.toLog()
         return True
+
+    def toXml(self,root):
+        '''
+        Get the Xml representation of the test.
+        @param root Name of the new root Xml node
+        @return An xml root element containing the information about the test
+        ''' 
+        r = etree.Element(root)
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(r,'roundmat')
+        e.text = data
+        self.getStdyState().appendXml(r)
+        return r
 
 class SsdLatencyTest(DeviceTest):
     '''
@@ -326,6 +343,19 @@ class SsdLatencyTest(DeviceTest):
             logging.info("# Steady State has not been reached for Latency Test.")
         self.toLog()
         return True
+
+    def toXml(self,root):
+        '''
+        Get the Xml representation of the test.
+        @param root Name of the new root Xml node
+        @return An xml root element containing the information about the test
+        ''' 
+        r = etree.Element(root)
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(r,'roundmat')
+        e.text = data
+        self.getStdyState().appendXml(r)
+        return r
 
 class SsdTPTest(DeviceTest):
     '''
@@ -461,6 +491,19 @@ class SsdTPTest(DeviceTest):
         self.toLog()
         return True
 
+    def toXml(self,root):
+        '''
+        Get the Xml representation of the test.
+        @param root Name of the new root Xml node
+        @return An xml root element containing the information about the test
+        ''' 
+        r = etree.Element(root)
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(r,'roundmat')
+        e.text = data
+        self.getStdyState().appendXml(r)
+        return r
+
 class SsdWriteSatTest(DeviceTest):
     '''
     A class to carry out the Write Saturation test.
@@ -564,10 +607,10 @@ class SsdWriteSatTest(DeviceTest):
 
     def toXml(self,root):
         '''
-        Get the XML representation of the write saturation test.
-        @param root Name of root element to append xml childs to
-        @return Etree XML node
-        '''
+        Get the Xml representation of the test.
+        @param root Name of the new root Xml node
+        @return An xml root element containing the information about the test
+        ''' 
         #root element of current xml child
         r = etree.Element(root)
         
@@ -582,7 +625,7 @@ class SsdWriteSatTest(DeviceTest):
 
     def fromXml(self,root):
         '''
-        Load an set from an XML representation of the write saturation test.
+        Load and set from an XML representation of the write saturation test.
         @param root Name of root element to append xml childs to
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))

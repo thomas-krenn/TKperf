@@ -90,13 +90,11 @@ class StdyState(object):
         self.__reachStdyState = stdyState
         return stdyState
 
-    def toXml(self,root):
+    def appendXml(self,r):
         '''
-        Dump the information about a steady state test to XML. 
+        Append the information about a steady state test to a XML node. 
         @param root The xml root tag to append the new elements to
-        @return An xml root element containing the information about the test.
         ''' 
-        r = etree.Element(root)
         data = json.dumps(list(self.__stdyRnds))
         e = etree.SubElement(r,'stdyrounds')
         e.text = data
@@ -120,7 +118,6 @@ class StdyState(object):
         data = json.dumps(self.__rounds)
         e = etree.SubElement(r,'rndnr')
         e.text = data
-        return r
 
     def fromXml(self,root):
         '''
