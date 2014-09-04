@@ -37,6 +37,8 @@ class Device(object):
         self.__intfce = intfce
         ## Device specific information for reporting
         self.__devinfo = None
+        ## A list of special features for the device
+        self.__featureMatrix = None
 
         try:
             ## The size of the device in bytes
@@ -149,6 +151,16 @@ class Device(object):
         self.__devinfo = fd.read()
         logging.info("# Read device info from file")
         logging.info("# Testing device: " + self.__devinfo)
+        fd.close()
+
+    def readFeatureFile(self,fd):
+        '''
+        Reads the special feature matrix from file.
+        @param fd The path to the feature matrix file, has to be opened already.
+        '''
+        self.__featureMatrix = fd.read()
+        logging.info("# Read feature matrix from file")
+        logging.info("# Feature Matrix: " + self.__featureMatrix)
         fd.close()
 
     @abstractmethod
