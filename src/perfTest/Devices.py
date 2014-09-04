@@ -41,18 +41,13 @@ class Device(object):
         self.__devinfo = None
         ## A list of special features for the device
         self.__featureMatrix = None
-
-        try:
-            ## The size of the device in bytes
-            self.__devsizeb = self.calcDevSizeB()
-            ## The size of the device in kilo bytes
-            self.__devsizekb = self.calcDevSizeKB()
-            ## Check if the device is mounted
-            self.__devismounted = self.checkDevIsMounted()
-            ## readDevInfo sets self.__devinfo and returns True/False
-            self.readDevInfo()
-        except RuntimeError:
-            logging.error("# Could not fetch initial information for " + self.__path)
+        ## The size of the device in bytes
+        self.__devsizeb = None
+        ## The size of the device in kilo bytes
+        self.__devsizekb = None
+        ## Check if the device is mounted
+        self.__devismounted = None
+        ## readDevInfo sets self.__devinfo and returns True/False
 
     def getDevType(self): return self.__devtype
     def getDevPath(self): return self.__path
@@ -69,6 +64,18 @@ class Device(object):
 
     def setFeatureMatrix(self,fm):
         self.__featureMatrix = fm
+
+    def initialize(self):
+        '''
+        Run size and devinfo methods for the current device.
+        '''
+        try:
+            self.__devsizeb = self.calcDevSizeB()
+            self.__devsizekb = self.calcDevSizeKB()
+            self.__devismounted = self.checkDevIsMounted()
+            self.readDevInfo()
+        except RuntimeError:
+            logging.error("# Could not fetch initial information for " + self.__path)
 
     def isInitialized(self):
         '''
