@@ -234,18 +234,29 @@ class Device(object):
             logging.info("# Testing device: " + self.__devinfo)
             return True
 
-    def toXml(self,r):
+    def toXml(self,root):
         '''
         Get the Xml representation of the device.
         @param r The xml root tag to append the new elements to
         ''' 
         data = json.dumps(self.__devinfo)
-        e = etree.SubElement(r,'devinfo')
+        e = etree.SubElement(root,'devinfo')
         e.text = data
         if self.__featureMatrix != None:
             data = json.dumps(self.__featureMatrix)
-            e = etree.SubElement(r,'featmatrix')
+            e = etree.SubElement(root,'featmatrix')
             e.text = data
+    
+    def fromXml(self,root):
+        '''
+        Loads the information about a device from XML.
+        @param root The given element containing the information about
+        the object to be initialized.
+        '''
+        self.__devinfo = json.loads(root.findtext('devinfo'))
+        if(root.findtext('featmatrix')):
+            self.__devinfo = json.loads(root.findtext('featmatrix'))
+        logging.info("# Loading device info from xml")
 
 class SSD(Device):
     '''
