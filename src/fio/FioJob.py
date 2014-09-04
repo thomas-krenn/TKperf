@@ -11,7 +11,6 @@ class FioJob(object):
     '''
     A class configuring the fio job.
     '''
-    
     ## Position of read IOPS in the fio terse output.
     terseIOPSReadPos = 7
 
@@ -33,9 +32,20 @@ class FioJob(object):
     ## Postion of total write throughput.
     terseTPWritePos = 47
     
-    
     def __init__(self):
         ''' The constructor '''
+        ## Key value arguments e.g. name="test"
+        self.__fioKVArgs = {}
+        ## Single arguments e.g. group_reporting
+        self.__fioSglArgs = []
+        
+    def __str__(self):
+        ''' Return a string representation of the fio executable. '''   
+        res = "fio: " + self.__fioPath + ", " + self.__fioVersion
+        return res
+
+    def initialize(self):
+        ''' Initialie Fio path and version. '''
         fio = subprocess.Popen(['which', 'fio'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout = fio.communicate()[0]
         fio.wait()
@@ -47,31 +57,7 @@ class FioJob(object):
         fio = subprocess.Popen(['fio','--version'],stdout=subprocess.PIPE)
         self.__fioVersion = fio.communicate()[0]
         fio.wait()
-        
-        #check if the fio version is high enough
-        match = re.search(r'[\d\.]+',self.__fioVersion)
-        if match == None:
-            logging.error("# Error: checking fio version returned a none string.")
-            exit(1)
-        version = match.group().split('.')
-        if int(version[0]) < 2:
-            logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
-            exit(1)
-        if int(version[0]) > 2:
-            if int(version[1]) == 0:
-                if int(version[2]) < 3:
-                    logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
-                    exit(1)
-        ## Key value arguments e.g. name="test"
-        self.__fioKVArgs = {}
-        ## Single arguments e.g. group_reporting
-        self.__fioSglArgs = []
-        
-    def __str__(self):
-        ''' Return a string representation of the fio executable. '''   
-        res = "fio: " + self.__fioPath + ", " + self.__fioVersion
-        return res
-    
+
     def getFioVersion(self):
         ''' Return the current fio version string. '''
         return self.__fioVersion
@@ -79,7 +65,24 @@ class FioJob(object):
     def setFioVersion(self,fioStr):
         ''' Set the used fio version (useful if loading from xml).'''
         self.__fioVersion = fioStr
-    
+
+    def checkFioVersion(self):
+        ''' Check if the Fio version is high enough. '''
+        if self.__fioVersion != None:
+            match = re.search(r'[\d\.]+',self.__fioVersion)
+            if match == None:
+                logging.error("# Error: checking fio version returned a none string.")
+                exit(1)
+            version = match.group().split('.')
+            if int(version[0]) < 2:
+                logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
+                exit(1)
+            if int(version[0]) > 2:
+                if int(version[1]) == 0:
+                    if int(version[2]) < 3:
+                        logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
+                        exit(1)
+
     def appendXml(self,root):
         '''
         Append the information about Fio to a XML node. 
@@ -88,7 +91,7 @@ class FioJob(object):
         data = json.dumps(list(self.__fioVersion))
         e = etree.SubElement(root,'fioversion')
         e.text = data
-    
+
     def fromXml(self,root):
         '''
         Loads the information about Fio from XML.
