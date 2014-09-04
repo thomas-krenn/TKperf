@@ -194,14 +194,14 @@ class PerfTest(object):
             if 'lsb' in self.__OSInfo:
                 dev = etree.SubElement(e,'lsb')
                 dev.text = json.dumps(self.__OSInfo['lsb'])
-        #Add the current test suite version to the xml file
+        # Add the current test suite version to the xml file
         dev = etree.SubElement(e,'ioperfversion')
         dev.text = json.dumps(self.__IOPerfVersion)
-        #Add the command line to xml
+        # Add the command line to xml
         if self.__cmdLineArgs != None:
             dev = etree.SubElement(e,'cmdline')
             dev.text = json.dumps(self.__cmdLineArgs)
-        # Add Fio version to xml
+        # Add Fio version to xml, only take it from one test
         self.__tests.itervalues().next().getFioJob().appendXml(e)
         # Add the options to xml, only take it from one test
         self.__tests.itervalues().next().getOptions().appendXml(e)
@@ -226,7 +226,7 @@ class PerfTest(object):
             self.setTestDate(json.loads(root.findtext('testdate')))
         else:
             self.setTestDate('n.a.')
-        # Read the operating system information        
+        # Read the operating system information
         if(root.findtext('kernel')):
             self.setOSInfo('kernel',json.loads(root.findtext('kernel')))
         else:
@@ -277,14 +277,14 @@ class SsdPerfTest(PerfTest):
     '''
     A performance test for ssds consists of all ssd tests
     '''
-    ## Keys for the tests carried out
-    testKeys = ['iops','lat','tp','writesat']
     ## Keys valid for tests
     iopsKey = 'iops'
     latKey = 'lat'
     tpKey = 'tp'
     wrKey = 'writesat'
-    
+    ## Keys for the tests carried out
+    testKeys = [iopsKey,latKey,tpKey,wrKey]
+
     def __init__(self,testname,device,options=None):
         PerfTest.__init__(self, testname, device)
         #Add current date to test
