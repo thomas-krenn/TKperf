@@ -65,6 +65,7 @@ class PerfTest(object):
     def getIOPerfVersion(self): return self.__IOPerfVersion
     def getCmdLineArgs(self): return self.__cmdLineArgs
     def getOSInfo(self): return self.__OSInfo
+    def getTests(self): return self.__tests
 
     def collOSInfos(self):
         '''
@@ -124,13 +125,14 @@ class PerfTest(object):
         @param verStr The version string.
         '''
         self.__IOPerfVersion = verStr
-        
+
     def setCmdLineArgs(self,cmdLineStr):
+        '''
+        Sets the command line arg string.
+        @param cmdLineStr The command line string
+        '''
         self.__cmdLineArgs = cmdLineStr
-    
-    def getTests(self):
-        return self.__tests
-    
+
     def addTest(self,key,test):
         '''
         Add a test to the test dictionary.
@@ -144,7 +146,7 @@ class PerfTest(object):
         Clear the dictionary containing the tests.
         '''
         self.__tests.clear()
-    
+
     def runTests(self):
         '''
         Call the run method of every test in the test dictionary. The run method
@@ -159,15 +161,7 @@ class PerfTest(object):
             logging.info("# Sleeping for 15 seconds...")
             time.sleep(15)
             v.run()
-    
-    def addSglArgToTests(self,key):
-        '''
-        Adds a single key argument to the Fio job of every test.
-        @param key The argument to be added to the job.
-        '''
-        for v in self.__tests.values():
-            v.getFioJob().addSglArg(key)
-    
+
     def getXmlReport(self):
         return self.__xmlReport
     
