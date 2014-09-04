@@ -4,6 +4,8 @@ A module realizing a fio job run.
 import subprocess
 import logging
 import re
+import json
+from lxml import etree
 
 class FioJob(object):
     '''
@@ -78,6 +80,24 @@ class FioJob(object):
         ''' Set the used fio version (useful if loading from xml).'''
         self.__fioVersion = fioStr
     
+    def appendXml(self,root):
+        '''
+        Append the information about Fio to a XML node. 
+        @param root The xml root tag to append the new elements to
+        ''' 
+        data = json.dumps(list(self.__fioVersion))
+        e = etree.SubElement(root,'fioversion')
+        e.text = data
+    
+    def fromXml(self,root):
+        '''
+        Loads the information about Fio from XML.
+        @param root The given element containing the information about
+        the object to be initialized.
+        '''
+        self.__fioVersion = json.loads(root.findtext('fioversion'))
+        logging.info("# Loading Fio version from xml")
+
     def getKVArgs(self):
         ''' Return the current configured fio key value arguments. '''
         return self.__fioKVArgs
