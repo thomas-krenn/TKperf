@@ -64,6 +64,7 @@ class PerfTest(object):
     def getTestDate(self): return self.__testDate
     def getIOPerfVersion(self): return self.__IOPerfVersion
     def getCmdLineArgs(self): return self.__cmdLineArgs
+    def getOSInfo(self): return self.__OSInfo
 
     def collOSInfos(self):
         '''
@@ -89,7 +90,7 @@ class PerfTest(object):
         else:
             self.__OSInfo['lsb'] = stdout
         return True
-    
+
     def readCmdLineArgs(self,argv):
         '''
         Reads the command line argument list argv and sets it as
@@ -100,10 +101,7 @@ class PerfTest(object):
         for arg in argv:
             self.__cmdLineArgs += (arg + ' ')
         self.__cmdLineArgs = self.__cmdLineArgs.rstrip()
-        
-    def getOSInfo(self):
-        return self.__OSInfo
-    
+
     def setOSInfo(self,key,value):
         '''
         Sets the current OS information.
@@ -112,20 +110,6 @@ class PerfTest(object):
         '''
         if value != None:
             self.__OSInfo[key] = value
-        
-    def setDevInfo(self,devStr):
-        '''
-        Init the device information with the given string.
-        @param devStr The device information as string.
-        '''
-        self.__deviceInfo = devStr
-
-    def setFeatureMatrix(self,fmStr):
-        '''
-        Init the device feature matrix with the given string.
-        @param devStr The feature matrix as string.
-        '''
-        self.__featureMatrix = fmStr
 
     def setTestDate(self,dateStr):
         '''
