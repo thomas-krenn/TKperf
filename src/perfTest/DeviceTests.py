@@ -80,6 +80,10 @@ class DeviceTest(object):
     def toXml(self):
         ''' Get the Xml representation of a test. '''
 
+    @abstractmethod
+    def fromXml(self):
+        ''' Load a test from a Xml representation. '''
+
 class SsdIopsTest(DeviceTest):
     '''
     Representing an IOPS test for a ssd based device.
@@ -210,6 +214,16 @@ class SsdIopsTest(DeviceTest):
         e.text = data
         self.getStdyState().appendXml(r)
         return r
+
+    def fromXml(self,root):
+        '''
+        Load and set from an XML representation of a test.
+        @param root Name of root element from which to load values
+        '''
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.__stdyState.fromXml(root)
+        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        self.toLog()
 
 class SsdLatencyTest(DeviceTest):
     '''
@@ -356,6 +370,16 @@ class SsdLatencyTest(DeviceTest):
         e.text = data
         self.getStdyState().appendXml(r)
         return r
+
+    def fromXml(self,root):
+        '''
+        Load and set from an XML representation of a test.
+        @param root Name of root element from which to load values
+        '''
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.__stdyState.fromXml(root)
+        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        self.toLog()
 
 class SsdTPTest(DeviceTest):
     '''
@@ -504,6 +528,16 @@ class SsdTPTest(DeviceTest):
         self.getStdyState().appendXml(r)
         return r
 
+    def fromXml(self,root):
+        '''
+        Load and set from an XML representation of a test.
+        @param root Name of root element from which to load values
+        '''
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.__stdyState.fromXml(root)
+        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        self.toLog()
+
 class SsdWriteSatTest(DeviceTest):
     '''
     A class to carry out the Write Saturation test.
@@ -525,6 +559,15 @@ class SsdWriteSatTest(DeviceTest):
 
     def getRnds(self): return self.__rounds
     def getRndMatrices(self): return self.__roundMatrices
+
+    def toLog(self):
+        '''
+        Log information about write saturation test.
+        '''
+        logging.info("Write Sat rounds: ")
+        logging.info(self.__rounds)
+        logging.info("Round matrices: ")
+        logging.info(self.__roundMatrices)
 
     def testRound(self):
         '''
@@ -599,10 +642,7 @@ class SsdWriteSatTest(DeviceTest):
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
         logging.info("########### Starting Write Saturation Test ###########")
         self.runRounds()
-        logging.info("Write Sat rounds: ")
-        logging.info(self.__rounds)
-        logging.info("Round Write Saturation results: ")
-        logging.info(self.__roundMatrices)
+        self.toLog()
         return True
 
     def toXml(self,root):
@@ -626,15 +666,12 @@ class SsdWriteSatTest(DeviceTest):
     def fromXml(self,root):
         '''
         Load and set from an XML representation of the write saturation test.
-        @param root Name of root element to append xml childs to
+        @param root Name of root element from which to load values
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__rounds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
-        logging.info("Write Sat rounds: ")
-        logging.info(self.__rounds)
-        logging.info("Round matrices: ")
-        logging.info(self.__roundMatrices)
+        self.toLog()
 
 class HddIopsTest(DeviceTest):
     '''
