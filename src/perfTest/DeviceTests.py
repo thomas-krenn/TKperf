@@ -14,6 +14,7 @@ from perfTest.Devices import Device
 from perfTest.Options import Options
 from perfTest.StdyState import StdyState
 from fio.FioJob import FioJob
+import plots.genPlots as pgp
 
 class DeviceTest(object):
     '''
@@ -75,14 +76,15 @@ class DeviceTest(object):
     @abstractmethod
     def run(self):
         ''' Run the type specific performance test. '''
-    
     @abstractmethod
     def toXml(self):
         ''' Get the Xml representation of a test. '''
-
     @abstractmethod
     def fromXml(self):
         ''' Load a test from a Xml representation. '''
+    @abstractmethod
+    def genPlots(self):
+        ''' Generate plots for a test. '''
 
 class SsdIopsTest(DeviceTest):
     '''
@@ -224,6 +226,13 @@ class SsdIopsTest(DeviceTest):
         self.__stdyState.fromXml(root)
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
         self.toLog()
+
+    def genPlots(self):
+        ''' Generate plots for IOPS. '''
+        pgp.stdyStConvPlt(self,"IOPS")
+        pgp.stdyStVerPlt(self,"IOPS")
+        pgp.mes2DPlt(self,"IOPS")
+        pgp.mes3DPlt(self,"IOPS")
 
 class SsdLatencyTest(DeviceTest):
     '''
@@ -380,6 +389,14 @@ class SsdLatencyTest(DeviceTest):
         self.__stdyState.fromXml(root)
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
         self.toLog()
+
+    def genPlots(self):
+        ''' Generate plots for latency. '''
+        pgp.stdyStConvPlt(self,"LAT")
+        pgp.stdyStVerPlt(self,"LAT")
+        pgp.mes2DPlt(self,"avg-LAT")
+        pgp.mes2DPlt(self,"max-LAT")
+        pgp.latMes3DPlt(self)
 
 class SsdTPTest(DeviceTest):
     '''
@@ -538,6 +555,12 @@ class SsdTPTest(DeviceTest):
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
         self.toLog()
 
+    def genPlots(self):
+        ''' Generate plots for throughput. '''
+        pgp.tpRWStdyStConvPlt(self)
+        pgp.stdyStVerPlt(self,"TP")
+        pgp.tpMes2DPlt(self)
+
 class SsdWriteSatTest(DeviceTest):
     '''
     A class to carry out the Write Saturation test.
@@ -672,6 +695,11 @@ class SsdWriteSatTest(DeviceTest):
         self.__rounds = json.loads(root.findtext('rndnr'))
         logging.info("########### Loading from "+self.getTestname()+".xml ###########")
         self.toLog()
+
+    def genPlots(self):
+        ''' Generate plots for write saturation. '''
+        pgp.writeSatIOPSPlt(self)
+        pgp.writeSatLatPlt(self)
 
 class HddIopsTest(DeviceTest):
     '''
