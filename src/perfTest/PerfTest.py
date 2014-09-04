@@ -18,24 +18,27 @@ import perfTest.HddTest as hdd
 from reports.XmlReport import XmlReport
 from reports.RstReport import RstReport
 import plots.genPlots as pgp
+from perfTest.Devices import Device
 
 class PerfTest(object):
     '''
     A performance test, consists of multiple Device Tests
     '''
     
-    def __init__(self,testname,devicename):
+    def __init__(self,testname,device):
         '''
         A performance test has several reports and plots.
+        @param testname Name of the performance test
+        @param device A Device object, the device to run tests on
         '''
         ## The output file for the fio job test results.
         self.__testname = testname
         
         ## The device to run test on.
-        self.__devicename = devicename
+        self.__devicename = device
         
         ## Xml file to write test results to
-        self.__xmlReport = XmlReport(testname)
+        self.__xmlReport = XmlReport(self.__testname)
         
         ## Rst file to generate pdf of
         self.__rstReport = RstReport(self.__testname)
@@ -43,43 +46,24 @@ class PerfTest(object):
         ## Dictionary of tests to carry out
         self.__tests = {}
         
-        ## Information about the tested device fetched via hdparm or a desc file
-        self.__deviceInfo = None
-        
         ## Date the test has been carried out
         self.__testDate = None
         
         ## Per default use the version from main module
         self.__IOPerfVersion = __version__
-        
-        ## A matrix of special features specific for the device
-        self.__featureMatrix = None
-        
+
         ## Information about the used operating system
         self.__OSInfo = {}
         self.collOSInfos()
-        
+
         ## Hold the command line used to call the test
         self.__cmdLineArgs = None
 
-    def getTestname(self):
-        return self.__testname
-    
-    def getDevName(self):
-        return self.__devicename
-    
-    def getDevInfo(self):
-        return self.__deviceInfo
-    
-    def getFeatureMatrix(self):
-        return self.__featureMatrix
-    
-    def getTestDate(self):
-        return self.__testDate
-    
-    def getIOPerfVersion(self):
-        return self.__IOPerfVersion
-    
+    def getTestname(self): return self.__testname
+    def getDevice(self): return self.__device
+    def getTestDate(self): return self.__testDate
+    def getIOPerfVersion(self): return self.__IOPerfVersion
+
     def getCmdLineArgs(self):
         return self.__cmdLineArgs
     
