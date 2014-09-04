@@ -73,6 +73,7 @@ class DeviceTest(object):
         @return An initialized fio job object
         '''
         job = FioJob()
+        job.initialize()
         job.addKVArg("filename",self.__device.getDevPath())
         job.addKVArg("name",self.__testname)
         job.addKVArg("direct","1")
