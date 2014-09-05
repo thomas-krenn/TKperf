@@ -47,7 +47,8 @@ class Device(object):
         self.__devsizekb = None
         ## Check if the device is mounted
         self.__devismounted = None
-        ## readDevInfo sets self.__devinfo and returns True/False
+        ## Check if a valid partition is used
+        self.__devisavailable = None
 
     def getDevType(self): return self.__devtype
     def getDevPath(self): return self.__path
@@ -73,6 +74,7 @@ class Device(object):
             self.__devsizeb = self.calcDevSizeB()
             self.__devsizekb = self.calcDevSizeKB()
             self.__devismounted = self.checkDevIsMounted()
+            self.__devisavailable = self.checkDevIsAvbl()
             self.readDevInfo()
         except RuntimeError:
             logging.error("# Could not fetch initial information for " + self.__path)
@@ -155,6 +157,23 @@ class Device(object):
         else:
             for line in stdout.split('\n'):
                 if line.find(self.__path) > -1:
+                    logging.info("#"+line)
+                    return True
+            return False
+
+    def checkDevIsAvbl(self):
+        '''
+        Check if the given device is a valid partition.
+        @return True if yes, False if not.
+        '''
+        out = subprocess.Popen(['cat','/proc/partitions'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("cat /proc/partitions encountered an error: " + stderr)
+            raise RuntimeError, "cat /proc/partitions command error"
+        else:
+            for line in stdout.split('\n'):
+                if line.find(self.__devicename[5:]) > -1:
                     logging.info("#"+line)
                     return True
             return False
