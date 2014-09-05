@@ -36,6 +36,11 @@ class StdyState(object):
         self.__reachStdyState = None
 
     def getRnds(self): return self.__rounds
+    def getStdyRnds(self): return self.__stdyRnds
+    def getStdyAvg(self): return self.__stdyAvg
+    def getStdyValues(self): return self.__stdyValues
+    def getStdySlope(self): return self.__stdySlope
+
     def setReachStdyState(self,s): self.__reachStdyState = s
 
     def isSteady(self):
