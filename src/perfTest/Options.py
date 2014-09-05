@@ -76,3 +76,7 @@ class Options(object):
                         break
                 if self.__numJobs != None: break
         logging.info("# Loading options from xml")
+        logging.info("# Options nj "+self.__nj)
+        logging.info("# Options iod "+self.__iod)
+        if self.__xargs != None:
+            logging.info("# Options xargs "+self.__xargs)
