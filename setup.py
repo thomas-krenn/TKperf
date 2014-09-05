@@ -3,8 +3,8 @@
 from distutils.core import setup
 
 setup(name='TKperf',
-	version='1.3',
-	description='TK IO Performance Tests',
+	version='2.0',
+	description='TKperf - Thomas Krenn IO Performance Tests',
 	author='Georg Schoenberger',
 	author_email='gschoenberger@thomas-krenn.com',
 	url='http://git.thomas-krenn.com/TKperf_v1.git',
