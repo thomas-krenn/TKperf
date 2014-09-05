@@ -411,7 +411,7 @@ def tpRWStdyStConvPlt(toPlot):
     min_y = 0
     
     plt.clf()#clear
-    x = range(rnds)#determined by len of matrix
+    x = range(rnds+1)#ensure to include all rounds
     
     plt.clf
     fig = plt.figure()
@@ -505,7 +505,7 @@ def TPplot(toPlot):
     min_y = 0
     
     plt.clf()#clear
-    x = range(rnds)#determined by len of matrix
+    x = range(rnds)
     for i,rndMat in enumerate(matrices):
         #convert to MB/S
         for v in range(len(rndMat[0])):
@@ -519,7 +519,7 @@ def TPplot(toPlot):
         min_y,max_y = getMinMax(rndMat[1], min_y, max_y)
         plt.plot(x,rndMat[1],'o-',label='write bs='+bsLabels[i])
     
-    x = range(0,pT.HddTest.HddTest.maxRnds+1,16)
+    x = range(0,rnds+1,16)
     plt.xticks(x)
     plt.suptitle("TP Measurement Plot",fontweight='bold')    
     plt.xlabel("Area of Device (in rounds)")
