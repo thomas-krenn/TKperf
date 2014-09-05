@@ -35,7 +35,7 @@ class DeviceTest(object):
         ## User defined options
         self.__options = options
         ## A fio job used to run the tests
-        self.__fioJob = self.initFio()
+        self.__fioJob = FioJob()
         ## A list of filenames representing the generated plots
         self.__figures = []
         ## Measurement overview tables, from which plots are generated
@@ -67,31 +67,34 @@ class DeviceTest(object):
         '''
         self.__tables.append(tb)
 
+    def initialize(self):
+        ''' Initialize Device and FioJob to setup params. '''
+        self.getDevice().initialize()
+        self.initFio()
+
     def initFio(self):
         '''
         Initializes the fio job to run a performance test.
         @return An initialized fio job object
         '''
-        job = FioJob()
-        job.initialize()
-        job.addKVArg("filename",self.__device.getDevPath())
-        job.addKVArg("name",self.__testname)
-        job.addKVArg("direct","1")
-        job.addKVArg("minimal","1")
-        job.addKVArg("ioengine","libaio")
+        self.__fioJob.initialize()
+        self.__fioJob.addKVArg("filename",self.__device.getDevPath())
+        self.__fioJob.addKVArg("name",self.__testname)
+        self.__fioJob.addKVArg("direct","1")
+        self.__fioJob.addKVArg("minimal","1")
+        self.__fioJob.addKVArg("ioengine","libaio")
         if self.__options == None:
-            job.addKVArg("numjobs",str(1))
-            job.addKVArg("iodepth",str(1))
+            self.__fioJob.addKVArg("numjobs",str(1))
+            self.__fioJob.addKVArg("iodepth",str(1))
         else:
             if self.getOptions().getNj() != None:
-                job.addKVArg("numjobs",str(self.getOptions().getNj()))
+                self.__fioJob.addKVArg("numjobs",str(self.getOptions().getNj()))
             if self.getOptions().getIod() != None:
-                job.addKVArg("iodepth",str(self.getOptions().getIod()))
+                self.__fioJob.addKVArg("iodepth",str(self.getOptions().getIod()))
             if self.getOptions().getXargs() != None:
                 for arg in self.getOptions().getXargs():
-                    job.addSglArg(arg)
-        job.addSglArg("group_reporting")
-        return job
+                    self.__fioJob.addSglArg(arg)
+        self.__fioJob.addSglArg("group_reporting")
 
     @abstractmethod
     def testRound(self):
