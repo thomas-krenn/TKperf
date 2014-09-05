@@ -29,29 +29,29 @@ def stdyStVerPlt(toPlot,mode):
     @param toPlot A SsdTest object.
     @param mode A string representing the test mode (IOPS|LAT|TP)
     '''
-    x = np.array(toPlot.getStdyRnds())
+    x = np.array(toPlot.getStdyState().getStdyRnds())
     #calculate average and its top and bottom limit
     av = []
     avT = []
     avB = []
-    av.append(toPlot.getStdyAvg())
-    avTop = toPlot.getStdyAvg() * 1.10
-    avBot = toPlot.getStdyAvg() * 0.9
+    av.append(toPlot.getStdyState().getStdyAvg())
+    avTop = toPlot.getStdyState().getStdyAvg() * 1.10
+    avBot = toPlot.getStdyState().getStdyAvg() * 0.9
     avT.append(avTop)
     avB.append(avBot)
     av = av * len(x)
     avT = avT * len(x)
     avB = avB * len(x)
-    
+
     plt.clf()#clear
-    plt.plot(x,toPlot.getStdyValues(),'o', label=mode, markersize=10)
-    plt.plot(x, toPlot.getStdySlope()[0]*x + toPlot.getStdySlope()[1], 'r', label='Slope')
+    plt.plot(x,toPlot.getStdyState().getStdyValues(),'o', label=mode, markersize=10)
+    plt.plot(x, toPlot.getStdyState().getStdySlope()[0]*x + toPlot.getStdyState().getStdySlope()[1], 'r', label='Slope')
     plt.plot(x, av, '-', color='black',label='Average')
     plt.plot(x, avT, '--', color='black',label='Top')
     plt.plot(x, avB, '--', color='black',label='Bottom')
     
     #set the y axes to start at 3/4 of mininum
-    plt.ylim(min(toPlot.getStdyValues())*0.75,max(toPlot.getStdyValues())*1.25)
+    plt.ylim(min(toPlot.getStdyState().getStdyValues())*0.75,max(toPlot.getStdyState().getStdyValues())*1.25)
     plt.xticks(x)
     title = mode + " Steady State Verification Plot"
     plt.suptitle(title,fontweight='bold')
@@ -643,7 +643,7 @@ def calcMsmtTable(toPlot,mode):
     @param mode A string representing the test mode (IOPS|max-LAT|avg-LAT)
     '''
     mixWLds = []
-    mesWin = toPlot.getStdyRnds() #get measurement window, only include these values
+    mesWin = toPlot.getStdyState().getStdyRnds() #get measurement window, only include these values
     if mode == "IOPS":
         wlds = pT.SsdTest.IopsTest.mixWlds
         bsLabels = pT.SsdTest.IopsTest.bsLabels
@@ -719,7 +719,7 @@ def calcMsmtTPTable(toPlot):
             #we need k to calculate average
             k = 0
             #read and write have their round values
-            for rnd in toPlot.getStdyRnds():
+            for rnd in toPlot.getStdyState().getStdyRnds():
                 #calculate average iteratively
                 if wlds[i][j] != 0:
                     wlds[i][j] *= k
