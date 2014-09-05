@@ -151,6 +151,16 @@ class PerfTest(object):
         '''
         self.__tests.clear()
 
+    def initialize(self):
+        '''
+        Initialize the given tests, this sets the device and Fio
+        init params for all tests.
+        '''
+        sorted(self.__tests.items())
+        for k,v in self.__tests.items():
+            logging.info("# Initialiazing test "+k)
+            v.initialize()
+
     def runTests(self):
         '''
         Call the run method of every test in the test dictionary. The run method
