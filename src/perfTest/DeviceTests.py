@@ -71,6 +71,7 @@ class DeviceTest(object):
         ''' Initialize Device and FioJob to setup params. '''
         self.getDevice().initialize()
         self.initFio()
+        self.__fioJob.checkFioVersion()
 
     def initFio(self):
         '''
