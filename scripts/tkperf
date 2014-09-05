@@ -9,21 +9,17 @@ import argparse
 import logging
 import sys
 
-from fio.FioJob import FioJob
 from perfTest.DeviceTest import DeviceTest
 from perfTest.PerfTest import SsdPerfTest
 from perfTest.PerfTest import HddPerfTest
 import perfTest.PerfTest as pT
 
 if __name__ == '__main__':
-    vTest = FioJob()
-    fioVersion = vTest.__str__()#Fetch the fio version
     tkPerfVersion = "TKperf Version: " + pT.__version__
-    tkPerfVersion += " using " + fioVersion
-    parser = argparse.ArgumentParser()
     
+    parser = argparse.ArgumentParser()
     parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
-    parser.add_argument("testname",help="name of the fio job, corresponds to the result output file")
+    parser.add_argument("testname",help="name of the performance tests, corresponds to the result output filenames")
     parser.add_argument("device",help="device to run fio test on")
     
     parser.add_argument("-v","--version", help="get the version information", action='version',version=tkPerfVersion)
@@ -45,23 +41,18 @@ if __name__ == '__main__':
                         choices=['iops','tp'],action='append',dest='hddt')
     parser.add_argument("-ssdt","--ssd_type",help="choose which tests are run",
                         choices=['iops','lat','tp','writesat'],action='append',dest='ssdt')
-  
     args = parser.parse_args()
-    if args.debug == True:
-        if args.fromxml == False:
-            logging.basicConfig(filename=args.testname+'.log',level=logging.DEBUG)
-        if args.fromxml == True:
-            logging.basicConfig(filename=args.testname+'.xml.log',level=logging.DEBUG)
-    if args.quiet == True:
-        if args.fromxml == False:
-            logging.basicConfig(filename=args.testname+'.log',level=logging.WARNING)
-        if args.fromxml == True:
-            logging.basicConfig(filename=args.testname+'.xml.log',level=logging.WARNING)
+    # Configure logging levels
+    if args.fromxml == False:
+        logfile = args.testname+'.log'
     else:
-        if args.fromxml == False:
-            logging.basicConfig(filename=args.testname+'.log',level=logging.INFO)
-        if args.fromxml == True:
-            logging.basicConfig(filename=args.testname+'.xml.log',level=logging.INFO)
+        logfile = args.testname+'.xml.log'
+    if args.debug == True:
+        logging.basicConfig(filename=lgofile,level=logging.DEBUG)
+    if args.quiet == True:
+        logging.basicConfig(filename=logfile,level=logging.WARNING)
+    else:
+        logging.basicConfig(filename=logfile,level=logging.INFO)
     
     #Don't print a warning if force is given or loading from xml
     if args.force_test == False:
