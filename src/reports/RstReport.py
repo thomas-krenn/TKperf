@@ -291,19 +291,19 @@ class RstReport(object):
         stdyStr = StringIO()
         stdyStr.write("Steady State has been reached:\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getReachStdyState()
+        print >>stdyStr, test.getStdyState().getReachStdyState()
         
         stdyStr.write("Steady State has been reached in rounds    :\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getStdyRnds()
+        print >>stdyStr, test.getStdyState().getStdyRnds()
         
         stdyStr.write("Values in stdy measurement window:\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getStdyValues()
+        print >>stdyStr, test.getStdyState().getStdyValues()
         
         stdyStr.write("Average in stdy measurement window:\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getStdyAvg()  
+        print >>stdyStr, test.getStdyState().getStdyAvg()  
         
         self.addString(stdyStr.getvalue())
         stdyStr.close()
@@ -429,6 +429,3 @@ class RstReport(object):
                 desc.write("with sequential read and write using direct IO. ")
                 self.addString(desc.getvalue())
                 desc.close()
-        
-        
-        
