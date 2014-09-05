@@ -69,21 +69,26 @@ if __name__ == '__main__':
     if args.refill_buffers != None:
         xargs = ['refill_buffers']
         options.setXargs(xargs)
-
+    # Create performance test objects, don't yet init them
+    if args.mode == "ssd":
+        if args.ssdt != None:
+            SsdPerfTest.testKeys = args.ssdt
+        myTest = SsdPerfTest(args.testname, devToTest,options)
+    if args.mode == "hdd":
+        if args.hddt != None:
+            HddPerfTest.testKeys = args.hddt
+        myTest = HddPerfTest(args.testname, devToTest,options)
     # First check if we are loading values from a given xml
     if args.fromxml == True:
         print "Loading from xml file..."
-        if args.mode == "ssd":
-            myTest = SsdPerfTest(args.testname, devToTest,options)
-        if args.mode == "hdd":
-            myTest = HddPerfTest(args.testname, devToTest,options)
         myTest.fromXml()
         myTest.genPlots()
         myTest.toRst()
         exit(0)
-
     # Start a real performance test
-    devToTest.initialize()
+    myTest.initialize()
+    # Keep used command line arguments
+    myTest.readCmdLineArgs(sys.argv)
     # Check if a correct setup is given
     if not devToTest.isInitialized() and args.desc_file == None:
         print "### Error! ###"
@@ -93,7 +98,8 @@ if __name__ == '__main__':
         exit(0)
     else:
         devToTest.readDevInfoFile(args.desc_file)
-    
+    if args.feature_matrix != None:
+        devToTest.readFeatureFile(args.feature_matrix)
     # Don't print a warning if force test is given
     if args.force_test == False:
         if devToTest.isMounted():
@@ -110,37 +116,8 @@ if __name__ == '__main__':
                 exit(0)
         else:
             print "You are not using a valid device or partition!"
-            exit(1)    
-    # Create the corresponding performance test
-    if args.mode == "hdd":
-        print "Starting HDD mode..."
-        #modify the test types if available
-        if args.hddt != None:
-            HddPerfTest.testKeys = args.hddt
-        myTest = HddPerfTest(args.testname,args.device,nj,iod)
-        
-    if args.mode == "ssd":
-        print "Starting SSD mode..."
-        #modify the test types if available
-        if args.ssdt != None:
-            SsdPerfTest.testKeys = args.ssdt
-        myTest = SsdPerfTest(args.testname, args.device, nj, iod)
-        if args.refill_buffers == True:
-            myTest.addSglArgToTests('refill_buffers')
-
-    myTest.readCmdLineArgs(sys.argv)
-    # Call device and feature matrix functions
-    if myTest.readDevInfoHdparm() != True:
-        if args.desc_file == None:
-            print "### Error! ###"
-            print "Please use a description file for the current device."
-            print "The information via hdparm -I is not reliable."
-            print "Use -dsc DESC_FILE to provide the information"
-            exit(0)
-        else:
-            myTest.readDevInfoFile(args.desc_file)
-    #add an extra feature matrix to the performance test
-    if args.feature_matrix != None:
-        myTest.readFeatureMatrix(args.feature_matrix)
-    print myTest.getDevInfo()
+            exit(1)
+    print "Starting "+args.mode+" mode..."
+    print "Testing device:"
+    print devToTest.getDevInfo()
     myTest.run()
