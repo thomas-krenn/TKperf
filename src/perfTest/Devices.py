@@ -88,7 +88,9 @@ class Device(object):
             return True
         else:
             return False
+    
     def isMounted(self): return self.__devismounted
+    def isAvailable(self): return self.__devisavailable
 
     def calcDevSizeKB(self):
         '''
