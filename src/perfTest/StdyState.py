@@ -35,6 +35,7 @@ class StdyState(object):
         ##States if the steady state has been reached or not
         self.__reachStdyState = None
 
+    def getRnds(self): return self.__rounds
     def setReachStdyState(self,s): self.__reachStdyState = s
 
     def isSteady(self):
