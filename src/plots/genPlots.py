@@ -81,7 +81,7 @@ def stdyStConvPlt(toPlot,mode):
     @param toPlot A SsdTest object.
     @param mode A string representing the test mode (IOPS|LAT)
     '''
-    rnds = toPlot.getRnds()
+    rnds = toPlot.getStdyState().getRnds()
     matrices = toPlot.getRndMatrices()
     bsLens = len(matrices[0][-1])#fetch the number of bs of the first matrix
     
@@ -397,8 +397,7 @@ def tpRWStdyStConvPlt(toPlot):
     @param toPlot A SsdTest object.
     '''
     matrices = deepcopy(toPlot.getRndMatrices())
-    #TODO Change to getRnds()?
-    rnds = len(matrices[0][0])#fetch the number of total rounds
+    rnds = toPlot.getStdyState().getRnds()#fetch the number of total rounds
     bsLens = len(matrices)#fetch the number of bs, each row is a bs in the matrix
     bsLabels = pT.SsdTest.TPTest.bsLabels
     
