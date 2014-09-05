@@ -8,6 +8,8 @@ import logging
 import json
 from lxml import etree
 
+import perfTest.PerfTest as pT
+
 class Options(object):
     '''
     A class holding user defined options on command line.
@@ -57,7 +59,14 @@ class Options(object):
         @param root The given element containing the information about
         the object to be initialized.
         '''
-        self.__numJobs = json.loads(root.findtext('numjobs'))
-        self.__ioDepth = json.loads(root.findtext('iodepth'))
-        self.__xargs = json.loads(root.findtext('xargs'))
+        version = pT.__version__
+        version_l = version.group().split('.')
+        if version_l[0] <2:
+            self.__numJobs = json.loads(next(root.iter("numjobs")).tag)
+            self.__ioDepth = json.loads(next(root.iter("iodepth")).tag)
+            self.__xargs = json.loads(next(root.iter("xargs")).tag)
+        else:
+            self.__numJobs = json.loads(root.findtext('numjobs'))
+            self.__ioDepth = json.loads(root.findtext('iodepth'))
+            self.__xargs = json.loads(root.findtext('xargs'))
         logging.info("# Loading options from xml")
