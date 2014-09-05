@@ -13,7 +13,7 @@ class Options(object):
     A class holding user defined options on command line.
     '''
 
-    def __init__(self, nj, iod, xargs):
+    def __init__(self, nj=1, iod=1, xargs=None):
         '''
         Constructor
         @param nj Number of jobs
