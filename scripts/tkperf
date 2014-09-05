@@ -10,6 +10,9 @@ import logging
 import sys
 
 from perfTest.DeviceTest import DeviceTest
+from perfTest.Devices import SSD
+from perfTest.Devices import HDD
+from perfTest.Options import Options
 from perfTest.PerfTest import SsdPerfTest
 from perfTest.PerfTest import HddPerfTest
 import perfTest.PerfTest as pT
@@ -53,8 +56,37 @@ if __name__ == '__main__':
         logging.basicConfig(filename=logfile,level=logging.WARNING)
     else:
         logging.basicConfig(filename=logfile,level=logging.INFO)
+    # Create objects, a device and given options
+    if args.mode == "ssd":
+        devToTest = SSD(args.mode,args.device,args.testname)
+    if args.mode == "hdd":
+        devToTest = HDD(args.mode,args.device,args.testname)
+    options = Options()
+    if args.numjobs != None:
+        options.setNj(args.numjobs)
+    if args.iodepth != None:
+        options.setIod(args.iodepth)
+    if args.refill_buffers != None:
+        xargs = ['refill_buffers']
+        options.setXargs(xargs)
+
+    # First check if we are loading values from a given xml
+    if args.fromxml == True:
+        print "Loading from xml file..."
+        if args.mode == "ssd":
+            myTest = SsdPerfTest(args.testname, args.device,nj, iod)
+        if args.mode == "hdd":
+            myTest = HddPerfTest(args.testname, args.device,nj, iod)
+        myTest.fromXml()
+        myTest.getPlots()
+        myTest.toRst()
+        exit(0)
     
-    #Don't print a warning if force is given or loading from xml
+    
+    
+    
+    
+        #Don't print a warning if force is given or loading from xml
     if args.force_test == False:
         if args.fromxml == False:
             toTest = DeviceTest(args.testname,args.device)
@@ -74,28 +106,7 @@ if __name__ == '__main__':
                 print "You are not using a valid device or partition!"
                 exit(1)    
         
-    #check if iodepth is used
-    if args.numjobs == None:
-        nj = 1
-    else:
-        nj = args.numjobs
-    if args.iodepth == None:
-        iod = 1
-    else:
-        iod = args.iodepth
-        
-    # In xml mode only load objects, don't run tests
-    if args.fromxml == True:
-        print "Loading from xml file..."
-        if args.mode == "ssd":
-            myTest = SsdPerfTest(args.testname, args.device,nj, iod)
-        if args.mode == "hdd":
-            myTest = HddPerfTest(args.testname, args.device,nj, iod)
-        myTest.fromXml()
-        myTest.getPlots()
-        myTest.toRst()
-        exit(0)
-        
+
     if args.mode == "hdd":
         print "Starting HDD mode..."
         #modify the test types if available
