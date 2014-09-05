@@ -252,7 +252,7 @@ class SsdIopsTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
-        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        logging.info("########### Loading IOPS test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
     def genPlots(self):
@@ -415,7 +415,7 @@ class SsdLatencyTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
-        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        logging.info("########### Loading latency test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
     def genPlots(self):
@@ -580,7 +580,7 @@ class SsdTPTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
-        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        logging.info("########### Loading TP test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
     def genPlots(self):
@@ -721,7 +721,7 @@ class SsdWriteSatTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__rounds = json.loads(root.findtext('rndnr'))
-        logging.info("########### Loading from "+self.getTestname()+".xml ###########")
+        logging.info("########### Loading write saturation test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
     def genPlots(self):
