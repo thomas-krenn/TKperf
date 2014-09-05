@@ -74,39 +74,44 @@ if __name__ == '__main__':
     if args.fromxml == True:
         print "Loading from xml file..."
         if args.mode == "ssd":
-            myTest = SsdPerfTest(args.testname, args.device,nj, iod)
+            myTest = SsdPerfTest(args.testname, devToTest,options)
         if args.mode == "hdd":
-            myTest = HddPerfTest(args.testname, args.device,nj, iod)
+            myTest = HddPerfTest(args.testname, devToTest,options)
         myTest.fromXml()
-        myTest.getPlots()
+        myTest.genPlots()
         myTest.toRst()
         exit(0)
-    
-    
-    
-    
-    
-        #Don't print a warning if force is given or loading from xml
-    if args.force_test == False:
-        if args.fromxml == False:
-            toTest = DeviceTest(args.testname,args.device)
-            if toTest.checkDevIsMounted() == True:
-                print "!!!WARNING!!!"
-                print "You are writing to a mounted device, this is highly dangerous!"
-                exit(0)
-            if toTest.checkDevIsAvbl() == True:
-                print "!!!Attention!!!"
-                print "All data on " + args.device + " will be lost!"
-                print "Are you sure you want to continue? (In case you really know what you are doing.)"
-                print "Press 'y' to continue, any key to stop:"
-                key = raw_input()
-                if key != 'y':
-                    exit(0)
-            else:
-                print "You are not using a valid device or partition!"
-                exit(1)    
-        
 
+    # Start a real performance test
+    devToTest.initialize()
+    # Check if a correct setup is given
+    if not devToTest.isInitialized() and args.desc_file == None:
+        print "### Error! ###"
+        print "Please use a description file for the current device."
+        print "The information via hdparm -I is not reliable."
+        print "Use -dsc DESC_FILE to provide the information"
+        exit(0)
+    else:
+        devToTest.readDevInfoFile(args.desc_file)
+    
+    # Don't print a warning if force test is given
+    if args.force_test == False:
+        if devToTest.isMounted():
+            print "!!!WARNING!!!"
+            print "You are testing a mounted device, this is highly dangerous!"
+            exit(0)
+        if devToTest.isAvailable():
+            print "!!!Attention!!!"
+            print "All data on " + args.device + " will be lost!"
+            print "Are you sure you want to continue? (In case you really know what you are doing.)"
+            print "Press 'y' to continue, any key to stop:"
+            key = raw_input()
+            if key != 'y':
+                exit(0)
+        else:
+            print "You are not using a valid device or partition!"
+            exit(1)    
+    # Create the corresponding performance test
     if args.mode == "hdd":
         print "Starting HDD mode..."
         #modify the test types if available
