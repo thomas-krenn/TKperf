@@ -291,7 +291,7 @@ class RstReport(object):
         stdyStr = StringIO()
         stdyStr.write("Steady State has been reached:\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getStdyState().getReachStdyState()
+        print >>stdyStr, test.getStdyState().isSteady()
         
         stdyStr.write("Steady State has been reached in rounds    :\n")
         stdyStr.write(" - ")
