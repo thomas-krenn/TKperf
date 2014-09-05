@@ -51,7 +51,7 @@ class FioJob(object):
         fio.wait()
         if fio.returncode != 0:
             logging.error("# Error: command 'which fio' returned an error code.")
-            exit(1)
+            raise RuntimeError, "which fio command error"
 
         self.__fioPath = stdout.rstrip("\n");
         fio = subprocess.Popen(['fio','--version'],stdout=subprocess.PIPE)
@@ -61,7 +61,7 @@ class FioJob(object):
     def getFioVersion(self):
         ''' Return the current fio version string. '''
         return self.__fioVersion
-    
+
     def setFioVersion(self,fioStr):
         ''' Set the used fio version (useful if loading from xml).'''
         self.__fioVersion = fioStr
@@ -72,16 +72,16 @@ class FioJob(object):
             match = re.search(r'[\d\.]+',self.__fioVersion)
             if match == None:
                 logging.error("# Error: checking fio version returned a none string.")
-                exit(1)
+                raise RuntimeError, "fio version string error"
             version = match.group().split('.')
             if int(version[0]) < 2:
                 logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
-                exit(1)
-            if int(version[0]) > 2:
+                raise RuntimeError, "fio version to old error"
+            if int(version[0]) >= 2:
                 if int(version[1]) == 0:
                     if int(version[2]) < 3:
                         logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
-                        exit(1)
+                        raise RuntimeError, "fio version to old error"
 
     def appendXml(self,root):
         '''
