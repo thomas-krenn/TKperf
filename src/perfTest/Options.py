@@ -8,8 +8,6 @@ import logging
 import json
 from lxml import etree
 
-import perfTest.PerfTest as pT
-
 class Options(object):
     '''
     A class holding user defined options on command line.
@@ -59,14 +57,22 @@ class Options(object):
         @param root The given element containing the information about
         the object to be initialized.
         '''
-        version = pT.__version__
-        version_l = version.group().split('.')
-        if version_l[0] <2:
-            self.__numJobs = json.loads(next(root.iter("numjobs")).tag)
-            self.__ioDepth = json.loads(next(root.iter("iodepth")).tag)
-            self.__xargs = json.loads(next(root.iter("xargs")).tag)
-        else:
+        if root.findtext('numjobs'):
             self.__numJobs = json.loads(root.findtext('numjobs'))
             self.__ioDepth = json.loads(root.findtext('iodepth'))
-            self.__xargs = json.loads(root.findtext('xargs'))
+            if root.findtext('xargs'):
+                self.__xargs = json.loads(root.findtext('xargs'))
+        else:
+            # In older tkperf version fio params are in every test
+            # therefore search recursively, take only the params 
+            # from the first test
+            for tag in ['iops','lat','tp','writesat']:
+                for elem in root.iterfind(tag):
+                    if elem.tag == tag:
+                        self.__numJobs = json.loads(elem.findtext('numjobs'))
+                        self.__ioDepth = json.loads(elem.findtext('iodepth'))
+                        if root.findtext('xargs'):
+                            self.__xargs = json.loads(root.findtext('xargs'))
+                        break
+                if self.__numJobs != None: break
         logging.info("# Loading options from xml")

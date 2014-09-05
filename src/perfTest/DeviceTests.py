@@ -10,8 +10,6 @@ from collections import deque
 from lxml import etree
 import json
 
-from perfTest.Devices import Device
-from perfTest.Options import Options
 from perfTest.StdyState import StdyState
 from fio.FioJob import FioJob
 import plots.genPlots as pgp
