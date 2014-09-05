@@ -338,7 +338,7 @@ class SsdPerfTest(PerfTest):
         for keys in tests.iterkeys():
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                              self.getTestDate())
-            rst.addFioJobInfo(tests[keys].getNj(), tests[keys].getIod())
+            rst.addFioJobInfo(tests[keys].getOptions().getNj(), tests[keys].getOptions().getIod())
             rst.addOSInfo(self.getOSInfo())
             rst.addGeneralInfo('ssd')
             break
