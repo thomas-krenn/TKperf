@@ -47,9 +47,10 @@ class Options(object):
         e = etree.SubElement(r,'iodepth')
         e.text = data
         
-        data = json.dumps(list(self.__xargs))
-        e = etree.SubElement(r,'xargs')
-        e.text = data
+        if self.__xargs != None:
+            data = json.dumps(list(self.__xargs))
+            e = etree.SubElement(r,'xargs')
+            e.text = data
 
     def fromXml(self,root):
         '''
