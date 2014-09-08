@@ -27,11 +27,11 @@ class Options(object):
         ## Further single arguments as list for fio.
         self.__xargs = xargs
 
-    def getNj(self): return self.__numJobs
-    def getIod(self): return self.__ioDepth
+    def getNj(self): return self.__nj
+    def getIod(self): return self.__iod
     def getXargs(self): return self.__xargs
-    def setNj(self,nj): self.__numJobs = nj
-    def setIod(self,iod): self.__ioDepth = iod
+    def setNj(self,nj): self.__nj = nj
+    def setIod(self,iod): self.__iod = iod
     def setXargs(self,xargs): self.__xargs = xargs
     
     def appendXml(self,r):
@@ -39,11 +39,11 @@ class Options(object):
         Append the information about options to a XML node. 
         @param root The xml root tag to append the new elements to
         ''' 
-        data = json.dumps(list(self.__numJobs))
+        data = json.dumps(list(self.__nj))
         e = etree.SubElement(r,'numjobs')
         e.text = data
         
-        data = json.dumps(list(self.__ioDepth))
+        data = json.dumps(list(self.__iod))
         e = etree.SubElement(r,'iodepth')
         e.text = data
         
@@ -58,8 +58,8 @@ class Options(object):
         the object to be initialized.
         '''
         if root.findtext('numjobs'):
-            self.__numJobs = json.loads(root.findtext('numjobs'))
-            self.__ioDepth = json.loads(root.findtext('iodepth'))
+            self.__nj = json.loads(root.findtext('numjobs'))
+            self.__iod = json.loads(root.findtext('iodepth'))
             if root.findtext('xargs'):
                 self.__xargs = json.loads(root.findtext('xargs'))
         else:
@@ -69,15 +69,15 @@ class Options(object):
             for tag in ['iops','lat','tp','writesat']:
                 for elem in root.iterfind(tag):
                     if elem.tag == tag:
-                        self.__numJobs = json.loads(elem.findtext('numjobs'))
-                        self.__ioDepth = json.loads(elem.findtext('iodepth'))
+                        self.__nj = json.loads(elem.findtext('numjobs'))
+                        self.__iod = json.loads(elem.findtext('iodepth'))
                         if root.findtext('xargs'):
                             self.__xargs = json.loads(root.findtext('xargs'))
                         break
-                if self.__numJobs != None: break
+                if self.__nj != None: break
         logging.info("# Loading options from xml")
-        logging.info("# Options nj:"+str(self.__numJobs))
-        logging.info("# Options iod: "+str(self.__ioDepth))
+        logging.info("# Options nj:"+str(self.__nj))
+        logging.info("# Options iod: "+str(self.__iod))
         if self.__xargs != None:
             logging.info("# Options xargs:")
             logging.info(self.__xargs)
