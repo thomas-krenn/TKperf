@@ -8,9 +8,8 @@ from copy import deepcopy
 import os
 import inspect
 
-import perfTest.SsdTest as ssd
-import perfTest.HddTest as hdd
-#from perfTest.HddTest import HddTest
+import perfTest.DeviceTests as tests
+from perfTest.StdyState import StdyState
 
 class RstReport(object):
     '''
@@ -276,8 +275,8 @@ class RstReport(object):
             info.write("Therefore the test can be stopped and the performance values of the measurement window can be taken ")
             info.write("for the measurement plots. If the steady state has not been reached after a maximum number of rounds the test ")
             info.write("can be stopped as well. The numbers for these two variables are:\n\n")
-            print >>info, "- Measurement Window: " + str(ssd.StdyTest.testMesWindow)
-            print >>info, "- Max. number of rounds: " + str(ssd.StdyTest.testRnds) + '\n'
+            print >>info, "- Measurement Window: " + str(StdyState.testMesWindow)
+            print >>info, "- Max. number of rounds: " + str(StdyState.testRnds) + '\n'
             self.addString(info.getvalue())
             info.close()
     
@@ -326,10 +325,10 @@ class RstReport(object):
                 print >>desc, "\tWorkload Ind. Preconditioning"
                 print >>desc, "\tWhile not Steady State"
                 print >>desc, "\t\tFor workloads ",
-                print >>desc, ssd.IopsTest.mixWlds
+                print >>desc, tests.SsdIopsTest.mixWlds
                 desc.write('\t\t\t')
                 print >>desc, "For block sizes",
-                print >>desc, ssd.IopsTest.bsLabels
+                print >>desc, tests.SsdIopsTest.bsLabels
                 desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
                 desc.write("The average number of read and write IOPS is measured and summed up, therefore 56 values are ")
                 desc.write("the result of the two loops.\n")
@@ -344,7 +343,7 @@ class RstReport(object):
                 desc.write("The throughput test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
                 print >>desc, "For block sizes ",
-                print >>desc, ssd.TPTest.bsLabels
+                print >>desc, tests.SsdTPTest.bsLabels
                 desc.write('\t\t')
                 print >>desc, "Make Secure Erase"
                 desc.write('\t\t')
@@ -369,10 +368,10 @@ class RstReport(object):
                 print >>desc, "\tWorkload Ind. Preconditioning"
                 print >>desc, "\tWhile not Steady State"
                 print >>desc, "\t\tFor workloads ",
-                print >>desc, ssd.LatencyTest.mixWlds
+                print >>desc, tests.SsdLatencyTest.mixWlds
                 desc.write('\t\t\t')
                 print >>desc, "For block sizes",
-                print >>desc, ssd.LatencyTest.bsLabels
+                print >>desc, tests.SsdLatencyTest.bsLabels
                 desc.write("\nFor all block sizes random read, a 65/35 read/write mixed workload and random write is carried out for 60 ") 
                 desc.write("seconds using direct IO. ")
                 desc.write("For every combination the Min, Max and Mean Latency is measured. ")
@@ -402,13 +401,13 @@ class RstReport(object):
                 desc = StringIO()
                 desc.write("The IOPS test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
-                print >>desc, "Divide device in " + str(hdd.HddTest.maxRnds) + " parts"
-                print >>desc, "\tFor range(" + str(hdd.HddTest.maxRnds) + ")"
+                print >>desc, "Divide device in " + str(tests.HddIopsTest.maxRnds) + " parts"
+                print >>desc, "\tFor range(" + str(tests.HddIopsTest.maxRnds) + ")"
                 print >>desc, "\t\tFor workloads ",
-                print >>desc, hdd.IopsTest.mixWlds
+                print >>desc, tests.HddIopsTest.mixWlds
                 desc.write('\t\t\t')
                 print >>desc, "For block sizes",
-                print >>desc, hdd.IopsTest.bsLabels
+                print >>desc, tests.HddIopsTest.bsLabels
                 desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
                 desc.write("The IOPS of one round are an indicator for the random performance of the corresponding area.")
                 self.addString(desc.getvalue())
@@ -418,9 +417,9 @@ class RstReport(object):
                 desc.write("The throughput test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
                 print >>desc, "For block sizes ",
-                print >>desc, hdd.TPTest.bsLabels
+                print >>desc, tests.HddTPTest.bsLabels
                 desc.write('\t\t')
-                print >>desc, "For range(" + str(hdd.HddTest.maxRnds) + ")"
+                print >>desc, "For range(" + str(tests.HddTPTest.maxRnds) + ")"
                 desc.write('\t\t\t')
                 print >>desc, "Sequential read"
                 desc.write('\t\t\t')
