@@ -769,7 +769,6 @@ class HddIopsTest(DeviceTest):
         self.getFioJob().addKVArg("rw","randrw")
         self.getFioJob().addKVArg("runtime","60")
 
-    def getRnds(self): return self.__rounds
     def getRndMatrices(self): return self.__roundMatrices
 
     def toLog(self):
@@ -858,8 +857,6 @@ class HddIopsTest(DeviceTest):
         if rem != 0:
             increment = increment - rem
         logging.info("Increment in byte: "+str(increment))
-        
-        #rounds are the same as for TP
         offset = 0
         for i in range(HddIopsTest.maxRnds):
             logging.info("#################")
@@ -877,6 +874,145 @@ class HddIopsTest(DeviceTest):
         @return True if all tests were run
         '''
         logging.info("########### Starting HDD IOPS Test ###########")
+        self.runRounds()
+        self.toLog()
+        return True
+
+class HddTPTest(DeviceTest):
+    '''
+    A class to carry out the IOPS test on HDDs.
+    '''
+    ## Number of rounds to carry out the tests
+    maxRnds = 128
+    ##Labels of block sizes for throughput test
+    bsLabels = ["1024k","4k"]
+    
+    def __init__(self,testname,device,options=None):
+        '''
+        Constructor.
+        '''
+        super(HddIopsTest,self).__init__(testname,device,options)
+        ## A list of matrices with the collected fio measurement values of each round.
+        self.__roundMatrices = []
+
+    def getRndMatrices(self): return self.__roundMatrices
+
+    def toLog(self):
+        '''
+        Log information about TP test.
+        '''
+        logging.info("TP rounds: ")
+        logging.info(HddTPTest.maxRnds)
+        logging.info("Round matrices: ")
+        logging.info(self.__roundMatrices)
+
+    def toXml(self,root):
+        '''
+        Get the xml representation of the test.
+        @param root Name of the new root xml node
+        @return An xml root element containing the information about the test
+        ''' 
+        #root element of current xml child
+        r = etree.Element(root)
+        # Add Fio version to xml
+        self.getFioJob().appendXml(r)
+        # Add the options to xml
+        self.getOptions().appendXml(r)
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(r,'roundmat')
+        e.text = data
+        return r
+
+    def fromXml(self,root):
+        '''
+        Load and set from an xml representation of the HDD TP test.
+        @param root Name of root element from which to load values
+        '''
+        logging.info("########### Loading TP test from "+self.getTestname()+".xml ###########")
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.getFioJob().fromXml(root)
+        self.getOptions().fromXml(root)
+        self.toLog()
+
+    def testRound(self,bs,offset,size):
+        '''
+        Carry a read and write test over the whole device.
+        This is done with different block sizes.
+        @param bs The current block size to use.
+        @param offset The offset to start testing.
+        @param size The size to read starting from offset.
+        @return Read and Write bandwidths [tpRead,tpWrite]
+        '''
+        self.getFioJob().addKVArg("offset", str(offset))
+        self.getFioJob().addKVArg("size", str(size))
+        self.getFioJob().addKVArg("bs",bs)
+        jobOut = ''
+        tpRead = 0 #read bandwidth
+        tpWrite = 0#write bandwidth
+
+        #start read tests
+        self.getFioJob().addKVArg("rw","read")
+        call,jobOut = self.getFioJob().start()
+        if call == False:
+            exit(1)
+        logging.info("Read TP test:")
+        logging.info(jobOut)
+        logging.info("######")
+        tpRead = self.getFioJob().getTPRead(jobOut)
+    
+        #start write tests
+        self.getFioJob().addKVArg("rw","write")
+        call,jobOut = self.getFioJob().start()
+        if call == False:
+            exit(1)
+        logging.info("Write TP test:")
+        logging.info(jobOut)
+        logging.info("######")
+        tpWrite = self.getFioJob().getTPWrite(jobOut)
+        return [tpRead,tpWrite]
+
+    def runRounds(self):
+        '''
+        Run the rounds for TP HDD test.
+        '''
+        devSizeB = self.getDevice().getDevSizeB()
+        #In each round the offset is incremented
+        #if it can be divided by 512, we can also divide it by 128
+        increment = devSizeB / HddTPTest.maxRnds
+        #we must ensure that increment can be divided by 4096
+        #as we need to align the direct IO to block size. If it
+        #is an advanced sector format with 4k 4096 is ok, if the 
+        #sector size i 512b 4096 is also ok
+        rem = increment % 4096
+        if rem != 0:
+            increment = increment - rem
+        logging.info("Increment in byte: "+str(increment))
+        #Number of rounds are the same for IOPS and throughput
+        for j in HddTPTest.bsLabels:
+            tpRead_l = []
+            tpWrite_l = []
+            logging.info("#################")
+            logging.info("Current block size. "+str(j))
+            #set offset back for current bs
+            offset = 0
+            for i in range(HddTPTest.maxRnds):
+                logging.info("######")
+                logging.info("Round nr. "+str(i))
+                logging.info("Offset "+str(offset))
+                #we read and write increment starting at the offset
+                tpRead,tpWrite = self.testRound(j,offset,increment)
+                tpRead_l.append(tpRead)
+                tpWrite_l.append(tpWrite)
+                offset += increment
+            #finished current bs
+            self.getRndMatrices().append([tpRead_l,tpWrite_l])
+
+    def run(self):
+        '''
+        Start the rounds of the HDD IOPS test.
+        @return True if all tests were run
+        '''
+        logging.info("########### Starting HDD TP Test ###########")
         self.runRounds()
         self.toLog()
         return True
