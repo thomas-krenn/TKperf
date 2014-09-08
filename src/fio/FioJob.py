@@ -34,11 +34,15 @@ class FioJob(object):
     
     def __init__(self):
         ''' The constructor '''
+        ## Fio path
+        self.__fioPath = None
+        ## Fio version
+        self.__fioVersion = None
         ## Key value arguments e.g. name="test"
         self.__fioKVArgs = {}
         ## Single arguments e.g. group_reporting
         self.__fioSglArgs = []
-        
+
     def __str__(self):
         ''' Return a string representation of the fio executable. '''   
         res = "fio: " + self.__fioPath + ", " + self.__fioVersion
