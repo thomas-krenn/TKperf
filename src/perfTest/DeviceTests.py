@@ -878,6 +878,10 @@ class HddIopsTest(DeviceTest):
         self.toLog()
         return True
 
+    def genPlots(self):
+        ''' Generate plots for IOPS. '''
+        pgp.IOPSplot(self)
+
 class HddTPTest(DeviceTest):
     '''
     A class to carry out the IOPS test on HDDs.
@@ -1016,3 +1020,8 @@ class HddTPTest(DeviceTest):
         self.runRounds()
         self.toLog()
         return True
+
+    def genPlots(self):
+        ''' Generate plots for TP. '''
+        pgp.TPplot(self)
+        pgp.TPBoxPlot(self)
