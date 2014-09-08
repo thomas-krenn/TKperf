@@ -407,6 +407,10 @@ class SsdLatencyTest(DeviceTest):
         @return An xml root element containing the information about the test
         ''' 
         r = etree.Element(root)
+        # Add Fio version to xml
+        self.__fioJob.appendXml(r)
+        # Add the options to xml
+        self.__options.appendXml(r)
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -572,6 +576,10 @@ class SsdTPTest(DeviceTest):
         @return An xml root element containing the information about the test
         ''' 
         r = etree.Element(root)
+        # Add Fio version to xml
+        self.__fioJob.appendXml(r)
+        # Add the options to xml
+        self.__options.appendXml(r)
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -709,11 +717,13 @@ class SsdWriteSatTest(DeviceTest):
         ''' 
         #root element of current xml child
         r = etree.Element(root)
-        
+        # Add Fio version to xml
+        self.__fioJob.appendXml(r)
+        # Add the options to xml
+        self.__options.appendXml(r)
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
-        
         data = json.dumps(self.__rounds)
         e = etree.SubElement(r,'rndnr')
         e.text = data
