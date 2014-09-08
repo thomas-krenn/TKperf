@@ -884,7 +884,7 @@ class HddIopsTest(DeviceTest):
 
 class HddTPTest(DeviceTest):
     '''
-    A class to carry out the IOPS test on HDDs.
+    A class to carry out the TP test on HDDs.
     '''
     ## Number of rounds to carry out the tests
     maxRnds = 128
@@ -895,7 +895,7 @@ class HddTPTest(DeviceTest):
         '''
         Constructor.
         '''
-        super(HddIopsTest,self).__init__(testname,device,options)
+        super(HddTPTest,self).__init__(testname,device,options)
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
 
@@ -1013,7 +1013,7 @@ class HddTPTest(DeviceTest):
 
     def run(self):
         '''
-        Start the rounds of the HDD IOPS test.
+        Start the rounds of the HDD TP test.
         @return True if all tests were run
         '''
         logging.info("########### Starting HDD TP Test ###########")
