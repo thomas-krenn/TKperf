@@ -270,7 +270,23 @@ class PerfTest(object):
                     if test != None:
                         test.fromXml(elem)
                         self.addTest(tag, test)
-            #TODO Add HDD test here
+        elif isinstance(self, HddPerfTest):
+            for tag in HddPerfTest.testKeys:
+                for elem in root.iterfind(tag):
+                    test = None
+                    if elem.tag == HddPerfTest.iopsKey:
+                        test = tests.HddIopsTest(self.getTestname(),device,options)
+                    if elem.tag == HddPerfTest.tpKey:
+                        test = tests.HddTPTest(self.getTestname(),device,options)
+                    if test != None:
+                        test.fromXml(elem)
+                        self.addTest(tag, test)
+
+    def run(self):
+        self.runTests()
+        self.toXml()
+        self.genPlots()
+        self.toRst()
 
 class SsdPerfTest(PerfTest):
     '''
@@ -301,12 +317,6 @@ class SsdPerfTest(PerfTest):
                 test = tests.SsdWriteSatTest(testname,device,options)
             #Add the test to the key/value structure
             self.addTest(testType, test)
-
-    def run(self):
-        self.runTests()
-        self.toXml()
-        self.genPlots()
-        self.toRst()
 
     def toRst(self):
         tests = self.getTests()
@@ -371,88 +381,25 @@ class HddPerfTest(PerfTest):
     '''
     A performance test for hdds consists of all hdd tests.
     '''
-    
-    ## Keys valid for test dictionary and xml file
-    testKeys = ['iops','tp']
     ## Keys valid for tests
     iopsKey = 'iops'
     tpKey = 'tp'
-    
-    def __init__(self,testname,devicename, nj, iod):
-        PerfTest.__init__(self, testname, devicename)
-        
-        ## Number of jobs for fio.
-        self.__nj = nj
-        
-        ## Number of iodepth for fio.
-        self.__iod = iod
-        
+    ## Keys valid for test dictionary and xml file
+    testKeys = [iopsKey,tpKey]
+
+    def __init__(self,testname,device,options=None):
+        PerfTest.__init__(self, testname, device)
         #Add current date
         now = datetime.datetime.now()
         self.setTestDate(now.strftime("%Y-%m-%d"))
-        
-                #Add every test to the performance test
+        #Add every test to the performance test
         for testType in HddPerfTest.testKeys:
             if testType == HddPerfTest.iopsKey:
-                test = hdd.IopsTest(testname,devicename,nj,iod)
+                test = hdd.IopsTest(testname,device,options)
             if testType == HddPerfTest.tpKey:
-                test = hdd.TPTest(testname,devicename,nj,iod)
+                test = hdd.TPTest(testname,device,options)
             #add the test to the key/value structure
             self.addTest(testType, test)
-        
-    def run(self):
-        self.runTests()
-        self.toXml()
-        self.getPlots()
-        self.toRst()
-    
-    def fromXml(self):
-        '''
-        Reads out the xml file name 'testname.xml' and initializes the test
-        specified with xml. The valid tags are "iops,tp", but
-        there don't must be every tag in the file.
-        Afterwards the plotting and rst methods for the specified tests are
-        called.
-        '''
-        self.getXmlReport().fileToXml(self.getTestname())
-        self.resetTests()
-        root = self.getXmlReport().getXml()
-
-        if(root.findtext('testdate')):
-            self.setTestDate(json.loads(root.findtext('testdate')))
-
-        #first read the device information from xml
-        self.setDevInfo(json.loads(root.findtext('devinfo')))
-        
-        #read the feature matrix from the xml file
-        if(root.findtext('featmatrix')):
-            self.setFeatureMatrix(json.loads(root.findtext('featmatrix')))
-            
-        #read the operating system information
-        if(root.findtext('kernel')):
-            self.setOSInfo('kernel',json.loads(root.findtext('kernel')))
-        if(root.findtext('lsb')):
-            self.setOSInfo('lsb',json.loads(root.findtext('lsb')))
-        
-        #first read the device information from xml
-        if(root.findtext('ioperfversion')):
-            self.setIOPerfVersion(json.loads(root.findtext('ioperfversion')))
-            
-        if(root.findtext('cmdline')):
-            self.setCmdLineArgs(json.loads(root.findtext('cmdline')))
-        else:
-            self.setCmdLineArgs('n.a.')  
-
-        for tag in HddPerfTest.testKeys:
-            for elem in root.iterfind(tag):
-                test = None
-                if elem.tag == HddPerfTest.iopsKey:
-                    test = hdd.IopsTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
-                if elem.tag == HddPerfTest.tpKey:
-                    test = hdd.TPTest(self.getTestname(),self.getDevName(),self.__nj,self.__iod)
-                if test != None:
-                    test.fromXml(elem)
-                    self.addTest(tag, test)
 
     def toRst(self):
         tests = self.getTests()
@@ -466,34 +413,20 @@ class HddPerfTest(PerfTest):
         for keys in tests.iterkeys():
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                              self.getTestDate())
-            rst.addFioJobInfo(tests[keys].getNj(), tests[keys].getIod())
+            rst.addFioJobInfo(tests[keys].getOptions().getNj(), tests[keys].getOptions().getIod())
             rst.addOSInfo(self.getOSInfo())
             rst.addGeneralInfo('hdd')
             break
-        
         if HddPerfTest.iopsKey in tests:
             rst.addChapter("IOPS")
             rst.addTestInfo('hdd','iops',tests['iops'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['iops'].getFigures()):
                 rst.addFigure(fig,'hdd','iops',i)
-        
         if HddPerfTest.tpKey in tests:
             rst.addChapter("Throughput")
             rst.addTestInfo('hdd','tp',tests['tp'])
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['tp'].getFigures()):
                 rst.addFigure(fig,'hdd','tp',i)
-        
         rst.toRstFile()
-        
-    def getPlots(self):
-        tests = self.getTests()
-        if HddPerfTest.iopsKey in tests:
-            pgp.IOPSplot(tests['iops'])
-        if HddPerfTest.tpKey in tests:
-            pgp.TPplot(tests['tp'])
-            pgp.TPBoxPlot(tests['tp'])
-            
-
-        
