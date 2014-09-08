@@ -13,14 +13,12 @@ import datetime
 import os
 import time
 
-import perfTest.SsdTest as ssd
 import perfTest.DeviceTests as tests
-import perfTest.HddTest as hdd
+from perfTest.Devices import SSD
+from perfTest.Devices import HDD
+from perfTest.Options import Options
 from reports.XmlReport import XmlReport
 from reports.RstReport import RstReport
-import plots.genPlots as pgp
-from perfTest.Devices import SSD
-from perfTest.Options import Options
 
 class PerfTest(object):
     '''
@@ -271,6 +269,8 @@ class PerfTest(object):
                         test.fromXml(elem)
                         self.addTest(tag, test)
         elif isinstance(self, HddPerfTest):
+            device = HDD('hdd',None,self.getTestname()) 
+            device.fromXml(root)
             for tag in HddPerfTest.testKeys:
                 for elem in root.iterfind(tag):
                     test = None
@@ -347,7 +347,7 @@ class SsdPerfTest(PerfTest):
             for i,fig in enumerate(tests['iops'].getFigures()):
                 rst.addFigure(fig,'ssd','iops',i)
             rst.addSection("Measurement Window Summary Table")
-            rst.addTable(tests['iops'].getTables()[0],ssd.IopsTest.bsLabels,'iops')
+            rst.addTable(tests['iops'].getTables()[0],tests.SsdIopsTest.bsLabels,'iops')
         if SsdPerfTest.tpKey in tests:
             rst.addChapter("Throughput")
             rst.addTestInfo('ssd','tp',tests['tp'])
@@ -355,7 +355,7 @@ class SsdPerfTest(PerfTest):
             for i,fig in enumerate(tests['tp'].getFigures()):
                 rst.addFigure(fig,'ssd','tp',i)
             rst.addSection("Measurement Window Summary Table")    
-            rst.addTable(tests['tp'].getTables()[0],ssd.TPTest.bsLabels,'tp')
+            rst.addTable(tests['tp'].getTables()[0],tests.SsdTPTest.bsLabels,'tp')
         if SsdPerfTest.latKey in tests:
             rst.addChapter("Latency")
             rst.addTestInfo('ssd','lat',tests['lat'])
@@ -366,8 +366,8 @@ class SsdPerfTest(PerfTest):
                 if i == 2 or i == 3: continue
                 rst.addFigure(fig,'ssd','lat',i)
             rst.addSection("Measurement Window Summary Table")    
-            rst.addTable(tests['lat'].getTables()[0],ssd.LatencyTest.bsLabels,'avg-lat')#avg lat 
-            rst.addTable(tests['lat'].getTables()[1],ssd.LatencyTest.bsLabels,'max-lat')#max lat
+            rst.addTable(tests['lat'].getTables()[0],tests.SsdLatencyTest.bsLabels,'avg-lat')#avg lat 
+            rst.addTable(tests['lat'].getTables()[1],tests.SsdLatencyTest.bsLabels,'max-lat')#max lat
         if SsdPerfTest.wrKey in tests:
             rst.addChapter("Write Saturation")
             rst.addTestInfo('ssd','writesat',tests['writesat'])
@@ -395,9 +395,9 @@ class HddPerfTest(PerfTest):
         #Add every test to the performance test
         for testType in HddPerfTest.testKeys:
             if testType == HddPerfTest.iopsKey:
-                test = hdd.IopsTest(testname,device,options)
+                test = tests.HddIopsTest(testname,device,options)
             if testType == HddPerfTest.tpKey:
-                test = hdd.TPTest(testname,device,options)
+                test = tests.HddTPTest(testname,device,options)
             #add the test to the key/value structure
             self.addTest(testType, test)
 
