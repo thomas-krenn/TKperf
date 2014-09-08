@@ -98,7 +98,10 @@ class FioJob(object):
         @param root The given element containing the information about
         the object to be initialized.
         '''
-        self.__fioVersion = json.loads(root.findtext('fioversion'))
+        if root.findtext('fioversion'):
+            self.__fioVersion = json.loads(root.findtext('fioversion'))
+        else:
+            self.__fioVersion = 'n.a'
         logging.info("# Loading Fio version from xml")
 
     def getKVArgs(self):
