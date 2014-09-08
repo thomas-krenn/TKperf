@@ -615,15 +615,14 @@ class SsdWriteSatTest(DeviceTest):
     '''
     A class to carry out the Write Saturation test.
     '''
-    
     def __init__(self,testname,device,options=None):
         '''
         Constructor.
         '''
         super(SsdWriteSatTest,self).__init__(testname,device,options)
-        ##Number of rounds until write saturation test ended
+        ## Number of rounds until write saturation test ended
         self.__rounds = 0
-        ##Write saturation results: [iops_l,lats_l]
+        ## Write saturation results: [iops_l,lats_l]
         self.__roundMatrices = []
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
@@ -751,14 +750,133 @@ class SsdWriteSatTest(DeviceTest):
 
 class HddIopsTest(DeviceTest):
     '''
-    Representing an IOPS test for a hdd based device.
+    A class to carry out the IOPS test on HDDs.
     '''
-    def testRound(self):
-        #TODO
-        return True
+    ## Number of rounds to carry out the tests
+    maxRnds = 128
+    ## Labels of block sizes for IOPS test
+    bsLabels = ["64k","16k","4k"]
+    ## Percentages of mixed workloads for IOPS test.
+    mixWlds = [100,50,0]
+    
+    def __init__(self,testname,device,options=None):
+        '''
+        Constructor.
+        '''
+        super(HddIopsTest,self).__init__(testname,device,options)
+        ##Write saturation results: [iops_l,lats_l]
+        self.__roundMatrices = []
+        self.getFioJob().addKVArg("rw","randrw")
+        self.getFioJob().addKVArg("runtime","60")
+
+    def getRnds(self): return self.__rounds
+    def getRndMatrices(self): return self.__roundMatrices
+
+    def toLog(self):
+        '''
+        Log information about IOPS test.
+        '''
+        logging.info("IOPS rounds: ")
+        logging.info(HddIopsTest.maxRnds)
+        logging.info("Round matrices: ")
+        logging.info(self.__roundMatrices)
+
+    def toXml(self,root):
+        '''
+        Get the xml representation of the test.
+        @param root Name of the new root xml node
+        @return An xml root element containing the information about the test
+        ''' 
+        #root element of current xml child
+        r = etree.Element(root)
+        # Add Fio version to xml
+        self.getFioJob().appendXml(r)
+        # Add the options to xml
+        self.getOptions().appendXml(r)
+        data = json.dumps(self.__roundMatrices)
+        e = etree.SubElement(r,'roundmat')
+        e.text = data
+        data = json.dumps(HddIopsTest.maxRnds)
+        e = etree.SubElement(r,'rndnr')
+        e.text = data
+        return r
+
+    def fromXml(self,root):
+        '''
+        Load and set from an xml representation of the HDD IOPS test.
+        @param root Name of root element from which to load values
+        '''
+        logging.info("########### Loading IOPS test from "+self.getTestname()+".xml ###########")
+        self.__roundMatrices = json.loads(root.findtext('roundmat'))
+        self.getFioJob().fromXml(root)
+        self.getOptions().fromXml(root)
+        self.toLog()
+
+    def testRound(self,offset,size):
+        '''
+        Carry out one IOPS test round.
+        The round consists of two inner loops: one iterating over the
+        percentage of random reads/writes in the mixed workload, the other
+        over different block sizes.
+        @return A matrix containing the sum of average IOPS
+        '''
+        
+        self.getFioJob().addKVArg("offset", str(offset))
+        self.getFioJob().addKVArg("size", str(size))
+        #Iterate over mixed rand read and write and vary block size
+        #save the output of fio for parsing and retreiving IOPS
+        jobOut = ''
+        rndMatrix = []
+        for i in HddIopsTest.mixWlds:
+            rwRow = []
+            for j in HddIopsTest.bsLabels:
+                self.getFioJob().addKVArg("rwmixread",str(i))
+                self.getFioJob().addKVArg("bs",j)
+                call,jobOut = self.getFioJob().start()
+                if call == False:
+                    exit(1)
+                logging.info("mixLoad: " +str(i))
+                logging.info("bs: "+j)
+                logging.info(jobOut)
+                logging.info("######")
+                rwRow.append(self.getFioJob().getIOPS(jobOut))
+            rndMatrix.append(rwRow)
+        return rndMatrix
+
     def runRounds(self):
-        #TODO
-        return True
+        '''
+        Run the rounds for IOPS HDD test.
+        '''
+        rndMatrix = []
+        devSizeKB = self.getDevice().getDevSizeKB()
+        increment = (devSizeKB * 1024) / self.maxRnds
+        #We must ensure that increment can be divided by 4096
+        #as we need to align the direct IO to block size. If it
+        #is an advanced sector format with 4k 4096 is ok, if the 
+        #sector size is 512b 4096 is also ok
+        rem = increment % 4096
+        if rem != 0:
+            increment = increment - rem
+        logging.info("Increment in byte: "+str(increment))
+        
+        #rounds are the same as for TP
+        offset = 0
+        for i in range(HddIopsTest.maxRnds):
+            logging.info("#################")
+            logging.info("Round nr. "+str(i))
+            logging.info("Offset "+str(offset))
+            #we read and write increment starting at the offset
+            rndMatrix = self.testRound(offset,increment)
+            self.getRndMatrices().append(rndMatrix)
+            offset += increment
+        return
+
     def run(self):
-        #TODO
+        '''
+        Start the rounds of the HDD IOPS test.
+        @return True if all tests were run
+        '''
+        logging.info("########### Starting HDD IOPS Test ###########")
+        self.runRounds()
+        self.toLog()
         return True
