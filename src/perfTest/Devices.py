@@ -337,7 +337,7 @@ class HDD(Device):
     Representing a HDD.
     '''
     def readDevInfo(self):
-        super(SSD, self).readDevInfo()
+        super(HDD, self).readDevInfo()
 
     def secureErase(self):
         return True
