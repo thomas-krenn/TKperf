@@ -308,6 +308,7 @@ class SSD(Device):
         @exception RuntimeError if fio command fails
         '''
         job = FioJob()
+        job.initialize()
         job.addKVArg("filename",self.getDevPath())
         job.addKVArg("bs","128k")
         job.addKVArg("rw","write")
