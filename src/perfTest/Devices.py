@@ -175,7 +175,7 @@ class Device(object):
             raise RuntimeError, "cat /proc/partitions command error"
         else:
             for line in stdout.split('\n'):
-                if line.find(self.__devicename[5:]) > -1:
+                if line.find(self.__path[5:]) > -1:
                     logging.info("#"+line)
                     return True
             return False
