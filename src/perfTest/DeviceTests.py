@@ -282,6 +282,8 @@ class SsdLatencyTest(DeviceTest):
         '''
         Constructor.
         '''
+        ## Keep user options
+        self.__userOptions = options
         if options != None:
             #For latency the specification says to use 1 job/thread, 1 outstanding IO
             wsoptions = Options(1,1)
@@ -386,13 +388,13 @@ class SsdLatencyTest(DeviceTest):
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
         try:
-            if self.getOptions() == None:
+            if self.__userOptions == None:
                 self.getDevice().precondition(1,1)
             else:
-                if self.getOptions().getNj() != None:
-                    nj = self.getOptions().getNj()
-                if self.getOptions().getIod() != None:
-                    iod = self.getOptions().getIod()
+                if self.__userOptions.getNj() != None:
+                    nj = self.__userOptions.getNj()
+                if self.__userOptions.getIod() != None:
+                    iod = self.__userOptions.getIod()
                 self.getDevice().precondition(nj,iod)
         except RuntimeError:
             logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevPath())
