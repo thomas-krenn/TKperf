@@ -92,7 +92,7 @@ class FioJob(object):
         Append the information about Fio to a XML node. 
         @param root The xml root tag to append the new elements to
         ''' 
-        data = json.dumps(list(self.__fioVersion))
+        data = json.dumps(self.__fioVersion)
         e = etree.SubElement(root,'fioversion')
         e.text = data
 
