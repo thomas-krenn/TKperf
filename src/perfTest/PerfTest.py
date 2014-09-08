@@ -159,10 +159,7 @@ class PerfTest(object):
         sorted(self.__tests.items())
         for k,v in self.__tests.items():
             logging.info("# Initialiazing test "+k)
-            try:
-                v.initialize()
-            except RuntimeError:
-                logging.error("# Could not initialize test "+k)
+            v.initialize()
 
     def runTests(self):
         '''
