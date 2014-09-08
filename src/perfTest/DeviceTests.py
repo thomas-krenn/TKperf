@@ -287,7 +287,7 @@ class SsdLatencyTest(DeviceTest):
             wsoptions = Options(1,1)
             if options.getXargs() != None:
                 wsoptions.setXargs(options.getXargs())
-        super(SsdLatencyTest,self).__init__(testname,device,options)
+        super(SsdLatencyTest,self).__init__(testname,device,wsoptions)
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
@@ -665,22 +665,17 @@ class SsdWriteSatTest(DeviceTest):
         '''
         Carry out the write saturation test rounds
         '''
-        (call,devSzB) = self.getDevSizeB()
-        if call == False:
-            logging.error("#Could not get size of device.")
-            exit(1)
-        else:
-            logging.info("#Device size in Byte: " + str(devSzB))
+        devSzB = self.getDevice().getDevSizeB()
+        logging.info("#Device size in Byte: " + str(devSzB))
         totWriteIO = 0 #total written IO in KB, must be greater than 4xDevice 
         #carry out the test for a maximum of 24h, one round runs for 1 minute
         maxRounds = 60*24
-        
         writeIO = 0
         iops_l = [] #overall list of iops
         iops = 0 #IOPS per round
         lats_l = []#overall list of latencies
         lats = []#latencies per round
-        
+
         self.__rounds = maxRounds
         #assume all rounds must be carried out            
         for i in range(maxRounds):
@@ -693,7 +688,6 @@ class SsdWriteSatTest(DeviceTest):
             if i == 0:
                 logging.info("#If write IO stays steady, it will take "
                              +str((devSzB * 4) / (writeIO * 1024))+" rounds to complete.")
-            
             #Check if 4 times the device size has been reached
             if (totWriteIO * 1024) >= (devSzB * 4):
                 self.__rounds = i
