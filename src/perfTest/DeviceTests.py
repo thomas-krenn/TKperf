@@ -241,9 +241,9 @@ class SsdIopsTest(DeviceTest):
         ''' 
         r = etree.Element(root)
         # Add Fio version to xml
-        self.__fioJob.appendXml(r)
+        self.getFioJob().appendXml(r)
         # Add the options to xml
-        self.__options.appendXml(r)
+        self.getOptions().appendXml(r)
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -257,8 +257,8 @@ class SsdIopsTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
-        self.__fioJob.fromXml(root)
-        self.__options.fromXml(root)
+        self.getFioJob().fromXml(root)
+        self.getOptions().fromXml(root)
         logging.info("########### Loading IOPS test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
@@ -411,9 +411,9 @@ class SsdLatencyTest(DeviceTest):
         ''' 
         r = etree.Element(root)
         # Add Fio version to xml
-        self.__fioJob.appendXml(r)
+        self.getFioJob().appendXml(r)
         # Add the options to xml
-        self.__options.appendXml(r)
+        self.getOptions().appendXml(r)
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -427,8 +427,8 @@ class SsdLatencyTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
-        self.__fioJob.fromXml(root)
-        self.__options.fromXml(root)
+        self.getFioJob().fromXml(root)
+        self.getOptions().fromXml(root)
         logging.info("########### Loading latency test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
@@ -582,9 +582,9 @@ class SsdTPTest(DeviceTest):
         ''' 
         r = etree.Element(root)
         # Add Fio version to xml
-        self.__fioJob.appendXml(r)
+        self.getFioJob().appendXml(r)
         # Add the options to xml
-        self.__options.appendXml(r)
+        self.getOptions().appendXml(r)
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -598,8 +598,8 @@ class SsdTPTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
-        self.__fioJob.fromXml(root)
-        self.__options.fromXml(root)
+        self.getFioJob().fromXml(root)
+        self.getOptions().fromXml(root)
         logging.info("########### Loading TP test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
@@ -725,9 +725,9 @@ class SsdWriteSatTest(DeviceTest):
         #root element of current xml child
         r = etree.Element(root)
         # Add Fio version to xml
-        self.__fioJob.appendXml(r)
+        self.getFioJob().appendXml(r)
         # Add the options to xml
-        self.__options.appendXml(r)
+        self.getOptions().appendXml(r)
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -743,8 +743,8 @@ class SsdWriteSatTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__rounds = json.loads(root.findtext('rndnr'))
-        self.__fioJob.fromXml(root)
-        self.__options.fromXml(root)
+        self.getFioJob().fromXml(root)
+        self.getOptions().fromXml(root)
         logging.info("########### Loading write saturation test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
