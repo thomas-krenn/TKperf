@@ -9,7 +9,6 @@ import argparse
 import logging
 import sys
 
-from perfTest.DeviceTest import DeviceTest
 from perfTest.Devices import SSD
 from perfTest.Devices import HDD
 from perfTest.Options import Options
@@ -19,7 +18,7 @@ import perfTest.PerfTest as pT
 
 if __name__ == '__main__':
     tkPerfVersion = "TKperf Version: " + pT.__version__
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
     parser.add_argument("testname",help="name of the performance tests, corresponds to the result output filenames")
