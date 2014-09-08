@@ -66,7 +66,7 @@ if __name__ == '__main__':
         options.setNj(args.numjobs)
     if args.iodepth != None:
         options.setIod(args.iodepth)
-    if args.refill_buffers != None:
+    if args.refill_buffers == True:
         xargs = ['refill_buffers']
         options.setXargs(xargs)
     # Create performance test objects, don't yet init them
