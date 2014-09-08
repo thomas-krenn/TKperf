@@ -533,7 +533,7 @@ class SsdTPTest(DeviceTest):
                 #if the rounds have been set by steady state for 1M block size
                 #we need to carry out only i rounds for the other block sizes
                 #as steady state has already been reached
-                if self.getRnds() != 0 and self.getRnds() == i:
+                if self.getStdyState().getRnds() != 0 and self.getStdyState().getRnds() == i:
                     self.getRndMatrices().append([tpRead_l,tpWrite_l])
                     break
                 
