@@ -239,6 +239,10 @@ class SsdIopsTest(DeviceTest):
         @return An xml root element containing the information about the test
         ''' 
         r = etree.Element(root)
+        # Add Fio version to xml
+        self.__fioJob.appendXml(r)
+        # Add the options to xml
+        self.__options.appendXml(r)
         data = json.dumps(self.__roundMatrices)
         e = etree.SubElement(r,'roundmat')
         e.text = data
@@ -277,6 +281,7 @@ class SsdLatencyTest(DeviceTest):
         '''
         if options != None:
             #For latency the specification says to use 1 job/thread, 1 outstanding IO
+            #FIXME copy options object
             options.setNj(1)
             options.setNj(1)
         super(SsdLatencyTest,self).__init__(testname,device,options)
