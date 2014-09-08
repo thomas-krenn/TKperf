@@ -341,3 +341,6 @@ class HDD(Device):
 
     def secureErase(self):
         return True
+
+    def precondition(self):
+        return True
