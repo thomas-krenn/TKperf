@@ -39,11 +39,11 @@ class Options(object):
         Append the information about options to a XML node. 
         @param root The xml root tag to append the new elements to
         ''' 
-        data = json.dumps(list(self.__nj))
+        data = json.dumps(self.__nj)
         e = etree.SubElement(r,'numjobs')
         e.text = data
         
-        data = json.dumps(list(self.__iod))
+        data = json.dumps(self.__iod)
         e = etree.SubElement(r,'iodepth')
         e.text = data
         
