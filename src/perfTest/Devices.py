@@ -187,7 +187,7 @@ class Device(object):
         @param fd The path to the description file, has to be opened already.
         '''
         self.__devinfo = fd.read()
-        logging.info("# Read device info from file")
+        logging.info("# Reading device info from dsc file")
         logging.info("# Testing device: " + self.__devinfo)
         fd.close()
 
@@ -197,7 +197,7 @@ class Device(object):
         @param fd The path to the feature matrix file, has to be opened already.
         '''
         self.__featureMatrix = fd.read()
-        logging.info("# Read feature matrix from file")
+        logging.info("# Reading feature matrix from file")
         logging.info("# Feature Matrix: " + self.__featureMatrix)
         fd.close()
 
