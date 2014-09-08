@@ -214,10 +214,6 @@ class PerfTest(object):
         if self.__cmdLineArgs != None:
             dev = etree.SubElement(e,'cmdline')
             dev.text = json.dumps(self.__cmdLineArgs)
-        # Add Fio version to xml, only take it from one test
-        self.__tests.itervalues().next().getFioJob().appendXml(e)
-        # Add the options to xml, only take it from one test
-        self.__tests.itervalues().next().getOptions().appendXml(e)
         # Call the xml function for every test in the dictionary
         sorted(self.__tests.items())
         for k,v in tests.iteritems():
@@ -255,14 +251,8 @@ class PerfTest(object):
             self.setCmdLineArgs(json.loads(root.findtext('cmdline')))
         else:
             self.setCmdLineArgs('n.a.')
-        # Read the Fio Version
-        if(root.findtext('fioversion')):
-            fioVersion = json.loads(root.findtext('fioversion'))
-        else:
-            fioVersion = 'n.a.'
-        # Read used options
+        # Create an empty options object, it is initialized in fromXml
         options = Options(None,None)
-        options.fromXml(root)
         # Initialize device and performance tests
         if isinstance(self, SsdPerfTest):
             device = SSD('ssd',None,self.getTestname()) 
@@ -282,7 +272,6 @@ class PerfTest(object):
                     #we found a tag in the xml file, now we can read the data from xml
                     if test != None:
                         test.fromXml(elem)
-                        test.getFioJob().setFioVersion(fioVersion)
                         self.addTest(tag, test)
             #TODO Add HDD test here
 
@@ -336,13 +325,15 @@ class SsdPerfTest(PerfTest):
         
         #add the fio version, nj, iod and general info of one test to the report
         for keys in tests.iterkeys():
-            rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
-                             self.getTestDate())
-            rst.addFioJobInfo(tests[keys].getOptions().getNj(), tests[keys].getOptions().getIod())
-            rst.addOSInfo(self.getOSInfo())
-            rst.addGeneralInfo('ssd')
-            break
-        
+            if keys != 'writesat':
+                rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
+                                 self.getTestDate())
+                print tests[keys].getOptions().getNj()
+                rst.addFioJobInfo(tests[keys].getOptions().getNj(), tests[keys].getOptions().getIod())
+                rst.addOSInfo(self.getOSInfo())
+                rst.addGeneralInfo('ssd')
+                break
+
         if SsdPerfTest.iopsKey in tests:
             rst.addChapter("IOPS")
             rst.addTestInfo('ssd','iops',tests['iops'])

@@ -11,6 +11,7 @@ from lxml import etree
 import json
 
 from perfTest.StdyState import StdyState
+from perfTest.Options import Options
 from fio.FioJob import FioJob
 import plots.genPlots as pgp
 
@@ -256,6 +257,8 @@ class SsdIopsTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
+        self.__fioJob.fromXml(root)
+        self.__options.fromXml(root)
         logging.info("########### Loading IOPS test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
@@ -281,9 +284,9 @@ class SsdLatencyTest(DeviceTest):
         '''
         if options != None:
             #For latency the specification says to use 1 job/thread, 1 outstanding IO
-            #FIXME copy options object
-            options.setNj(1)
-            options.setNj(1)
+            wsoptions = Options(1,1)
+            if options.getXargs() != None:
+                wsoptions.setXargs(options.getXargs())
         super(SsdLatencyTest,self).__init__(testname,device,options)
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
@@ -424,6 +427,8 @@ class SsdLatencyTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
+        self.__fioJob.fromXml(root)
+        self.__options.fromXml(root)
         logging.info("########### Loading latency test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
@@ -593,6 +598,8 @@ class SsdTPTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
+        self.__fioJob.fromXml(root)
+        self.__options.fromXml(root)
         logging.info("########### Loading TP test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
@@ -736,6 +743,8 @@ class SsdWriteSatTest(DeviceTest):
         '''
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__rounds = json.loads(root.findtext('rndnr'))
+        self.__fioJob.fromXml(root)
+        self.__options.fromXml(root)
         logging.info("########### Loading write saturation test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
