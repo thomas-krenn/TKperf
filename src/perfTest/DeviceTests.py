@@ -255,11 +255,11 @@ class SsdIopsTest(DeviceTest):
         Load and set from an XML representation of a test.
         @param root Name of root element from which to load values
         '''
+        logging.info("########### Loading IOPS test from "+self.getTestname()+".xml ###########")
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
         self.getFioJob().fromXml(root)
         self.getOptions().fromXml(root)
-        logging.info("########### Loading IOPS test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
     def genPlots(self):
@@ -425,11 +425,11 @@ class SsdLatencyTest(DeviceTest):
         Load and set from an XML representation of a test.
         @param root Name of root element from which to load values
         '''
+        logging.info("########### Loading latency test from "+self.getTestname()+".xml ###########")
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
         self.getFioJob().fromXml(root)
         self.getOptions().fromXml(root)
-        logging.info("########### Loading latency test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
     def genPlots(self):
@@ -596,11 +596,11 @@ class SsdTPTest(DeviceTest):
         Load and set from an XML representation of a test.
         @param root Name of root element from which to load values
         '''
+        logging.info("########### Loading TP test from "+self.getTestname()+".xml ###########")
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
         self.getFioJob().fromXml(root)
         self.getOptions().fromXml(root)
-        logging.info("########### Loading TP test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
     def genPlots(self):
@@ -741,11 +741,11 @@ class SsdWriteSatTest(DeviceTest):
         Load and set from an XML representation of the write saturation test.
         @param root Name of root element from which to load values
         '''
+        logging.info("########### Loading write saturation test from "+self.getTestname()+".xml ###########")
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__rounds = json.loads(root.findtext('rndnr'))
         self.getFioJob().fromXml(root)
         self.getOptions().fromXml(root)
-        logging.info("########### Loading write saturation test from "+self.getTestname()+".xml ###########")
         self.toLog()
 
     def genPlots(self):
