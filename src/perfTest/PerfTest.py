@@ -328,7 +328,6 @@ class SsdPerfTest(PerfTest):
             if keys != 'writesat':
                 rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                                  self.getTestDate())
-                print tests[keys].getOptions().getNj()
                 rst.addFioJobInfo(tests[keys].getOptions().getNj(), tests[keys].getOptions().getIod())
                 rst.addOSInfo(self.getOSInfo())
                 rst.addGeneralInfo('ssd')
