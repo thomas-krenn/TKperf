@@ -13,7 +13,6 @@ import json
 from perfTest.StdyState import StdyState
 from perfTest.Options import Options
 from fio.FioJob import FioJob
-import plots
 
 class DeviceTest(object):
     '''
@@ -264,10 +263,11 @@ class SsdIopsTest(DeviceTest):
 
     def genPlots(self):
         ''' Generate plots for IOPS. '''
-        plots.genPlots.stdyStConvPlt(self,"IOPS")
-        plots.genPlots.stdyStVerPlt(self,"IOPS")
-        plots.genPlots.mes2DPlt(self,"IOPS")
-        plots.genPlots.mes3DPlt(self,"IOPS")
+        import plots.genPlots as pgp
+        pgp.stdyStConvPlt(self,"IOPS")
+        pgp.stdyStVerPlt(self,"IOPS")
+        pgp.mes2DPlt(self,"IOPS")
+        pgp.mes3DPlt(self,"IOPS")
 
 class SsdLatencyTest(DeviceTest):
     '''
@@ -436,11 +436,12 @@ class SsdLatencyTest(DeviceTest):
 
     def genPlots(self):
         ''' Generate plots for latency. '''
-        plots.genPlots.stdyStConvPlt(self,"LAT")
-        plots.genPlots.stdyStVerPlt(self,"LAT")
-        plots.genPlots.mes2DPlt(self,"avg-LAT")
-        plots.genPlots.mes2DPlt(self,"max-LAT")
-        plots.genPlots.latMes3DPlt(self)
+        import plots.genPlots as pgp
+        pgp.stdyStConvPlt(self,"LAT")
+        pgp.stdyStVerPlt(self,"LAT")
+        pgp.mes2DPlt(self,"avg-LAT")
+        pgp.mes2DPlt(self,"max-LAT")
+        pgp.latMes3DPlt(self)
 
 class SsdTPTest(DeviceTest):
     '''
@@ -607,9 +608,10 @@ class SsdTPTest(DeviceTest):
 
     def genPlots(self):
         ''' Generate plots for throughput. '''
-        plots.genPlots.tpRWStdyStConvPlt(self)
-        plots.genPlots.stdyStVerPlt(self,"TP")
-        plots.genPlots.tpMes2DPlt(self)
+        import plots.genPlots as pgp
+        pgp.tpRWStdyStConvPlt(self)
+        pgp.stdyStVerPlt(self,"TP")
+        pgp.tpMes2DPlt(self)
 
 class SsdWriteSatTest(DeviceTest):
     '''
@@ -745,8 +747,9 @@ class SsdWriteSatTest(DeviceTest):
 
     def genPlots(self):
         ''' Generate plots for write saturation. '''
-        plots.genPlots.writeSatIOPSPlt(self)
-        plots.genPlots.writeSatLatPlt(self)
+        import plots.genPlots as pgp
+        pgp.writeSatIOPSPlt(self)
+        pgp.writeSatLatPlt(self)
 
 class HddIopsTest(DeviceTest):
     '''
@@ -880,7 +883,8 @@ class HddIopsTest(DeviceTest):
 
     def genPlots(self):
         ''' Generate plots for IOPS. '''
-        plots.genPlots.IOPSplot(self)
+        import plots.genPlots as pgp
+        pgp.IOPSplot(self)
 
 class HddTPTest(DeviceTest):
     '''
@@ -1023,5 +1027,6 @@ class HddTPTest(DeviceTest):
 
     def genPlots(self):
         ''' Generate plots for TP. '''
-        plots.genPlots.TPplot(self)
-        plots.genPlots.TPBoxPlot(self)
+        import plots.genPlots as pgp
+        pgp.TPplot(self)
+        pgp.TPBoxPlot(self)
