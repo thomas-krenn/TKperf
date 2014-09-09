@@ -406,7 +406,7 @@ class HddPerfTest(PerfTest):
         rst = self.getRstReport()
         rst.addFooter()
         rst.addTitle()
-        rst.addDevInfo(self.getDevInfo(),self.getFeatureMatrix())
+        rst.addDevInfo(self.getDevice().getDevInfo(),self.getDevice().getFeatureMatrix())
         rst.addCmdLine(self.getCmdLineArgs())
         
         #Setup and OS infos are the same for all tests, just take one
