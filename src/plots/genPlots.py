@@ -620,10 +620,10 @@ def TPBoxPlot(toPlot):
     plt.boxplot(boxes,positions=pos)
     labels = []
     for l in bsLabels:
-        labels.append(l + ' R')
-        labels.append(l + ' W')
+        labels.append(l + ' (R)')
+        labels.append(l + ' (W)')
     plt.xticks(pos,labels)
-    
+    plt.xlabel('BS (Mode)')
     plt.suptitle("TP Boxplot",fontweight='bold')    
     plt.ylabel("Bandwidth (MB/s)")
     #scale axis to min and max +- 15%
