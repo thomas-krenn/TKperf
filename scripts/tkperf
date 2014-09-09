@@ -124,4 +124,9 @@ if __name__ == '__main__':
     print "Starting "+args.mode+" mode..."
     print "Testing device:"
     print devToTest.getDevInfo()
-    myTest.run()
+    try:
+        myTest.run()
+    except RuntimeError:
+        print "### Error! ###"
+        print "Running the test failed, please inspect the log file!"
+        exit(1)
