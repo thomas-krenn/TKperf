@@ -608,13 +608,17 @@ def TPBoxPlot(toPlot):
     
     plt.clf()#clear
     boxes = []
+    min_y = 0
+    max_y = 0
     for bsRows in matrices:
         #For each BS we have read and write, both rows have equal length
         for v in range(len(bsRows[0])):
             bsRows[0][v] = (bsRows[0][v]) / 1024
             bsRows[1][v] = (bsRows[1][v]) / 1024
         boxes.append(bsRows[0])
+        min_y,max_y = getMinMax(bsRows[0], min_y, max_y)
         boxes.append(bsRows[1])
+        min_y,max_y = getMinMax(bsRows[1], min_y, max_y)
     #Length of BS per R/W
     pos = range(len(bsLabels) * 2)
     plt.boxplot(boxes,positions=pos)
@@ -627,12 +631,17 @@ def TPBoxPlot(toPlot):
     plt.suptitle("TP Boxplot",fontweight='bold')    
     plt.ylabel("Bandwidth (MB/s)")
     #scale axis to min and max +- 15%
-    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
+    plt.ylim((min_y*0.7,max_y*1.10))
+    #Draw some fake data for legend
+    hB, = plt.plot([1,1],'b-')
+    hR, = plt.plot([1,1],'r-')
+    plt.legend((hB, hR),('Quartiles', 'Median'),loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=2, fancybox=True, shadow=True,prop={'size':12})
+    hB.set_visible(False)
+    hR.set_visible(False)
     plt.savefig(toPlot.getTestname()+'-TP-Boxplt.png',dpi=300)
     toPlot.addFigure(toPlot.getTestname()+'-TP-Boxplt.png')
-    
-    
+
 ######### HELPER FUNCTIONS TO GENERATE PLOTS #########
 def calcMsmtTable(toPlot,mode):
     '''
