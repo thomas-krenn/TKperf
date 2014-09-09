@@ -297,8 +297,95 @@ class SSD(Device):
         super(SSD, self).readDevInfo()
 
     def secureErase(self):
-        #TODO
-        return True
+        '''
+        Carries out a secure erase via hdparm for the given device.
+        @return True if device is secure erased, False if not.
+        '''
+        frozen = True
+        security = False
+        logging.info("#Starting Secure Erase for device: "+self.__path)
+        out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("hdparm -I encountered an error: " + stderr)
+            raise RuntimeError, "hdparm command error"
+        else:
+            for line in stdout.split('\n'):
+                if line.find("frozen") > -1:
+                    if line.find("not") > -1:
+                        frozen = False
+                        logging.info("#Not in frozen state")
+            if frozen:
+                logging.error("#Device still in frozen state")
+                raise RuntimeError, "frozen state error"
+            if not frozen:
+                out = subprocess.Popen(['hdparm', '--user-master','u',
+                                        '--security-set-pass','pwd',self.__path],
+                                       stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                stdout,stderr = out.communicate()
+                out.wait()
+                if out.returncode != 0:
+                    logging.error("#Error: command 'hdparm --user-master u --security-set-pass pwd returned an error code.")
+                    logging.error(stderr)
+                    raise RuntimeError, "hdparm command error"
+                else:
+                    out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    (stdout,stderr) = out.communicate()
+                    if stderr != '':
+                        logging.error("hdparm -I encountered an error: " + stderr)
+                        raise RuntimeError, "hdparm command error"
+                    else:
+                        lines = stdout.split('\n')
+                        for i,line in enumerate(lines):
+                            if line.find("Master password") > -1:
+                                if lines[i+2].find("not") == -1 and lines[i+2].find("enabled") > -1:
+                                    security = True
+                                    logging.info("#Successfully enabled security for hdparm")
+                                    break
+                                else:
+                                    logging.info("#Security NOT enabled for hdparm")
+                                    raise RuntimeError, "hdparm command error"
+                        if security:
+                            out = subprocess.Popen(['hdparm', '--user-master','u',
+                                                    '--security-erase','pwd',self.__path],
+                                                   stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                            stdout,stderr = out.communicate()
+                            out.wait()
+                            if out.returncode != 0:
+                                logging.error("#Error: command 'hdparm --user-master u --security-erase pwd returned an error code.")
+                                logging.error(stderr)
+                                raise RuntimeError, "hdparm command error"
+                            else:
+                                logging.info("#Successfully carried out secure erase for "+self.__path)
+                                #Check if security is diasbled again
+                                out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                                (stdout,stderr) = out.communicate()
+                                if stderr != '':
+                                    logging.error("hdparm -I encountered an error: " + stderr)
+                                    raise RuntimeError, "hdparm command error"
+                                else:
+                                    lines = stdout.split('\n')
+                                    for i,line in enumerate(lines):
+                                        if line.find("Master password") > -1:
+                                            if lines[i+2].find("not") > -1 and lines[i+2].find("enabled") > -1:
+                                                security = False
+                                                logging.info("#Successfully deactivated security for hdparm.")
+                                                return True
+                                            else:
+                                                #Try to disable security manually
+                                                logging.info("#Security still enabled for hdparm, therefore calling disable.")
+                                                out = subprocess.Popen(['hdparm', '--user-master','u',
+                                                    '--security-disable','pwd',self.__path],
+                                                   stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                                                stdout,stderr = out.communicate()
+                                                out.wait()
+                                                if out.returncode != 0:
+                                                    logging.error("#Error: command 'hdparm --user-master u --security-disable pwd returned an error code.")
+                                                    logging.error(stderr)
+                                                    raise RuntimeError, "hdparm command error"
+                                                else:
+                                                    logging.info("#Successfully deactivated security for hdparm.")
+                                                    return True
 
     def precondition(self,nj=1,iod=1):
         ''' 
