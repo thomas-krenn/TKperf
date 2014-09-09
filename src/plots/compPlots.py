@@ -4,8 +4,8 @@ Created on Oct 3, 2013
 @author: gschoenb
 '''
 from __future__ import division
-import matplotlib.pyplot as plt
 import plots.genPlots as pgp
+import matplotlib.pyplot as plt
 
 __colorTable__ = ['#0000FF','#32cd32','#ffff00','#00ffff','#b22222','#9932cc','#ff4500']
 

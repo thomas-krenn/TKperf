@@ -8,18 +8,16 @@ import argparse
 import logging
 import sys
 
-from fio.FioJob import FioJob
-from perfTest.DeviceTest import DeviceTest
+from perfTest.Devices import SSD
+from perfTest.Devices import HDD
+from perfTest.Options import Options
 from perfTest.PerfTest import SsdPerfTest
 from perfTest.PerfTest import HddPerfTest
 import perfTest.PerfTest as pT
 import plots.compPlots as pcp
 
 if __name__ == '__main__':
-    vTest = FioJob()
-    fioVersion = vTest.__str__()#Fetch the fio version
     tkPerfVersion = "TKperf Version: " + pT.__version__
-    tkPerfVersion += " using " + fioVersion
     parser = argparse.ArgumentParser()
 
     parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
@@ -45,10 +43,13 @@ if __name__ == '__main__':
 
     toCompare = []
     for file in args.xmls:
-        if args.mode == "ssd":
-            myTest = SsdPerfTest(file, 'none', 0, 0)
-        if args.mode == "hdd":
-            myTest = HddPerfTest(file, 'none', 0, 0)
+        if args.mode == 'ssd':
+            options = Options()
+            dummyDev = SSD('ssd',None,file)
+            myTest = SsdPerfTest(file, dummyDev, options)
+        if args.mode == 'hdd':
+            dummyDev = HDD('hdd',None,file)
+            myTest = HddPerfTest(file, dummyDev, options)
         myTest.fromXml()
         toCompare.append(myTest)
 
