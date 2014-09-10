@@ -214,7 +214,7 @@ class SsdIopsTest(DeviceTest):
             self.getDevice().secureErase()
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
-            exit(1)
+            raise
         try:
             if self.getOptions() == None:
                 self.getDevice().precondition(1,1)
@@ -226,6 +226,7 @@ class SsdIopsTest(DeviceTest):
                 self.getDevice().precondition(nj,iod)
         except RuntimeError:
             logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevPath())
+            raise
         logging.info("########### Starting IOPS Test ###########")
         steadyState = self.runRounds()
         if steadyState == False:
@@ -388,7 +389,7 @@ class SsdLatencyTest(DeviceTest):
             self.getDevice().secureErase()
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
-            exit(1)
+            raise
         try:
             if self.__userOptions == None:
                 self.getDevice().precondition(1,1)
@@ -400,6 +401,7 @@ class SsdLatencyTest(DeviceTest):
                 self.getDevice().precondition(nj,iod)
         except RuntimeError:
             logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevPath())
+            raise
         logging.info("########### Starting Latency Test ###########")
         steadyState = self.runRounds()
         if steadyState == False:
@@ -522,7 +524,7 @@ class SsdTPTest(DeviceTest):
                 self.getDevice().secureErase()
             except RuntimeError:
                 logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
-                exit(1)
+                raise
 
             tpRead_l = []
             tpWrite_l = []
@@ -711,7 +713,7 @@ class SsdWriteSatTest(DeviceTest):
             self.getDevice().secureErase()
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
-            exit(1)
+            raise
         logging.info("########### Starting Write Saturation Test ###########")
         self.runRounds()
         self.toLog()
