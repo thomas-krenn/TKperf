@@ -60,22 +60,10 @@ class Options(object):
         '''
         if root.findtext('numjobs'):
             self.__nj = json.loads(root.findtext('numjobs'))
+        if root.findtext('iodepth'):
             self.__iod = json.loads(root.findtext('iodepth'))
-            if root.findtext('xargs'):
+        if root.findtext('xargs'):
                 self.__xargs = json.loads(root.findtext('xargs'))
-        else:
-            # In older tkperf version fio params are in every test
-            # therefore search recursively, take only the params 
-            # from the first test
-            for tag in ['iops','lat','tp','writesat']:
-                for elem in root.iterfind(tag):
-                    if elem.tag == tag:
-                        self.__nj = json.loads(elem.findtext('numjobs'))
-                        self.__iod = json.loads(elem.findtext('iodepth'))
-                        if root.findtext('xargs'):
-                            self.__xargs = json.loads(root.findtext('xargs'))
-                        break
-                if self.__nj != None: break
         logging.info("# Loading options from xml")
         logging.info("# Options nj:"+str(self.__nj))
         logging.info("# Options iod: "+str(self.__iod))
