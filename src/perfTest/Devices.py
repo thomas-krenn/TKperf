@@ -401,7 +401,7 @@ class SSD(Device):
         job.addKVArg("bs","128k")
         job.addKVArg("rw","write")
         job.addKVArg("direct","1")
-        job.addKVArg("minimal","1")
+        job.addSglArg("minimal")
         job.addKVArg("numjobs",str(nj))
         job.addKVArg("ioengine","libaio")
         job.addKVArg("iodepth",str(iod))
