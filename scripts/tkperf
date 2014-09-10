@@ -94,13 +94,13 @@ if __name__ == '__main__':
     # Keep used command line arguments
     myTest.readCmdLineArgs(sys.argv)
     # Check if a correct setup is given
-    if not devToTest.isInitialized() and args.desc_file == None:
+    if (not devToTest.isInitialized()) and args.desc_file == None:
         print "### Error! ###"
         print "Please use a description file for the current device."
         print "The information via hdparm -I is not reliable."
         print "Use -dsc DESC_FILE to provide the information"
         exit(1)
-    else:
+    if args.desc_file != None:
         devToTest.readDevInfoFile(args.desc_file)
     if args.feature_matrix != None:
         devToTest.readFeatureFile(args.feature_matrix)
