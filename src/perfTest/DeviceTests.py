@@ -80,7 +80,7 @@ class DeviceTest(object):
         self.__fioJob.addKVArg("filename",self.__device.getDevPath())
         self.__fioJob.addKVArg("name",self.__testname)
         self.__fioJob.addKVArg("direct","1")
-        self.__fioJob.addKVArg("minimal","1")
+        self.__fioJob.addSglArg("minimal")
         self.__fioJob.addKVArg("ioengine","libaio")
         if self.__options == None:
             self.__fioJob.addKVArg("numjobs",str(1))
