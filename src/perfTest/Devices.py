@@ -78,6 +78,7 @@ class Device(object):
             self.readDevInfo()
         except RuntimeError:
             logging.error("# Could not fetch initial information for " + self.__path)
+            raise
 
     def isInitialized(self):
         '''
