@@ -214,6 +214,7 @@ class SsdIopsTest(DeviceTest):
             self.getDevice().secureErase()
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
+            exit(1)
         try:
             if self.getOptions() == None:
                 self.getDevice().precondition(1,1)
@@ -387,6 +388,7 @@ class SsdLatencyTest(DeviceTest):
             self.getDevice().secureErase()
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
+            exit(1)
         try:
             if self.__userOptions == None:
                 self.getDevice().precondition(1,1)
@@ -520,6 +522,7 @@ class SsdTPTest(DeviceTest):
                 self.getDevice().secureErase()
             except RuntimeError:
                 logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
+                exit(1)
 
             tpRead_l = []
             tpWrite_l = []
@@ -708,6 +711,7 @@ class SsdWriteSatTest(DeviceTest):
             self.getDevice().secureErase()
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
+            exit(1)
         logging.info("########### Starting Write Saturation Test ###########")
         self.runRounds()
         self.toLog()
