@@ -303,8 +303,8 @@ class SSD(Device):
         '''
         frozen = True
         security = False
-        logging.info("#Starting Secure Erase for device: "+self.__path)
-        out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        logging.info("#Starting Secure Erase for device: "+self.getDevPath())
+        out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("hdparm -I encountered an error: " + stderr)
@@ -320,7 +320,7 @@ class SSD(Device):
                 raise RuntimeError, "frozen state error"
             if not frozen:
                 out = subprocess.Popen(['hdparm', '--user-master','u',
-                                        '--security-set-pass','pwd',self.__path],
+                                        '--security-set-pass','pwd',self.getDevPath()],
                                        stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 stdout,stderr = out.communicate()
                 out.wait()
@@ -329,7 +329,7 @@ class SSD(Device):
                     logging.error(stderr)
                     raise RuntimeError, "hdparm command error"
                 else:
-                    out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     (stdout,stderr) = out.communicate()
                     if stderr != '':
                         logging.error("hdparm -I encountered an error: " + stderr)
@@ -347,7 +347,7 @@ class SSD(Device):
                                     raise RuntimeError, "hdparm command error"
                         if security:
                             out = subprocess.Popen(['hdparm', '--user-master','u',
-                                                    '--security-erase','pwd',self.__path],
+                                                    '--security-erase','pwd',self.getDevPath()],
                                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                             stdout,stderr = out.communicate()
                             out.wait()
@@ -356,9 +356,9 @@ class SSD(Device):
                                 logging.error(stderr)
                                 raise RuntimeError, "hdparm command error"
                             else:
-                                logging.info("#Successfully carried out secure erase for "+self.__path)
+                                logging.info("#Successfully carried out secure erase for "+self.getDevPath())
                                 #Check if security is diasbled again
-                                out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                                out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                                 (stdout,stderr) = out.communicate()
                                 if stderr != '':
                                     logging.error("hdparm -I encountered an error: " + stderr)
@@ -375,7 +375,7 @@ class SSD(Device):
                                                 #Try to disable security manually
                                                 logging.info("#Security still enabled for hdparm, therefore calling disable.")
                                                 out = subprocess.Popen(['hdparm', '--user-master','u',
-                                                    '--security-disable','pwd',self.__path],
+                                                    '--security-disable','pwd',self.getDevPath()],
                                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                                                 stdout,stderr = out.communicate()
                                                 out.wait()
