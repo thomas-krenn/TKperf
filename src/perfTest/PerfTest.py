@@ -13,7 +13,7 @@ import datetime
 import os
 import time
 
-import perfTest.DeviceTests as tests
+import perfTest.DeviceTests as dt
 from perfTest.Devices import SSD
 from perfTest.Devices import HDD
 from perfTest.Options import Options
@@ -257,13 +257,13 @@ class PerfTest(object):
                 for elem in root.iterfind(tag):
                     test = None
                     if elem.tag == SsdPerfTest.iopsKey:
-                        test = tests.SsdIopsTest(self.getTestname(),device,options)
+                        test = dt.SsdIopsTest(self.getTestname(),device,options)
                     if elem.tag == SsdPerfTest.latKey:
-                        test = tests.SsdLatencyTest(self.getTestname(),device,options)
+                        test = dt.SsdLatencyTest(self.getTestname(),device,options)
                     if elem.tag == SsdPerfTest.tpKey:
-                        test = tests.SsdTPTest(self.getTestname(),device,options)
+                        test = dt.SsdTPTest(self.getTestname(),device,options)
                     if elem.tag == SsdPerfTest.wrKey:
-                        test = tests.SsdWriteSatTest(self.getTestname(),device,options)
+                        test = dt.SsdWriteSatTest(self.getTestname(),device,options)
                     #we found a tag in the xml file, now we can read the data from xml
                     if test != None:
                         test.fromXml(elem)
@@ -275,9 +275,9 @@ class PerfTest(object):
                 for elem in root.iterfind(tag):
                     test = None
                     if elem.tag == HddPerfTest.iopsKey:
-                        test = tests.HddIopsTest(self.getTestname(),device,options)
+                        test = dt.HddIopsTest(self.getTestname(),device,options)
                     if elem.tag == HddPerfTest.tpKey:
-                        test = tests.HddTPTest(self.getTestname(),device,options)
+                        test = dt.HddTPTest(self.getTestname(),device,options)
                     if test != None:
                         test.fromXml(elem)
                         self.addTest(tag, test)
@@ -308,13 +308,13 @@ class SsdPerfTest(PerfTest):
         #Add every test to the performance test
         for testType in SsdPerfTest.testKeys:
             if testType == SsdPerfTest.iopsKey:
-                test = tests.SsdIopsTest(testname,device,options)
+                test = dt.SsdIopsTest(testname,device,options)
             if testType == SsdPerfTest.latKey:
-                test = tests.SsdLatencyTest(testname,device,options)
+                test = dt.SsdLatencyTest(testname,device,options)
             if testType == SsdPerfTest.tpKey:
-                test = tests.SsdTPTest(testname,device,options)
+                test = dt.SsdTPTest(testname,device,options)
             if testType == SsdPerfTest.wrKey:
-                test = tests.SsdWriteSatTest(testname,device,options)
+                test = dt.SsdWriteSatTest(testname,device,options)
             #Add the test to the key/value structure
             self.addTest(testType, test)
 
@@ -347,7 +347,7 @@ class SsdPerfTest(PerfTest):
             for i,fig in enumerate(tests['iops'].getFigures()):
                 rst.addFigure(fig,'ssd','iops',i)
             rst.addSection("Measurement Window Summary Table")
-            rst.addTable(tests['iops'].getTables()[0],tests.SsdIopsTest.bsLabels,'iops')
+            rst.addTable(tests['iops'].getTables()[0],dt.SsdIopsTest.bsLabels,'iops')
         if SsdPerfTest.tpKey in tests:
             rst.addChapter("Throughput")
             rst.addTestInfo('ssd','tp',tests['tp'])
@@ -355,7 +355,7 @@ class SsdPerfTest(PerfTest):
             for i,fig in enumerate(tests['tp'].getFigures()):
                 rst.addFigure(fig,'ssd','tp',i)
             rst.addSection("Measurement Window Summary Table")    
-            rst.addTable(tests['tp'].getTables()[0],tests.SsdTPTest.bsLabels,'tp')
+            rst.addTable(tests['tp'].getTables()[0],dt.SsdTPTest.bsLabels,'tp')
         if SsdPerfTest.latKey in tests:
             rst.addChapter("Latency")
             rst.addTestInfo('ssd','lat',tests['lat'])
@@ -366,8 +366,8 @@ class SsdPerfTest(PerfTest):
                 if i == 2 or i == 3: continue
                 rst.addFigure(fig,'ssd','lat',i)
             rst.addSection("Measurement Window Summary Table")    
-            rst.addTable(tests['lat'].getTables()[0],tests.SsdLatencyTest.bsLabels,'avg-lat')#avg lat 
-            rst.addTable(tests['lat'].getTables()[1],tests.SsdLatencyTest.bsLabels,'max-lat')#max lat
+            rst.addTable(tests['lat'].getTables()[0],dt.SsdLatencyTest.bsLabels,'avg-lat')#avg lat 
+            rst.addTable(tests['lat'].getTables()[1],dt.SsdLatencyTest.bsLabels,'max-lat')#max lat
         if SsdPerfTest.wrKey in tests:
             rst.addChapter("Write Saturation")
             rst.addTestInfo('ssd','writesat',tests['writesat'])
@@ -395,9 +395,9 @@ class HddPerfTest(PerfTest):
         #Add every test to the performance test
         for testType in HddPerfTest.testKeys:
             if testType == HddPerfTest.iopsKey:
-                test = tests.HddIopsTest(testname,device,options)
+                test = dt.HddIopsTest(testname,device,options)
             if testType == HddPerfTest.tpKey:
-                test = tests.HddTPTest(testname,device,options)
+                test = dt.HddTPTest(testname,device,options)
             #add the test to the key/value structure
             self.addTest(testType, test)
 
