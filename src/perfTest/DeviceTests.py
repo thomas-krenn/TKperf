@@ -132,7 +132,7 @@ class SsdIopsTest(DeviceTest):
         self.__roundMatrices = []
         self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
-        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","1")
         self.getFioJob().addSglArg("time_based")
 
     def getRndMatrices(self): return self.__roundMatrices
@@ -296,7 +296,7 @@ class SsdLatencyTest(DeviceTest):
         self.__roundMatrices = []
         self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
-        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","1")
         self.getFioJob().addSglArg("time_based")
 
     def getRndMatrices(self): return self.__roundMatrices
@@ -462,7 +462,7 @@ class SsdTPTest(DeviceTest):
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
-        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","1")
         self.getFioJob().addSglArg("time_based")
 
     def getRndMatrices(self): return self.__roundMatrices
@@ -633,7 +633,7 @@ class SsdWriteSatTest(DeviceTest):
         self.__roundMatrices = []
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
-        self.getFioJob().addKVArg("runtime","60")
+        self.getFioJob().addKVArg("runtime","1")
         self.getFioJob().addSglArg("time_based")
 
     def getRnds(self): return self.__rounds

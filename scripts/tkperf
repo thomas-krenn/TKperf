@@ -64,7 +64,7 @@ if __name__ == '__main__':
     if args.mode == "hdd":
         devToTest = HDD(args.mode,args.device,args.testname)
     if args.mode == "raid":
-        devToTest = RAID(args.mode,args.device,args.testname,args.config)
+        devToTest = RAID(args.mode,args.device,args.testname)
     options = Options()
     if args.numjobs != None:
         options.setNj(args.numjobs)
@@ -91,6 +91,9 @@ if __name__ == '__main__':
         exit(0)
     # Start a real performance test
     try:
+        # A raid tests needs a raid config
+        if args.mode == "raid":
+            devToTest.setConfig(args.config)
         myTest.initialize()
     except RuntimeError:
         print "### Error! ###"
