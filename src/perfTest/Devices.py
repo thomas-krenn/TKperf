@@ -64,9 +64,16 @@ class Device(object):
 
     def setDevInfo(self,dInfo):
         self.__devinfo = dInfo
-
     def setFeatureMatrix(self,fm):
         self.__featureMatrix = fm
+    def setDevSizeB(self,ds):
+        self.__devsizeb = ds
+    def setDevSizeKB(self,ds):
+        self.__devsizekb = ds
+    def setDevIsAvailable(self,ia):
+        self.__devisavailable = ia
+    def setDevIsMounted(self,im):
+        self.__devismounted = im
 
     def initialize(self):
         '''
@@ -459,6 +466,24 @@ class RAID(Device):
     def getType(self): return self.__type
     def getDevices(self): return self.__devices
     def getRaidLevel(self): return self.__raidlevel
+
+    def initialize(self):
+        '''
+        Run size and devinfo methods for the current device.
+        If a raid doesn't exist, create it.
+        '''
+        try:
+            # Create raid if it doesn't exist
+            if not self.checkRaidPath():
+                self.createRaid()
+            self.setDevSizeB(self.calcDevSizeB())
+            self.setDevSizeKB(self.calcDevSizeKB())
+            self.setDevIsMounted(self.checkDevIsMounted())
+            self.setDevIsAvailable(self.checkDevIsAvbl())
+            self.readDevInfo()
+        except RuntimeError:
+            logging.error("# Could not fetch initial information for " + self.__path)
+            raise
 
     def checkRaidPath(self):
         try:
