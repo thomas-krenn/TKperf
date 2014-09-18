@@ -432,3 +432,23 @@ class HDD(Device):
 
     def precondition(self):
         return True
+
+class RAID(Device):
+    '''
+    Representing a RAID device.
+    '''
+    raidLevels = [0, 1, 5, 6, 10]
+
+    def __init__(self, devtype, path, devname, devices, raidlevel, vendor=None, intfce):
+        '''
+        Constructor
+        @param devices The devices that should be used for this Raid, as str list.
+        @param raidlevel The desired Raidlevel.
+        @param type The Raid type, either "hardware" or "software"
+        '''
+        super(RAID, self).__init__(devtype, path, devname, vendor, intfce)
+        self.__devices = devices
+        self.__raidlevel = raidlevel
+
+    def getDevices(self): return self.__devices
+    def getRaidLevel(self): return self.__raidlevel
