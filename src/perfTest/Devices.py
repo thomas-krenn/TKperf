@@ -461,10 +461,25 @@ class RAID(Device):
         devInfo += self.__type + "\n"
         devInfo += ', '.join(self.__devices)
         devInfo += str(self.__raidlevel) + "\n"
+        self.setDevInfo(devInfo)
 
     def secureErase(self):
-        return True
+        if self.getType() == 'software':
+            threads = []
+            for d in self.getDevices():
+                t = EraseThread(d,self.getDevName())
+                threads.append(t)
+                t.start()
+            for t in threads:
+                t.join(5.0)
 
     def precondition(self):
         return True
-    
+
+import threading
+class EraseThread(threading.Thread):
+    def __init__(self, path, devname):
+        super(EraseThread, self).__init__()
+        self.__device = SSD('ssd', path, devname)
+    def run(self):
+        self.__device.secureErase()
