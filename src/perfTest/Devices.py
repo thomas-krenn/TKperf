@@ -448,7 +448,7 @@ class RAID(Device):
     '''
     raidLevels = [0, 1, 5, 6, 10]
 
-    def __init__(self, devtype, path, devname, config, vendor=None):
+    def __init__(self, devtype, path, devname, config=None, vendor=None):
         '''
         Constructor
         @param devices The devices that should be used for this Raid, as str list.
@@ -460,12 +460,14 @@ class RAID(Device):
         self.__devices = None
         self.__raidlevel = None
         self.__config = config
-        self.initRaidFromConf(config)
         self.__isReady = None
 
     def getType(self): return self.__type
     def getDevices(self): return self.__devices
     def getRaidLevel(self): return self.__raidlevel
+    
+    def setConfig(self,cfg):
+        self.__config = cfg
 
     def initialize(self):
         '''
@@ -473,6 +475,9 @@ class RAID(Device):
         If a raid doesn't exist, create it.
         '''
         try:
+            # Init from config if not done yet
+            if self.__devices == None:
+                self.initRaidFromConf(self.__config)
             # Create raid if it doesn't exist
             if not self.checkRaidPath():
                 self.createRaid()
