@@ -439,16 +439,18 @@ class RAID(Device):
     '''
     raidLevels = [0, 1, 5, 6, 10]
 
-    def __init__(self, devtype, path, devname, devices, raidlevel, vendor=None, intfce):
+    def __init__(self, devtype, path, devname, devices, raidlevel, raidtype, vendor):
         '''
         Constructor
         @param devices The devices that should be used for this Raid, as str list.
         @param raidlevel The desired Raidlevel.
         @param type The Raid type, either "hardware" or "software"
         '''
-        super(RAID, self).__init__(devtype, path, devname, vendor, intfce)
+        super(RAID, self).__init__(devtype, path, devname, vendor)
+        self.__type = raidtype
         self.__devices = devices
         self.__raidlevel = raidlevel
 
+    def getType(self): return self.__type
     def getDevices(self): return self.__devices
     def getRaidLevel(self): return self.__raidlevel
