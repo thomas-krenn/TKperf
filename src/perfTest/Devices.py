@@ -9,6 +9,8 @@ import logging
 import subprocess
 import json
 from lxml import etree
+from os import lstat
+from stat import S_ISBLK
 
 from fio.FioJob import FioJob
 
@@ -452,12 +454,27 @@ class RAID(Device):
         self.__raidlevel = None
         self.__config = config
         self.initRaidFromConf(config)
+        self.__isReady = None
+        self.__isCreated = None
 
     def getType(self): return self.__type
     def getDevices(self): return self.__devices
     def getRaidLevel(self): return self.__raidlevel
+    def isCreated(self): return self.__isCreated
+
+    def checkRaidPath(self):
+        try:
+            mode = lstat(self.getDevPath()).st_mode
+        except OSError:
+            self.__isCreated = False
+        else:
+            self.__isCreated = S_ISBLK(mode)
 
     def initRaidFromConf(self,fd):
+        '''
+        Initializes a RAID device from a json config file.
+        @param fd An already opened file descriptor for the config file.
+        '''
         decoded = json.load(fd)
         if "devices" in decoded and "raidlevel" in decoded and "type" in decoded:
             self.__devices = decoded["devices"]
@@ -472,23 +489,78 @@ class RAID(Device):
         devInfo += str(self.__raidlevel) + "\n"
         self.setDevInfo(devInfo)
 
+    def createRaid(self):
+        if self.getType() == "software":
+            ##Check if there is already a device, if yes delete it
+            if self.isCreated() == True:
+                logging.info("# Found raid device "+self.getDevPath()+", deleting it!")
+                self.deleteRaid()
+            ##Build the commandline
+            args = ["mdadm", "--create", self.getDevPath(), "--quiet", "--metadata=default", str("--level=" + str(self.getRaidLevel())), str("--raid-devices=" + str(len(self.getDevices())))]
+            for dev in self.getDevices():
+                args.append(dev)
+            logging.info("# Creating raid device "+self.getDevPath())
+            logging.info("# Command line: "+subprocess.list2cmdline(args))
+            ##Execute the commandline
+            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            (stdout, stderr) = process.communicate()
+            if stderr != '':
+                logging.error("mdadm encountered an error: " + stderr)
+                raise RuntimeError, "mdadm command error"
+            else:
+                self.__isCreated = True
+
+    def deleteRaid(self):
+        if self.isCreated == False:
+            logging.info("# Raid device "+self.getDevPath()+" not found, skipping...")
+            return
+        if self.getType() == "software":
+            logging.info("# Deleting raid device "+self.getDevPath())
+            process = subprocess.Popen(["mdadm", "--stop", self.getDevPath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            (stdout, stderr) = process.communicate()
+            ##Reset all devices in the Raid
+            for dev in self.getDevices():
+                logging.info("# Deleting superblock for device "+dev)
+                process = subprocess.Popen(["mdadm", "--zero-superblock", dev], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                (stdout, stderr) = process.communicate()
+            if stderr != '':
+                logging.error("mdadm encountered an error: " + stderr)
+                raise RuntimeError, "mdadm command error"
+
     def secureErase(self):
+        '''
+        Carries out the secure erase for a RAID device.
+        '''
         if self.getType() == 'software':
             threads = []
             for d in self.getDevices():
-                t = EraseThread(d,self.getDevName())
+                t = Operator(d,self.getDevName(),'erase')
                 threads.append(t)
                 t.start()
             for t in threads:
                 t.join(5.0)
 
     def precondition(self):
-        return True
+        '''
+        Carries out the preconditioning for a RAID device.
+        '''
+        if self.getType() == 'software':
+            threads = []
+            for d in self.getDevices():
+                t = Operator(d,self.getDevName(),'condition')
+                threads.append(t)
+                t.start()
+            for t in threads:
+                t.join(5.0)
 
 import threading
-class EraseThread(threading.Thread):
-    def __init__(self, path, devname):
-        super(EraseThread, self).__init__()
+class Operator(threading.Thread):
+    def __init__(self, path, devname, op):
+        super(Operator, self).__init__()
         self.__device = SSD('ssd', path, devname)
+        self.__op = op
     def run(self):
-        self.__device.secureErase()
+        if self.__op == 'erase':
+            self.__device.secureErase()
+        if self.__op == 'condition':
+            self.__device.precondition()
