@@ -455,20 +455,18 @@ class RAID(Device):
         self.__config = config
         self.initRaidFromConf(config)
         self.__isReady = None
-        self.__isCreated = None
 
     def getType(self): return self.__type
     def getDevices(self): return self.__devices
     def getRaidLevel(self): return self.__raidlevel
-    def isCreated(self): return self.__isCreated
 
     def checkRaidPath(self):
         try:
             mode = lstat(self.getDevPath()).st_mode
         except OSError:
-            self.__isCreated = False
+            return False
         else:
-            self.__isCreated = S_ISBLK(mode)
+            return S_ISBLK(mode)
 
     def initRaidFromConf(self,fd):
         '''
@@ -492,7 +490,7 @@ class RAID(Device):
     def createRaid(self):
         if self.getType() == "software":
             ##Check if there is already a device, if yes delete it
-            if self.isCreated() == True:
+            if self.checkRaidPath() == True:
                 logging.info("# Found raid device "+self.getDevPath()+", deleting it!")
                 self.deleteRaid()
             ##Build the commandline
@@ -511,21 +509,19 @@ class RAID(Device):
                 self.__isCreated = True
 
     def deleteRaid(self):
-        if self.isCreated == False:
+        if self.checkRaidPath == False:
             logging.info("# Raid device "+self.getDevPath()+" not found, skipping...")
             return
         if self.getType() == "software":
             logging.info("# Deleting raid device "+self.getDevPath())
             process = subprocess.Popen(["mdadm", "--stop", self.getDevPath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (stdout, stderr) = process.communicate()
-            ##Reset all devices in the Raid
+            # Reset all devices in the Raid
+            # If the raid device was overwritten completely before (precondition), zero-superblock can fail
             for dev in self.getDevices():
                 logging.info("# Deleting superblock for device "+dev)
                 process = subprocess.Popen(["mdadm", "--zero-superblock", dev], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 (stdout, stderr) = process.communicate()
-            if stderr != '':
-                logging.error("mdadm encountered an error: " + stderr)
-                raise RuntimeError, "mdadm command error"
 
     def secureErase(self):
         '''
@@ -552,6 +548,9 @@ class RAID(Device):
                 t.start()
             for t in threads:
                 t.join(5.0)
+        # After preconditioning create the raid device
+        logging.info("# Creating raid device "+self.getDevPath()+" after workload independet preconditioning!")
+        self.createRaid()
 
 import threading
 class Operator(threading.Thread):
