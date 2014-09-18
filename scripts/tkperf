@@ -20,7 +20,7 @@ if __name__ == '__main__':
     tkPerfVersion = "TKperf Version: " + pT.__version__
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
+    parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd","raid"])
     parser.add_argument("testname",help="name of the performance tests, corresponds to the result output filenames")
     parser.add_argument("device",help="device to run fio test on")
     
@@ -34,6 +34,8 @@ if __name__ == '__main__':
     parser.add_argument("-rfb","--refill_buffers",help="use Fio's refill buffers option to circumvent any compression of devices",
                         action='store_true')
     parser.add_argument("-dsc","--desc_file",help="use a description file for the tested device if hdparm doesn't work correctly",
+                        type=argparse.FileType('r'))
+    parser.add_argument("-c","--config",help="specify the config file for a raid device",
                         type=argparse.FileType('r'))
     parser.add_argument("-ft","--force_test",help="skip checks if the used device is mounted, don't print warnings and force starting the test",
                         action='store_true')
@@ -60,6 +62,8 @@ if __name__ == '__main__':
         devToTest = SSD(args.mode,args.device,args.testname)
     if args.mode == "hdd":
         devToTest = HDD(args.mode,args.device,args.testname)
+    if args.mode == "raid":
+        devToTest = RAID(args.mode,args.device,args.testname,args.config)
     options = Options()
     if args.numjobs != None:
         options.setNj(args.numjobs)
@@ -69,7 +73,7 @@ if __name__ == '__main__':
         xargs = ['refill_buffers']
         options.setXargs(xargs)
     # Create performance test objects, don't yet init them
-    if args.mode == "ssd":
+    if args.mode == "ssd" or args.mode == "raid":
         if args.ssdt != None:
             SsdPerfTest.testKeys = args.ssdt
         myTest = SsdPerfTest(args.testname, devToTest,options)
