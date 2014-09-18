@@ -11,6 +11,7 @@ import sys
 
 from perfTest.Devices import SSD
 from perfTest.Devices import HDD
+from perfTest.Devices import RAID
 from perfTest.Options import Options
 from perfTest.PerfTest import SsdPerfTest
 from perfTest.PerfTest import HddPerfTest
