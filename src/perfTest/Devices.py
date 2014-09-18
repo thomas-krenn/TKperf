@@ -439,7 +439,7 @@ class RAID(Device):
     '''
     raidLevels = [0, 1, 5, 6, 10]
 
-    def __init__(self, devtype, path, devname, devices, raidlevel, raidtype, vendor):
+    def __init__(self, devtype, path, devname, devices, raidlevel, raidtype, vendor=None):
         '''
         Constructor
         @param devices The devices that should be used for this Raid, as str list.
@@ -454,3 +454,17 @@ class RAID(Device):
     def getType(self): return self.__type
     def getDevices(self): return self.__devices
     def getRaidLevel(self): return self.__raidlevel
+
+    def readDevInfo(self):
+        #FIXME Add correct info about raid setup
+        devInfo = ""
+        devInfo += self.__type + "\n"
+        devInfo += ', '.join(self.__devices)
+        devInfo += str(self.__raidlevel) + "\n"
+
+    def secureErase(self):
+        return True
+
+    def precondition(self):
+        return True
+    
