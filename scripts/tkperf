@@ -50,7 +50,7 @@ if __name__ == '__main__':
     else:
         logfile = args.testname+'.xml.log'
     if args.debug == True:
-        logging.basicConfig(filename=lgofile,level=logging.DEBUG)
+        logging.basicConfig(filename=logfile,level=logging.DEBUG)
     if args.quiet == True:
         logging.basicConfig(filename=logfile,level=logging.WARNING)
     else:
