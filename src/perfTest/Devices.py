@@ -439,7 +439,7 @@ class RAID(Device):
     '''
     raidLevels = [0, 1, 5, 6, 10]
 
-    def __init__(self, devtype, path, devname, devices, raidlevel, raidtype, vendor=None):
+    def __init__(self, devtype, path, devname, config, vendor=None):
         '''
         Constructor
         @param devices The devices that should be used for this Raid, as str list.
@@ -447,13 +447,22 @@ class RAID(Device):
         @param type The Raid type, either "hardware" or "software"
         '''
         super(RAID, self).__init__(devtype, path, devname, vendor)
-        self.__type = raidtype
-        self.__devices = devices
-        self.__raidlevel = raidlevel
+        self.__type = None
+        self.__devices = None
+        self.__raidlevel = None
+        self.__config = config
+        self.initRaidFromConf(config)
 
     def getType(self): return self.__type
     def getDevices(self): return self.__devices
     def getRaidLevel(self): return self.__raidlevel
+
+    def initRaidFromConf(self,fd):
+        decoded = json.load(fd)
+        if "devices" in decoded and "raidlevel" in decoded and "type" in decoded:
+            self.__devices = decoded["devices"]
+            self.__type = decoded["type"]
+            self.__raidlevel = decoded["raidlevel"]
 
     def readDevInfo(self):
         #FIXME Add correct info about raid setup
