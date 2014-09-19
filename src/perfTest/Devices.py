@@ -560,7 +560,7 @@ class RAID(Device):
         if self.getType() == 'software':
             threads = []
             for d in self.getDevices():
-                t = Operator(d,self.getDevName(),'erase')
+                t = Operator(d,self.getDevName(),'erase', None, None)
                 threads.append(t)
                 t.start()
             for t in threads:
@@ -573,7 +573,7 @@ class RAID(Device):
         if self.getType() == 'software':
             threads = []
             for d in self.getDevices():
-                t = Operator(d,self.getDevName(),'condition')
+                t = Operator(d,self.getDevName(),'condition',nj, iod)
                 threads.append(t)
                 t.start()
             for t in threads:
