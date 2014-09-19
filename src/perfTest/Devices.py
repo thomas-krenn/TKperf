@@ -565,6 +565,9 @@ class RAID(Device):
                 t.start()
             for t in threads:
                 t.join(5.0)
+        # After secure erase create the raid device
+        logging.info("# Creating raid device "+self.getDevPath()+" after secure erase!")
+        self.createRaid()
 
     def precondition(self,nj=1,iod=1):
         '''
