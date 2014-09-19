@@ -92,6 +92,8 @@ class StdyState(object):
         self.__stdyRnds = xs
         self.__stdyValues = ys
         self.__stdyAvg = avg
+        # Clear previous slope
+        self.__stdySlope = []
         self.__stdySlope.extend([k,d])
         self.__reachStdyState = stdyState
         return stdyState
