@@ -566,7 +566,7 @@ class RAID(Device):
             for t in threads:
                 t.join(5.0)
 
-    def precondition(self):
+    def precondition(self,nj=1,iod=1):
         '''
         Carries out the preconditioning for a RAID device.
         '''
@@ -584,12 +584,14 @@ class RAID(Device):
 
 import threading
 class Operator(threading.Thread):
-    def __init__(self, path, devname, op):
+    def __init__(self, path, devname, op, nj, iod):
         super(Operator, self).__init__()
         self.__device = SSD('ssd', path, devname)
         self.__op = op
+        self.__nj = nj
+        self.__iod = iod
     def run(self):
         if self.__op == 'erase':
             self.__device.secureErase()
         if self.__op == 'condition':
-            self.__device.precondition()
+            self.__device.precondition(self.__nj,self.__iod)
