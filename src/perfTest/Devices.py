@@ -566,7 +566,7 @@ class RAID(Device):
                 raise RuntimeError, "mdadm command error"
             else:
                 while not self.isReady():
-                    sleep(10)
+                    sleep(30)
                 self.__isCreated = True
 
     def deleteRaid(self):
