@@ -487,7 +487,7 @@ class RAID(Device):
             self.setDevIsAvailable(self.checkDevIsAvbl())
             self.readDevInfo()
         except RuntimeError:
-            logging.error("# Could not fetch initial information for " + self.__path)
+            logging.error("# Could not fetch initial information for " + self.getDevPath())
             raise
 
     def checkRaidPath(self):
