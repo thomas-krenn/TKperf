@@ -317,7 +317,7 @@ class SSD(Device):
         security = False
         logging.info("#Starting Secure Erase for device: "+self.getDevPath())
         out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        while out.poll() == None: sleep(5)
+        out.wait()
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("hdparm -I encountered an error: " + stderr)
@@ -335,7 +335,7 @@ class SSD(Device):
                 out = subprocess.Popen(['hdparm', '--user-master','u',
                                         '--security-set-pass','pwd',self.getDevPath()],
                                        stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                while out.poll() == None: sleep(5)
+                out.wait()
                 stdout,stderr = out.communicate()
                 out.wait()
                 if out.returncode != 0:
@@ -344,7 +344,7 @@ class SSD(Device):
                     raise RuntimeError, "hdparm command error"
                 else:
                     out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                    while out.poll() == None: sleep(5)
+                    out.wait()
                     (stdout,stderr) = out.communicate()
                     if stderr != '':
                         logging.error("hdparm -I encountered an error: " + stderr)
@@ -364,7 +364,7 @@ class SSD(Device):
                             out = subprocess.Popen(['hdparm', '--user-master','u',
                                                     '--security-erase','pwd',self.getDevPath()],
                                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                            while out.poll() == None: sleep(5)
+                            out.wait()
                             stdout,stderr = out.communicate()
                             out.wait()
                             if out.returncode != 0:
@@ -375,7 +375,7 @@ class SSD(Device):
                                 logging.info("#Successfully carried out secure erase for "+self.getDevPath())
                                 #Check if security is diasbled again
                                 out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                                while out.poll() == None: sleep(5)
+                                out.wait()
                                 (stdout,stderr) = out.communicate()
                                 if stderr != '':
                                     logging.error("hdparm -I encountered an error: " + stderr)
@@ -394,7 +394,7 @@ class SSD(Device):
                                                 out = subprocess.Popen(['hdparm', '--user-master','u',
                                                     '--security-disable','pwd',self.getDevPath()],
                                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                                                while out.poll() == None: sleep(5)
+                                                out.wait()
                                                 stdout,stderr = out.communicate()
                                                 out.wait()
                                                 if out.returncode != 0:
