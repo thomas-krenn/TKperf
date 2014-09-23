@@ -53,7 +53,6 @@ class FioJob(object):
         ''' Initialie Fio path and version. '''
         fio = subprocess.Popen(['which', 'fio'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout = fio.communicate()[0]
-        fio.wait()
         if fio.returncode != 0:
             logging.error("# Error: command 'which fio' returned an error code.")
             raise RuntimeError, "which fio command error"
@@ -61,7 +60,6 @@ class FioJob(object):
         self.__fioPath = stdout.rstrip("\n");
         fio = subprocess.Popen(['fio','--version'],stdout=subprocess.PIPE)
         self.__fioVersion = fio.communicate()[0]
-        fio.wait()
 
     def getFioVersion(self):
         ''' Return the current fio version string. '''
@@ -155,7 +153,6 @@ class FioJob(object):
             logging.error("Error: fio argument list is empty.")
             exit(1)
         out = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        out.wait()
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("Fio encountered an error: " + stderr)
