@@ -610,7 +610,7 @@ class RAID(Device):
                 ps.append(p)
                 p.start()
             for p in ps:
-                p.join(5.0)
+                p.join()
         # After preconditioning create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after workload independet preconditioning!")
         self.createRaid()
