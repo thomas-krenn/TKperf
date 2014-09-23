@@ -574,6 +574,9 @@ class RAID(Device):
             logging.info("# Deleting raid device "+self.getDevPath())
             process = subprocess.Popen(["mdadm", "--stop", self.getDevPath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (stdout, stderr) = process.communicate()
+            if stderr != '':
+                logging.error("mdadm encountered an error: " + stderr)
+                raise RuntimeError, "mdadm command error"
             # Reset all devices in the Raid
             # If the raid device was overwritten completely before (precondition), zero-superblock can fail
             for dev in self.getDevices():
