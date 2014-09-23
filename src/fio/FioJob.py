@@ -6,6 +6,7 @@ import logging
 import re
 import json
 from lxml import etree
+from time import sleep
 
 class FioJob(object):
     '''
@@ -154,6 +155,7 @@ class FioJob(object):
             logging.error("Error: fio argument list is empty.")
             exit(1)
         out = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        while out.poll() == None: sleep(5)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("Fio encountered an error: " + stderr)
