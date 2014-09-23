@@ -11,8 +11,10 @@ import json
 from lxml import etree
 from os import lstat
 from stat import S_ISBLK
+import re
 
 from fio.FioJob import FioJob
+from time import sleep
 
 class Device(object):
     '''
@@ -517,6 +519,33 @@ class RAID(Device):
         devInfo += str(self.__raidlevel) + "\n"
         self.setDevInfo(devInfo)
 
+    def isReady(self):
+        '''
+        Checks if a RAID device is ready, i.e. no initialization is running.
+        '''
+        if self.getType() == "software":
+            logging.info("# Checking if raid device "+self.getDevPath()+" is ready...")
+            process = subprocess.Popen(["cat", "/proc/mdstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            (stdout, stderr) = process.communicate()
+            if stderr != '':
+                logging.error("mdadm encountered an error: " + stderr)
+                raise RuntimeError, "mdadm command error"
+            else:
+                ##Remove the Personalities line
+                (firstline, sep, stdout) = stdout.partition("\n")
+                ##Split in single devices
+                mds = stdout.split("\n\n")
+                ##Search devices for our device
+                match = re.search('^/dev/(.*)$', self.getDevPath())
+                mdName = match.group(1)
+                for md in mds:
+                    if md.startswith(mdName):
+                        ##Check if a task is running)
+                        if md.find("finish") != -1:
+                            return False
+                        else:
+                            return True
+
     def createRaid(self):
         if self.getType() == "software":
             ##Check if there is already a device, if yes delete it
@@ -536,6 +565,8 @@ class RAID(Device):
                 logging.error("mdadm encountered an error: " + stderr)
                 raise RuntimeError, "mdadm command error"
             else:
+                while not self.isReady():
+                    sleep(10)
                 self.__isCreated = True
 
     def deleteRaid(self):
