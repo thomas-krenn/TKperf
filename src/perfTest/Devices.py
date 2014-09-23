@@ -317,7 +317,6 @@ class SSD(Device):
         security = False
         logging.info("#Starting Secure Erase for device: "+self.getDevPath())
         out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        out.wait()
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("hdparm -I encountered an error: " + stderr)
@@ -335,16 +334,13 @@ class SSD(Device):
                 out = subprocess.Popen(['hdparm', '--user-master','u',
                                         '--security-set-pass','pwd',self.getDevPath()],
                                        stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                out.wait()
                 stdout,stderr = out.communicate()
-                out.wait()
                 if out.returncode != 0:
                     logging.error("#Error: command 'hdparm --user-master u --security-set-pass pwd returned an error code.")
                     logging.error(stderr)
                     raise RuntimeError, "hdparm command error"
                 else:
                     out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                    out.wait()
                     (stdout,stderr) = out.communicate()
                     if stderr != '':
                         logging.error("hdparm -I encountered an error: " + stderr)
@@ -364,9 +360,7 @@ class SSD(Device):
                             out = subprocess.Popen(['hdparm', '--user-master','u',
                                                     '--security-erase','pwd',self.getDevPath()],
                                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                            out.wait()
                             stdout,stderr = out.communicate()
-                            out.wait()
                             if out.returncode != 0:
                                 logging.error("#Error: command 'hdparm --user-master u --security-erase pwd returned an error code.")
                                 logging.error(stderr)
@@ -375,7 +369,6 @@ class SSD(Device):
                                 logging.info("#Successfully carried out secure erase for "+self.getDevPath())
                                 #Check if security is diasbled again
                                 out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                                out.wait()
                                 (stdout,stderr) = out.communicate()
                                 if stderr != '':
                                     logging.error("hdparm -I encountered an error: " + stderr)
@@ -394,9 +387,7 @@ class SSD(Device):
                                                 out = subprocess.Popen(['hdparm', '--user-master','u',
                                                     '--security-disable','pwd',self.getDevPath()],
                                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                                                out.wait()
                                                 stdout,stderr = out.communicate()
-                                                out.wait()
                                                 if out.returncode != 0:
                                                     logging.error("#Error: command 'hdparm --user-master u --security-disable pwd returned an error code.")
                                                     logging.error(stderr)
@@ -595,13 +586,14 @@ class RAID(Device):
         Carries out the secure erase for a RAID device.
         '''
         if self.getType() == 'software':
-            threads = []
+            import multiprocessing
+            ps = []
             for d in self.getDevices():
-                t = Operator(d,self.getDevName(),'erase', None, None)
-                threads.append(t)
-                t.start()
-            for t in threads:
-                t.join(5.0)
+                p = multiprocessing.Process(target=self.operator,args=(d,'erase',None, None))
+                ps.append(p)
+                p.start()
+            for p in ps:
+                p.join(5.0)
         # After secure erase create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after secure erase!")
         self.createRaid()
@@ -611,27 +603,21 @@ class RAID(Device):
         Carries out the preconditioning for a RAID device.
         '''
         if self.getType() == 'software':
-            threads = []
+            import multiprocessing
+            ps = []
             for d in self.getDevices():
-                t = Operator(d,self.getDevName(),'condition',nj, iod)
-                threads.append(t)
-                t.start()
-            for t in threads:
-                t.join(5.0)
+                p = multiprocessing.Process(target=self.operator,args=(d,'condition',nj, iod))
+                ps.append(p)
+                p.start()
+            for p in ps:
+                p.join(5.0)
         # After preconditioning create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after workload independet preconditioning!")
         self.createRaid()
 
-import threading
-class Operator(threading.Thread):
-    def __init__(self, path, devname, op, nj, iod):
-        super(Operator, self).__init__()
-        self.__device = SSD('ssd', path, devname)
-        self.__op = op
-        self.__nj = nj
-        self.__iod = iod
-    def run(self):
-        if self.__op == 'erase':
-            self.__device.secureErase()
-        if self.__op == 'condition':
-            self.__device.precondition(self.__nj,self.__iod)
+    def operator(self, path, op, nj, iod):
+        tmpSSD = SSD('ssd', path, self.getDevName())
+        if op == 'erase':
+            tmpSSD.secureErase()
+        if op == 'condition':
+            tmpSSD.precondition(nj, iod)
