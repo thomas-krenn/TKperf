@@ -6,6 +6,7 @@ Created on Sep 24, 2014
 
 import subprocess
 import logging
+from string import split
 
 class OS(object):
     '''
@@ -62,10 +63,25 @@ class Storcli(object):
         process3 = subprocess.Popen(['awk', '/^[0-9]/{print $1}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process2.stdout)
         process1.stdout.close()
         process2.stdout.close()
-        (stdout, stderr) = process3.communicate()
-        if stderr != '':
-            logging.error("storcli encountered an error: " + stderr)
+        process3.communicate()
+        if process3.returncode != 0:
+            logging.error("storcli encountered an error: " + process3.stderr)
             raise RuntimeError, "storcli command error"
         else:
-            self.__vds = stdout.splitlines()
+            self.__vds = process3.stdout.splitlines()
 
+    def createVD(self,level, devices):
+        encid = split(devices[1], ":")[0]
+        args = [self.__path, '/c0', 'add', 'vd', str('type=r' + str(level))]
+        devicearg = "drives=" + encid + ":"
+        for dev in devices:
+            devicearg += split(dev, ":")[1] + ","
+        args.append(devicearg.rstrip(","))
+        print(subprocess.list2cmdline(args))
+        logging.info("# Creating raid device with storcli")
+        logging.info("# Command line: "+subprocess.list2cmdline(args))
+        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process.communicate()
+        if process.returncode != 0:
+            logging.error("storcli encountered an error: " + process.stderr)
+            raise RuntimeError, "storcli command error"
