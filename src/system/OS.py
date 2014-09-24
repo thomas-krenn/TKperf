@@ -15,7 +15,7 @@ class OS(object):
         '''
         Constructor
         '''
-        self.__blockdevs = []
+        self.__blockdevs = None
 
     def getBlockDevs(self): return self.__blockdevs
 
@@ -40,7 +40,10 @@ class Storcli(object):
         '''
         Constructor
         '''
+        ## Path of the storcli executable
         self.__path = None
+        ## List of current virtual drives
+        self.__vds = None
     
     def initialize(self):
         storcli = subprocess.Popen(['which', 'storcli'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -50,3 +53,19 @@ class Storcli(object):
             raise RuntimeError, "which storcli command error"
         else:
             self.__path = stdout.rstrip("\n");
+
+    def getVDs(self): return self.__vds
+
+    def checkVDs(self):
+        process1 = subprocess.Popen([self.__path, '/call', '/vall', 'show'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process2 = subprocess.Popen(['awk', 'BEGIN{RS=ORS=\"\\n\\n\";FS=OFS=\"\\n\\n\"}/TYPE /'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process1.stdout)
+        process3 = subprocess.Popen(['awk', '/^[0-9]/{print $1}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process2.stdout)
+        process1.stdout.close()
+        process2.stdout.close()
+        (stdout, stderr) = process3.communicate()
+        if stderr != '':
+            logging.error("storcli encountered an error: " + stderr)
+            raise RuntimeError, "storcli command error"
+        else:
+            self.__vds = stdout.splitlines()
+
