@@ -42,11 +42,14 @@ class Storcli(object):
         Constructor
         '''
         ## Path of the storcli executable
-        self.__path = None
+        self.__storcli = None
         ## List of current virtual drives
         self.__vds = None
     
     def initialize(self):
+        '''
+        Checks for the storcli executable and sets the path of storcli.
+        '''
         storcli = subprocess.Popen(['which', 'storcli'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout = storcli.communicate()[0]
         if storcli.returncode != 0:
@@ -61,7 +64,11 @@ class Storcli(object):
     def getVDs(self): return self.__vds
 
     def checkVDs(self):
-        process1 = subprocess.Popen([self.__path, '/call', '/vall', 'show'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        '''
+        Checks which virtual drives are configured.
+        Sets self.__vds as a list of virtual drives.
+        '''
+        process1 = subprocess.Popen([self.__storcli, '/call', '/vall', 'show'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process2 = subprocess.Popen(['awk', 'BEGIN{RS=ORS=\"\\n\\n\";FS=OFS=\"\\n\\n\"}/TYPE /'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process1.stdout)
         process3 = subprocess.Popen(['awk', '/^[0-9]/{print $1}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process2.stdout)
         process1.stdout.close()
@@ -73,9 +80,15 @@ class Storcli(object):
         else:
             self.__vds = stdout.splitlines()
 
-    def createVD(self,level, devices):
+    def createVD(self, level, devices):
+        '''
+        Creates a virtual drive froma given raid level and a list of
+        enclosure:drive IDs.
+        @param level The desired raid level
+        @param devices The list of raid devices as strings, e.g. ['e252:1','e252:2']
+        ''' 
         encid = split(devices[0], ":")[0]
-        args = [self.__path, '/c0', 'add', 'vd', str('type=r' + str(level))]
+        args = [self.__storcli, '/c0', 'add', 'vd', str('type=r' + str(level))]
         devicearg = "drives=" + encid + ":"
         for dev in devices:
             devicearg += split(dev, ":")[1] + ","
