@@ -11,8 +11,7 @@ class OS(object):
     '''
     Represents the operating system the performance test is running on.
     '''
-
-    def __init__(self, params):
+    def __init__(self):
         '''
         Constructor
         '''
@@ -32,3 +31,22 @@ class OS(object):
             raise RuntimeError, "lsblk command error"
         else:
             self.__blockdevs = stdout.splitlines()
+
+class Storcli(object):
+    '''
+    Represents the information about the current storcli controller management.
+    '''
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        self.__path = None
+    
+    def initialize(self):
+        storcli = subprocess.Popen(['which', 'storcli'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        stdout = storcli.communicate()[0]
+        if storcli.returncode != 0:
+            logging.error("# Error: command 'which storcli' returned an error code.")
+            raise RuntimeError, "which storcli command error"
+        else:
+            self.__path = stdout.rstrip("\n");
