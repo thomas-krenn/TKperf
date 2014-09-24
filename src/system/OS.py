@@ -112,10 +112,10 @@ class Storcli(object):
             raise RuntimeError, "storcli command error"
         else:
             for line in stdout.splitlines():
-                match = re.search('^\/c0\/(e[0-9]\/s[0-9]).*$',line)
+                match = re.search('^\/c0\/e([0-9]\/s[0-9]).*$',line)
                 if match != None:
                     for d in devices:
-                        d = d.replace(':','/')
+                        d = d.replace(':','/s')
                         if d == match.group(1):
                             logging.info(line)
                             status = re.search('Not in progress',line)
