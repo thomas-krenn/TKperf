@@ -74,7 +74,7 @@ class Storcli(object):
             self.__vds = stdout.splitlines()
 
     def createVD(self,level, devices):
-        encid = split(devices[1], ":")[0]
+        encid = split(devices[0], ":")[0]
         args = [self.__path, '/c0', 'add', 'vd', str('type=r' + str(level))]
         devicearg = "drives=" + encid + ":"
         for dev in devices:
