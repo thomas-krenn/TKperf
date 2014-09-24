@@ -66,12 +66,12 @@ class Storcli(object):
         process3 = subprocess.Popen(['awk', '/^[0-9]/{print $1}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process2.stdout)
         process1.stdout.close()
         process2.stdout.close()
-        process3.communicate()
+        (stdout, stderr) = process3.communicate()
         if process3.returncode != 0:
-            logging.error("storcli encountered an error: " + process3.stderr)
+            logging.error("storcli encountered an error: " + stderr)
             raise RuntimeError, "storcli command error"
         else:
-            self.__vds = process3.stdout.splitlines()
+            self.__vds = stdout.splitlines()
 
     def createVD(self,level, devices):
         encid = split(devices[1], ":")[0]
@@ -80,11 +80,12 @@ class Storcli(object):
         for dev in devices:
             devicearg += split(dev, ":")[1] + ","
         args.append(devicearg.rstrip(","))
-        print(subprocess.list2cmdline(args))
         logging.info("# Creating raid device with storcli")
         logging.info("# Command line: "+subprocess.list2cmdline(args))
         process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process.communicate()
+        (stdout,stderr) = process.communicate()
         if process.returncode != 0:
-            logging.error("storcli encountered an error: " + process.stderr)
+            logging.error("storcli encountered an error: " + stderr)
             raise RuntimeError, "storcli command error"
+        else:
+            logging.info(stdout)
