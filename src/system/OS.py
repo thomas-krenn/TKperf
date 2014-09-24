@@ -105,6 +105,7 @@ class Storcli(object):
             logging.info(stdout)
 
     def isReady(self, vd, devices):
+        ready = None
         storcli = subprocess.Popen([self.__storcli,'/c0/eall/sall', 'show', 'rebuild'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout, stderr) = storcli.communicate()
         if storcli.returncode != 0:
@@ -120,7 +121,24 @@ class Storcli(object):
                             logging.info(line)
                             status = re.search('Not in progress',line)
                             if status != None:
-                                return True
+                                ready = True
                             else:
-                                return False
-                    
+                                ready = False
+        match = re.search('^[0-9]\/([0-9]+)',vd)
+        vdNum = match.group(1)
+        storcli = subprocess.Popen([self.__storcli,'/call', '/v'+vdNum, 'show', 'init'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout, stderr) = storcli.communicate()
+        if storcli.returncode != 0:
+            logging.error("storcli encountered an error: " + stderr)
+            raise RuntimeError, "storcli command error"
+        else:
+            for line in stdout.splitlines():
+                match = re.search(vdNum+' INIT',line)
+                if match != None:
+                    logging.info(line)
+                    status = re.search('Not in progress',line)
+                    if status != None:
+                        ready = True
+                    else:
+                        ready = False
+        return ready
