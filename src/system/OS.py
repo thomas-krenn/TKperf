@@ -7,6 +7,7 @@ Created on Sep 24, 2014
 import subprocess
 import logging
 from string import split
+import re
 
 class OS(object):
     '''
@@ -102,3 +103,24 @@ class Storcli(object):
             raise RuntimeError, "storcli command error"
         else:
             logging.info(stdout)
+
+    def isReady(self, vd, devices):
+        storcli = subprocess.Popen([self.__storcli,'/c0/eall/sall', 'show', 'rebuild'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout, stderr) = storcli.communicate()
+        if storcli.returncode != 0:
+            logging.error("storcli encountered an error: " + stderr)
+            raise RuntimeError, "storcli command error"
+        else:
+            for line in stdout.splitlines():
+                match = re.search('^\/c0\/(e[0-9]\/s[0-9]).*$',line)
+                if match != None:
+                    for d in devices:
+                        d = d.replace(':','/')
+                        if d == match.group(1):
+                            logging.info(line)
+                            status = re.search('Not in progress',line)
+                            if status != None:
+                                return True
+                            else:
+                                return False
+                    
