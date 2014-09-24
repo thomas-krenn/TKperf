@@ -50,6 +50,9 @@ class Storcli(object):
         storcli = subprocess.Popen(['which', 'storcli'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout = storcli.communicate()[0]
         if storcli.returncode != 0:
+            storcli = subprocess.Popen(['which', 'storcli64'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            stdout = storcli.communicate()[0]
+        if storcli.returncode != 0:
             logging.error("# Error: command 'which storcli' returned an error code.")
             raise RuntimeError, "which storcli command error"
         else:
