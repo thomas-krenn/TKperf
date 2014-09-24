@@ -60,7 +60,7 @@ class Storcli(object):
             logging.error("# Error: command 'which storcli' returned an error code.")
             raise RuntimeError, "which storcli command error"
         else:
-            self.__path = stdout.rstrip("\n");
+            self.__storcli = stdout.rstrip("\n");
 
     def getVDs(self): return self.__vds
 
