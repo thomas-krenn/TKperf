@@ -512,7 +512,7 @@ class RAID(Device):
         # Check if there is already a device, if yes delete it
         if self.__raidTec.checkRaidPath() == True:
             logging.info("# Found raid device "+self.getDevPath()+", deleting it!")
-            self.__raidTec.deleteRaid()
+            self.__raidTec.deleteVD()
         # Create the raid device
         self.__raidTec.createVD(self)
         while not self.__raidTec.isReady():
@@ -555,6 +555,14 @@ class RAID(Device):
     def operator(self, path, op, nj, iod):
         tmpSSD = SSD('ssd', path, self.getDevName())
         if op == 'erase':
-            tmpSSD.secureErase()
+            try:
+                tmpSSD.secureErase()
+            except RuntimeError:
+                logging.error("# Error: Could not secure erase " + path)
+                raise
         if op == 'condition':
-            tmpSSD.precondition(nj, iod)
+            try:
+                tmpSSD.precondition(nj, iod)
+            except RuntimeError:
+                logging.error("# Error: Could not precondition " + path)
+                raise
