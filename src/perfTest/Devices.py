@@ -514,7 +514,7 @@ class RAID(Device):
             logging.info("# Found raid device "+self.getDevPath()+", deleting it!")
             self.__raidTec.deleteVD()
         # Create the raid device
-        self.__raidTec.createVD(self)
+        self.__raidTec.createVD()
         while not self.__raidTec.isReady():
             sleep(30)
 
@@ -522,15 +522,19 @@ class RAID(Device):
         '''
         Carries out the secure erase for a RAID device.
         '''
-        if self.getType() == 'sw_mdadm':
-            import multiprocessing
-            ps = []
-            for d in self.__raidTec.getDevices():
-                p = multiprocessing.Process(target=self.operator,args=(d,'erase',None, None))
-                ps.append(p)
-                p.start()
-            for p in ps:
-                p.join()
+        try:
+            if self.getType() == 'sw_mdadm':
+                import multiprocessing
+                ps = []
+                for d in self.__raidTec.getDevices():
+                    p = multiprocessing.Process(target=self.operator,args=(d,'erase',None, None))
+                    ps.append(p)
+                    p.start()
+                for p in ps:
+                    p.join()
+        except RuntimeError:
+            logging.error("# Error: Could not secure erase " + self.getDevPath())
+            raise
         # After secure erase create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after secure erase!")
         self.createRaid()
@@ -539,15 +543,19 @@ class RAID(Device):
         '''
         Carries out the preconditioning for a RAID device.
         '''
-        if self.getType() == 'sw_mdadm':
-            import multiprocessing
-            ps = []
-            for d in self.__raidTec.getDevices():
-                p = multiprocessing.Process(target=self.operator,args=(d,'condition',nj, iod))
-                ps.append(p)
-                p.start()
-            for p in ps:
-                p.join()
+        try:
+            if self.getType() == 'sw_mdadm':
+                import multiprocessing
+                ps = []
+                for d in self.__raidTec.getDevices():
+                    p = multiprocessing.Process(target=self.operator,args=(d,'condition',nj, iod))
+                    ps.append(p)
+                    p.start()
+                for p in ps:
+                    p.join()
+        except RuntimeError:
+            logging.error("# Error: Could not precondition " + self.getDevPath())
+            raise
         # After preconditioning create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after workload independet preconditioning!")
         self.createRaid()
