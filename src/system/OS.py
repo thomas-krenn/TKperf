@@ -108,6 +108,43 @@ class Mdadm(RAIDtec):
             logging.error("mdadm encountered an error: " + stderr)
             raise RuntimeError, "mdadm command error"
 
+    def deleteVD(self, devices=None):
+        logging.info("# Deleting raid device "+self.getDevPath())
+        mdadm = subprocess.Popen([self.getUtil(), "--stop", self.getDevPath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stderr = mdadm.communicate()[1]
+        if mdadm.returncode != 0:
+            logging.error("mdadm encountered an error: " + stderr)
+            raise RuntimeError, "mdadm command error"
+        # Reset all devices in the Raid
+        # If the raid device was overwritten completely before (precondition), zero-superblock can fail
+        for dev in devices:
+            logging.info("# Deleting superblock for device "+dev)
+            mdadm = subprocess.Popen([self.getUtil(), "--zero-superblock", dev], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            mdadm.communicate()
+
+    def isReady(self):
+        logging.info("# Checking if raid device "+self.getDevPath()+" is ready...")
+        process = subprocess.Popen(["cat", "/proc/mdstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (stdout, stderr) = process.communicate()
+        if stderr != '':
+            logging.error("cat mdstat encountered an error: " + stderr)
+            raise RuntimeError, "cat mdstat command error"
+        else:
+            # Remove the Personalities line
+            stdout = stdout.partition("\n")[2]
+            # Split in single devices
+            mds = stdout.split("\n\n")
+            # Search devices for our device
+            match = re.search('^/dev/(.*)$', self.getDevPath())
+            mdName = match.group(1)
+            for md in mds:
+                if md.startswith(mdName):
+                    # Check if a task is running)
+                    if md.find("finish") != -1:
+                        return False
+                    else:
+                        return True
+
 class Storcli(RAIDtec):
     '''
     Represents a storcli based RAID technology.
@@ -127,6 +164,22 @@ class Storcli(RAIDtec):
             raise RuntimeError, "which storcli command error"
         else:
             self.setUtil(stdout.rstrip("\n"))
+
+    def checkRaidPath(self):
+        match = re.search('^[0-9]\/([0-9]+)',self.getDevPath())
+        vdNum = match.group(1)
+        storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = storcli.communicate()
+        if storcli.returncode != 0:
+            logging.error("storcli encountered an error: " + stderr)
+            raise RuntimeError, "storcli command error"
+        else:
+            for line in stdout.splitlines():
+                match = re.search('^Description = (\w+)$',line)
+                if match.group(1) == 'No VDs have been configured':
+                    return False
+                else:
+                    return True
 
     def checkVDs(self):
         '''
@@ -168,12 +221,8 @@ class Storcli(RAIDtec):
         else:
             logging.info(stdout)
 
-    def deleteVD(self, vd, devices=None):
-        '''
-        Deletes a virtual drive.
-        @param vd The ID of the virtual drive, e.g. 0/0.
-        '''
-        match = re.search('^[0-9]\/([0-9]+)',vd)
+    def deleteVD(self, devices=None):
+        match = re.search('^[0-9]\/([0-9]+)',self.getDevPath())
         vdNum = match.group(1)
         storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stderr = storcli.communicate()[1]
@@ -183,7 +232,7 @@ class Storcli(RAIDtec):
         else:
             logging.info("# Deleting raid device VD "+vdNum)
 
-    def isReady(self, vd, devices):
+    def isReady(self, devices):
         '''
         Checks if a virtual device is ready, i.e. if no rebuild on any PDs is running
         and if not initializarion process is going on.
@@ -210,7 +259,7 @@ class Storcli(RAIDtec):
                                 ready = True
                             else:
                                 ready = False
-        match = re.search('^[0-9]\/([0-9]+)',vd)
+        match = re.search('^[0-9]\/([0-9]+)',self.getDevPath())
         vdNum = match.group(1)
         storcli = subprocess.Popen([self.getUtil(),'/call', '/v'+vdNum, 'show', 'init'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout, stderr) = storcli.communicate()
