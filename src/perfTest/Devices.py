@@ -476,7 +476,7 @@ class RAID(Device):
                 self.initRaidFromConf(self.__config)
             # Create raid if it doesn't exist
             if not self.__raidTec.checkRaidPath():
-                self.__raidTec.createRaid()
+                self.__raidTec.createVD()
             self.setDevSizeB(self.calcDevSizeB())
             self.setDevSizeKB(self.calcDevSizeKB())
             self.setDevIsMounted(self.checkDevIsMounted())
