@@ -95,6 +95,9 @@ class Mdadm(RAIDtec):
         else:
             return S_ISBLK(mode)
 
+    def checkVDs(self):
+        pass
+
     def createVD(self, level, devices):
         match = re.search('^\/dev\/(.*)$)', self.getDevPath())
         vdNum = match.group(1)
