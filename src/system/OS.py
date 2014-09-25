@@ -106,7 +106,7 @@ class Mdadm(RAIDtec):
         pass
 
     def createVD(self):
-        match = re.search('^\/dev\/(.*)$)', self.getDevPath())
+        match = re.search('^\/dev\/(.*)$', self.getDevPath())
         vdNum = match.group(1)
         self.getDevPath()
         args = [self.getUtil(), "--create", vdNum, "--quiet", "--metadata=default", str("--level=" + str(self.getLevel())), str("--raid-devices=" + str(len(self.getDevices())))]
