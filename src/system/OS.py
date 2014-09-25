@@ -83,7 +83,7 @@ class Storcli(object):
 
     def createVD(self, level, devices):
         '''
-        Creates a virtual drive froma given raid level and a list of
+        Creates a virtual drive from a given raid level and a list of
         enclosure:drive IDs.
         @param level The desired raid level
         @param devices The list of raid devices as strings, e.g. ['e252:1','e252:2']
@@ -104,7 +104,29 @@ class Storcli(object):
         else:
             logging.info(stdout)
 
+    def deleteVD(self, vd):
+        '''
+        Deletes a virtual drive.
+        @param vd The ID of the virtual drive, e.g. 0/0.
+        '''
+        match = re.search('^[0-9]\/([0-9]+)',vd)
+        vdNum = match.group(1)
+        storcli = subprocess.Popen([self.__storcli,'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        stderr = storcli.communicate()[1]
+        if storcli.returncode != 0:
+            logging.error("storcli encountered an error: " + stderr)
+            raise RuntimeError, "storcli command error"
+        else:
+            logging.info("# Deleting raid device VD "+vdNum)
+
     def isReady(self, vd, devices):
+        '''
+        Checks if a virtual device is ready, i.e. if no rebuild on any PDs is running
+        and if not initializarion process is going on.
+        @param vd ID of the VD, e.g. 0/0.
+        @param devices Array of enclosusre:PD IDs, e.g. ['e252:1','e252:2']
+        @return True if VD is ready, False if not
+        '''
         ready = None
         storcli = subprocess.Popen([self.__storcli,'/c0/eall/sall', 'show', 'rebuild'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout, stderr) = storcli.communicate()
