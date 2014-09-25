@@ -9,12 +9,12 @@ import logging
 import subprocess
 import json
 from lxml import etree
-from os import lstat
-from stat import S_ISBLK
-import re
+from time import sleep
 
 from fio.FioJob import FioJob
-from time import sleep
+from system.OS import Storcli
+from system.OS import Mdadm
+
 
 class Device(object):
     '''
@@ -456,15 +456,11 @@ class RAID(Device):
         '''
         super(RAID, self).__init__(devtype, path, devname, vendor)
         self.__type = None
-        self.__devices = None
-        self.__raidlevel = None
         self.__config = config
-        self.__isReady = None
+        self.__raidTec = None
 
     def getType(self): return self.__type
-    def getDevices(self): return self.__devices
-    def getRaidLevel(self): return self.__raidlevel
-    
+    def getConfig(self): return self.__config
     def setConfig(self,cfg):
         self.__config = cfg
 
@@ -475,11 +471,11 @@ class RAID(Device):
         '''
         try:
             # Init from config if not done yet
-            if self.__devices == None:
+            if self.__raidTec == None:
                 self.initRaidFromConf(self.__config)
             # Create raid if it doesn't exist
-            if not self.checkRaidPath():
-                self.createRaid()
+            if not self.__raidTec.checkRaidPath():
+                self.__raidTec.createRaid()
             self.setDevSizeB(self.calcDevSizeB())
             self.setDevSizeKB(self.calcDevSizeKB())
             self.setDevIsMounted(self.checkDevIsMounted())
@@ -489,14 +485,6 @@ class RAID(Device):
             logging.error("# Could not fetch initial information for " + self.getDevPath())
             raise
 
-    def checkRaidPath(self):
-        try:
-            mode = lstat(self.getDevPath()).st_mode
-        except OSError:
-            return False
-        else:
-            return S_ISBLK(mode)
-
     def initRaidFromConf(self,fd):
         '''
         Initializes a RAID device from a json config file.
@@ -504,9 +492,12 @@ class RAID(Device):
         '''
         decoded = json.load(fd)
         if "devices" in decoded and "raidlevel" in decoded and "type" in decoded:
-            self.__devices = decoded["devices"]
             self.__type = decoded["type"]
-            self.__raidlevel = decoded["raidlevel"]
+        if self.__type == "sw_mdadm":
+            self.__raidTec = Mdadm(self.getDevPath(), decoded["raidlevel"], decoded["devices"])
+        if self.__type == "hw_lsi":
+            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"])
+        self.__raidTec.initialize()
 
     def readDevInfo(self):
         #FIXME Add correct info about raid setup
@@ -516,82 +507,24 @@ class RAID(Device):
         devInfo += str(self.__raidlevel) + "\n"
         self.setDevInfo(devInfo)
 
-    def isReady(self):
-        '''
-        Checks if a RAID device is ready, i.e. no initialization is running.
-        '''
-        if self.getType() == "software":
-            logging.info("# Checking if raid device "+self.getDevPath()+" is ready...")
-            process = subprocess.Popen(["cat", "/proc/mdstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            (stdout, stderr) = process.communicate()
-            if stderr != '':
-                logging.error("mdadm encountered an error: " + stderr)
-                raise RuntimeError, "mdadm command error"
-            else:
-                ##Remove the Personalities line
-                (firstline, sep, stdout) = stdout.partition("\n")
-                ##Split in single devices
-                mds = stdout.split("\n\n")
-                ##Search devices for our device
-                match = re.search('^/dev/(.*)$', self.getDevPath())
-                mdName = match.group(1)
-                for md in mds:
-                    if md.startswith(mdName):
-                        ##Check if a task is running)
-                        if md.find("finish") != -1:
-                            return False
-                        else:
-                            return True
-
     def createRaid(self):
-        if self.getType() == "software":
-            ##Check if there is already a device, if yes delete it
-            if self.checkRaidPath() == True:
-                logging.info("# Found raid device "+self.getDevPath()+", deleting it!")
-                self.deleteRaid()
-            ##Build the commandline
-            args = ["mdadm", "--create", self.getDevPath(), "--quiet", "--metadata=default", str("--level=" + str(self.getRaidLevel())), str("--raid-devices=" + str(len(self.getDevices())))]
-            for dev in self.getDevices():
-                args.append(dev)
-            logging.info("# Creating raid device "+self.getDevPath())
-            logging.info("# Command line: "+subprocess.list2cmdline(args))
-            ##Execute the commandline
-            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            (stdout, stderr) = process.communicate()
-            if stderr != '':
-                logging.error("mdadm encountered an error: " + stderr)
-                raise RuntimeError, "mdadm command error"
-            else:
-                while not self.isReady():
-                    sleep(30)
-                self.__isCreated = True
-
-    def deleteRaid(self):
-        if self.checkRaidPath == False:
-            logging.info("# Raid device "+self.getDevPath()+" not found, skipping...")
-            return
-        if self.getType() == "software":
-            logging.info("# Deleting raid device "+self.getDevPath())
-            process = subprocess.Popen(["mdadm", "--stop", self.getDevPath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            (stdout, stderr) = process.communicate()
-            if stderr != '':
-                logging.error("mdadm encountered an error: " + stderr)
-                raise RuntimeError, "mdadm command error"
-            # Reset all devices in the Raid
-            # If the raid device was overwritten completely before (precondition), zero-superblock can fail
-            for dev in self.getDevices():
-                logging.info("# Deleting superblock for device "+dev)
-                process = subprocess.Popen(["mdadm", "--zero-superblock", dev], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                (stdout, stderr) = process.communicate()
+        # Check if there is already a device, if yes delete it
+        if self.__raidTec.checkRaidPath() == True:
+            logging.info("# Found raid device "+self.getDevPath()+", deleting it!")
+            self.__raidTec.deleteRaid()
+        # Create the raid device
+        self.__raidTec.createVD(self)
+        while not self.__raidTec.isReady():
+            sleep(30)
 
     def secureErase(self):
         '''
         Carries out the secure erase for a RAID device.
         '''
-        if self.getType() == 'software':
+        if self.getType() == 'sw_mdadm':
             import multiprocessing
             ps = []
-            for d in self.getDevices():
+            for d in self.__raidTec.getDevices():
                 p = multiprocessing.Process(target=self.operator,args=(d,'erase',None, None))
                 ps.append(p)
                 p.start()
@@ -605,10 +538,10 @@ class RAID(Device):
         '''
         Carries out the preconditioning for a RAID device.
         '''
-        if self.getType() == 'software':
+        if self.getType() == 'sw_mdadm':
             import multiprocessing
             ps = []
-            for d in self.getDevices():
+            for d in self.__raidTec.getDevices():
                 p = multiprocessing.Process(target=self.operator,args=(d,'condition',nj, iod))
                 ps.append(p)
                 p.start()

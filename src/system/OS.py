@@ -18,11 +18,15 @@ class RAIDtec(object):
     '''
     __metaclass__ = ABCMeta
 
-    def __init__(self, path):
+    def __init__(self, path, level, devices):
         ## Path of the RAID utils
         self.__util = None
         ## Path of the raid device
         self.__path = path
+        ## RAID level
+        self.__level = level
+        ## List of devices
+        self.__devices = devices
         ## List of current RAID virtual drives
         self.__vds = None
         ## List of block Devices in OS
@@ -30,6 +34,8 @@ class RAIDtec(object):
 
     def getUtil(self): return self.__util
     def getDevPath(self): return self.__path
+    def getLevel(self): return self.__level
+    def getDevices(self): return self.__devices
     def getVDs(self): return self.__vds
     def getBlockDevs(self): return self.__blockdevs
 
@@ -61,13 +67,13 @@ class RAIDtec(object):
     def checkVDs(self):
         ''' Check which virtual drives are configured. '''
     @abstractmethod
-    def createVD(self, level, devices):
+    def createVD(self):
         ''' Create a virtual drive. '''
     @abstractmethod
-    def deleteVD(self, vd, devices):
+    def deleteVD(self):
         ''' Delete a virtual drive. '''
     @abstractmethod
-    def isReady(self, vd, devices):
+    def isReady(self):
         ''' Check if a virtual drive is ready. '''
 
 class Mdadm(RAIDtec):
@@ -98,12 +104,12 @@ class Mdadm(RAIDtec):
     def checkVDs(self):
         pass
 
-    def createVD(self, level, devices):
+    def createVD(self):
         match = re.search('^\/dev\/(.*)$)', self.getDevPath())
         vdNum = match.group(1)
         self.getDevPath()
-        args = [self.getUtil(), "--create", vdNum, "--quiet", "--metadata=default", str("--level=" + str(level)), str("--raid-devices=" + str(len(devices)))]
-        for dev in devices:
+        args = [self.getUtil(), "--create", vdNum, "--quiet", "--metadata=default", str("--level=" + str(self.getLevel())), str("--raid-devices=" + str(len(self.getDevices())))]
+        for dev in self.getDevices():
             args.append(dev)
         logging.info("# Creating raid device "+self.getDevPath())
         logging.info("# Command line: "+subprocess.list2cmdline(args))
@@ -114,7 +120,7 @@ class Mdadm(RAIDtec):
             logging.error("mdadm encountered an error: " + stderr)
             raise RuntimeError, "mdadm command error"
 
-    def deleteVD(self, devices=None):
+    def deleteVD(self):
         logging.info("# Deleting raid device "+self.getDevPath())
         mdadm = subprocess.Popen([self.getUtil(), "--stop", self.getDevPath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stderr = mdadm.communicate()[1]
@@ -123,7 +129,7 @@ class Mdadm(RAIDtec):
             raise RuntimeError, "mdadm command error"
         # Reset all devices in the Raid
         # If the raid device was overwritten completely before (precondition), zero-superblock can fail
-        for dev in devices:
+        for dev in self.getDevices():
             logging.info("# Deleting superblock for device "+dev)
             mdadm = subprocess.Popen([self.getUtil(), "--zero-superblock", dev], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             mdadm.communicate()
@@ -186,6 +192,11 @@ class Storcli(RAIDtec):
                     return False
                 else:
                     return True
+                match = re.search('^Status = (\w+)$',line)
+                if match.group(1) == 'Failure':
+                    return False
+                else:
+                    return True
 
     def checkVDs(self):
         '''
@@ -204,17 +215,17 @@ class Storcli(RAIDtec):
         else:
             self.setVDs(stdout.splitlines())
 
-    def createVD(self, level, devices):
+    def createVD(self):
         '''
         Creates a virtual drive from a given raid level and a list of
         enclosure:drive IDs.
         @param level The desired raid level
         @param devices The list of raid devices as strings, e.g. ['e252:1','e252:2']
         ''' 
-        encid = split(devices[0], ":")[0]
-        args = [self.getUtil(), '/c0', 'add', 'vd', str('type=r' + str(level))]
+        encid = split(self.getDevices()[0], ":")[0]
+        args = [self.getUtil(), '/c0', 'add', 'vd', str('type=r' + str(self.getLevel))]
         devicearg = "drives=" + encid + ":"
-        for dev in devices:
+        for dev in self.getDevices():
             devicearg += split(dev, ":")[1] + ","
         args.append(devicearg.rstrip(","))
         logging.info("# Creating raid device with storcli")
@@ -227,7 +238,7 @@ class Storcli(RAIDtec):
         else:
             logging.info(stdout)
 
-    def deleteVD(self, devices=None):
+    def deleteVD(self):
         match = re.search('^[0-9]\/([0-9]+)',self.getDevPath())
         vdNum = match.group(1)
         storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -238,7 +249,7 @@ class Storcli(RAIDtec):
         else:
             logging.info("# Deleting raid device VD "+vdNum)
 
-    def isReady(self, devices):
+    def isReady(self):
         '''
         Checks if a virtual device is ready, i.e. if no rebuild on any PDs is running
         and if not initializarion process is going on.
@@ -256,7 +267,7 @@ class Storcli(RAIDtec):
             for line in stdout.splitlines():
                 match = re.search('^\/c0\/e([0-9]+\/s[0-9]+).*$',line)
                 if match != None:
-                    for d in devices:
+                    for d in self.getDevices():
                         d = d.replace(':','/s')
                         if d == match.group(1):
                             logging.info(line)
