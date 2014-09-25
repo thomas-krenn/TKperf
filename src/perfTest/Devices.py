@@ -504,8 +504,8 @@ class RAID(Device):
         #FIXME Add correct info about raid setup
         devInfo = ""
         devInfo += self.__type + "\n"
-        devInfo += ', '.join(self.__devices)
-        devInfo += str(self.__raidlevel) + "\n"
+        devInfo += ', '.join(self.__raidTec.getDevices())
+        devInfo += str(self.__raidTec.getLevel() + "\n")
         self.setDevInfo(devInfo)
 
     def createRaid(self):
