@@ -533,14 +533,15 @@ class RAID(Device):
                 ps.append(p)
                 p.start()
             for p in ps:
+                try:
+                    exc.get()
+                except exc.empty():
+                    pass
+                else:
+                    logging.error("# Error: Could not secure erase " + self.getDevPath())
+                    raise RuntimeError, "secure erase error"
+            for p in ps:
                 p.join()
-        try:
-            exc.get(block=False)
-        except m.Queue.Empty:
-            pass
-        else:
-            logging.error("# Error: Could not secure erase " + self.getDevPath())
-            raise RuntimeError, "secure erase error"
         # After secure erase create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after secure erase!")
         self.createRaid()
@@ -559,14 +560,15 @@ class RAID(Device):
                 ps.append(p)
                 p.start()
             for p in ps:
+                try:
+                    exc.get()
+                except exc.empty():
+                    pass
+                else:
+                    logging.error("# Error: Could not precondition " + self.getDevPath())
+                    raise RuntimeError, "precondition error"
+            for p in ps:
                 p.join()
-        try:
-            exc.get(block=False)
-        except m.Queue.Empty:
-            pass
-        else:
-            logging.error("# Error: Could not precondition " + self.getDevPath())
-            raise RuntimeError, "precondition error"
         # After preconditioning create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after workload independet preconditioning!")
         self.createRaid()
