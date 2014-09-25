@@ -534,7 +534,7 @@ class RAID(Device):
                     p.join()
         except RuntimeError:
             logging.error("# Error: Could not secure erase " + self.getDevPath())
-            raise
+            exit(1)
         # After secure erase create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after secure erase!")
         self.createRaid()
@@ -555,7 +555,7 @@ class RAID(Device):
                     p.join()
         except RuntimeError:
             logging.error("# Error: Could not precondition " + self.getDevPath())
-            raise
+            exit(1)
         # After preconditioning create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after workload independet preconditioning!")
         self.createRaid()
