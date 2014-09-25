@@ -4,22 +4,34 @@ Created on Sep 24, 2014
 @author: gschoenb
 '''
 
+from abc import ABCMeta, abstractmethod
 import subprocess
 import logging
 from string import split
 import re
 
-class OS(object):
+class RAIDtec(object):
     '''
-    Represents the operating system the performance test is running on.
+    Representing a RAID technology, used from the OS.
     '''
+    __metaclass__ = ABCMeta
+
     def __init__(self):
-        '''
-        Constructor
-        '''
+        ## Path of the RAID utils
+        self.__util = None
+        ## List of current RAID virtual drives
+        self.__vds = None
+        ## List of block Devices in OS
         self.__blockdevs = None
 
+    def getUtil(self): return self.__util
+    def getVDs(self): return self.__vds
     def getBlockDevs(self): return self.__blockdevs
+
+    def setUtil(self, u):
+        self.__util = u
+    def setVDs(self, v):
+        self.__vds = v
 
     def checkBlockDevs(self):
         '''
@@ -34,19 +46,27 @@ class OS(object):
         else:
             self.__blockdevs = stdout.splitlines()
 
-class Storcli(object):
+    @abstractmethod
+    def initialize(self):
+        ''' Initialize the specific RAID technology. '''
+    @abstractmethod
+    def checkVDs(self):
+        ''' Check which virtual drives are configured. '''
+    @abstractmethod
+    def createVD(self, level, devices):
+        ''' Create a virtual drive. '''
+    @abstractmethod
+    def deleteVD(self, vd, devices):
+        ''' Delete a virtual drive. '''
+    @abstractmethod
+    def isReady(self, vd, devices):
+        ''' Check if a virtual drive is ready. '''
+
+class Storcli(RAIDtec):
     '''
-    Represents the information about the current storcli controller management.
+    Represents a storcli based RAID technology.
     '''
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        ## Path of the storcli executable
-        self.__storcli = None
-        ## List of current virtual drives
-        self.__vds = None
-    
+
     def initialize(self):
         '''
         Checks for the storcli executable and sets the path of storcli.
@@ -60,16 +80,14 @@ class Storcli(object):
             logging.error("# Error: command 'which storcli' returned an error code.")
             raise RuntimeError, "which storcli command error"
         else:
-            self.__storcli = stdout.rstrip("\n");
-
-    def getVDs(self): return self.__vds
+            self.setUtil(stdout.rstrip("\n"))
 
     def checkVDs(self):
         '''
         Checks which virtual drives are configured.
-        Sets self.__vds as a list of virtual drives.
+        Sets VDs as a list of virtual drives.
         '''
-        process1 = subprocess.Popen([self.__storcli, '/call', '/vall', 'show'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process1 = subprocess.Popen([self.getUtil(), '/call', '/vall', 'show'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         process2 = subprocess.Popen(['awk', 'BEGIN{RS=ORS=\"\\n\\n\";FS=OFS=\"\\n\\n\"}/TYPE /'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process1.stdout)
         process3 = subprocess.Popen(['awk', '/^[0-9]/{print $1}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process2.stdout)
         process1.stdout.close()
@@ -79,7 +97,7 @@ class Storcli(object):
             logging.error("storcli encountered an error: " + stderr)
             raise RuntimeError, "storcli command error"
         else:
-            self.__vds = stdout.splitlines()
+            self.setVDs(stdout.splitlines())
 
     def createVD(self, level, devices):
         '''
@@ -89,7 +107,7 @@ class Storcli(object):
         @param devices The list of raid devices as strings, e.g. ['e252:1','e252:2']
         ''' 
         encid = split(devices[0], ":")[0]
-        args = [self.__storcli, '/c0', 'add', 'vd', str('type=r' + str(level))]
+        args = [self.getUtil(), '/c0', 'add', 'vd', str('type=r' + str(level))]
         devicearg = "drives=" + encid + ":"
         for dev in devices:
             devicearg += split(dev, ":")[1] + ","
@@ -104,14 +122,14 @@ class Storcli(object):
         else:
             logging.info(stdout)
 
-    def deleteVD(self, vd):
+    def deleteVD(self, vd, devices=None):
         '''
         Deletes a virtual drive.
         @param vd The ID of the virtual drive, e.g. 0/0.
         '''
         match = re.search('^[0-9]\/([0-9]+)',vd)
         vdNum = match.group(1)
-        storcli = subprocess.Popen([self.__storcli,'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stderr = storcli.communicate()[1]
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
@@ -128,7 +146,7 @@ class Storcli(object):
         @return True if VD is ready, False if not
         '''
         ready = None
-        storcli = subprocess.Popen([self.__storcli,'/c0/eall/sall', 'show', 'rebuild'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        storcli = subprocess.Popen([self.getUtil(),'/c0/eall/sall', 'show', 'rebuild'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout, stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
@@ -148,7 +166,7 @@ class Storcli(object):
                                 ready = False
         match = re.search('^[0-9]\/([0-9]+)',vd)
         vdNum = match.group(1)
-        storcli = subprocess.Popen([self.__storcli,'/call', '/v'+vdNum, 'show', 'init'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        storcli = subprocess.Popen([self.getUtil(),'/call', '/v'+vdNum, 'show', 'init'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout, stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
