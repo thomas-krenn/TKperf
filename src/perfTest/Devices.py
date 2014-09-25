@@ -535,7 +535,7 @@ class RAID(Device):
             for p in ps:
                 p.join()
         try:
-            exc.get()
+            exc.get(False)
         except exc.empty():
             pass
         else:
@@ -561,7 +561,7 @@ class RAID(Device):
             for p in ps:
                 p.join()
         try:
-            exc.get()
+            exc.get(False)
         except exc.empty():
             pass
         else:
