@@ -505,7 +505,7 @@ class RAID(Device):
         devInfo = ""
         devInfo += self.__type + "\n"
         devInfo += ', '.join(self.__raidTec.getDevices())
-        devInfo += str(self.__raidTec.getLevel() + "\n")
+        devInfo += str(self.__raidTec.getLevel()) + "\n"
         self.setDevInfo(devInfo)
 
     def createRaid(self):
