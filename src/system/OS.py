@@ -160,6 +160,18 @@ class Storcli(RAIDtec):
     '''
     Represents a storcli based RAID technology.
     '''
+    
+    def __init__(self, path, level, devices):
+        '''
+        Constructor
+        @param config The config file describing the RAID set
+        '''
+        super(Storcli, self).__init__(path, level, devices)
+        ## The virtual drive of the raid controller
+        self.__vd = None
+
+    def getVD(self): return self.__vd
+    def setVD(self,v): self.__vd = v
 
     def initialize(self):
         '''
@@ -177,7 +189,7 @@ class Storcli(RAIDtec):
             self.setUtil(stdout.rstrip("\n"))
 
     def checkRaidPath(self):
-        match = re.search('^[0-9]\/([0-9]+)',self.getDevPath())
+        match = re.search('^[0-9]\/([0-9]+)',self.getVD())
         vdNum = match.group(1)
         storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = storcli.communicate()
@@ -213,6 +225,7 @@ class Storcli(RAIDtec):
             raise RuntimeError, "storcli command error"
         else:
             self.setVDs(stdout.splitlines())
+            logging.info("# Got the following VDs: "+self.getVDs())
 
     def createVD(self):
         '''
@@ -238,7 +251,7 @@ class Storcli(RAIDtec):
             logging.info(stdout)
 
     def deleteVD(self):
-        match = re.search('^[0-9]\/([0-9]+)',self.getDevPath())
+        match = re.search('^[0-9]\/([0-9]+)',self.getVD())
         vdNum = match.group(1)
         storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stderr = storcli.communicate()[1]
@@ -275,7 +288,7 @@ class Storcli(RAIDtec):
                                 ready = True
                             else:
                                 ready = False
-        match = re.search('^[0-9]\/([0-9]+)',self.getDevPath())
+        match = re.search('^[0-9]\/([0-9]+)',self.getVD())
         vdNum = match.group(1)
         storcli = subprocess.Popen([self.getUtil(),'/call', '/v'+vdNum, 'show', 'init'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout, stderr) = storcli.communicate()
