@@ -9,6 +9,8 @@ import subprocess
 import logging
 from string import split
 import re
+from os import lstat
+from stat import S_ISBLK
 
 class RAIDtec(object):
     '''
@@ -16,15 +18,18 @@ class RAIDtec(object):
     '''
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, path):
         ## Path of the RAID utils
         self.__util = None
+        ## Path of the raid device
+        self.__path = path
         ## List of current RAID virtual drives
         self.__vds = None
         ## List of block Devices in OS
         self.__blockdevs = None
 
     def getUtil(self): return self.__util
+    def getDevPath(self): return self.__path
     def getVDs(self): return self.__vds
     def getBlockDevs(self): return self.__blockdevs
 
@@ -50,6 +55,9 @@ class RAIDtec(object):
     def initialize(self):
         ''' Initialize the specific RAID technology. '''
     @abstractmethod
+    def checkRaidPath(self):
+        ''' Checks if the virtual drive exists. '''
+    @abstractmethod
     def checkVDs(self):
         ''' Check which virtual drives are configured. '''
     @abstractmethod
@@ -61,6 +69,44 @@ class RAIDtec(object):
     @abstractmethod
     def isReady(self, vd, devices):
         ''' Check if a virtual drive is ready. '''
+
+class Mdadm(RAIDtec):
+    '''
+    Represents a linux software RAID technology.
+    '''
+
+    def initialize(self):
+        '''
+        Checks for mdadm and sets the util path.
+        '''
+        mdadm = subprocess.Popen(['which', 'mdadm'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        stdout = mdadm.communicate()[0]
+        if mdadm.returncode != 0:
+            logging.error("# Error: command 'which mdadm' returned an error code.")
+            raise RuntimeError, "which mdadm command error"
+        else:
+            self.setUtil(stdout.rstrip("\n"))
+
+    def checkRaidPath(self):
+        try:
+            mode = lstat(self.getDevPath()).st_mode
+        except OSError:
+            return False
+        else:
+            return S_ISBLK(mode)
+
+    def createVD(self, level, devices):
+        args = [self.getUtil(), "--create", self.getDevPath(), "--quiet", "--metadata=default", str("--level=" + str(level)), str("--raid-devices=" + str(len(devices)))]
+        for dev in devices:
+            args.append(dev)
+        logging.info("# Creating raid device "+self.getDevPath())
+        logging.info("# Command line: "+subprocess.list2cmdline(args))
+        ##Execute the commandline
+        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stderr = process.communicate()[1]
+        if stderr != '':
+            logging.error("mdadm encountered an error: " + stderr)
+            raise RuntimeError, "mdadm command error"
 
 class Storcli(RAIDtec):
     '''
