@@ -10,7 +10,6 @@ import subprocess
 import json
 from lxml import etree
 from time import sleep
-import Queue
 import sys
 
 from fio.FioJob import FioJob
@@ -526,7 +525,8 @@ class RAID(Device):
         '''
         if self.getType() == 'sw_mdadm':
             import multiprocessing
-            exc = Queue.Queue()
+            m = multiprocessing.Manager()
+            exc = m.Queue()
             ps = []
             for d in self.__raidTec.getDevices():
                 p = multiprocessing.Process(target=self.operator,args=(d,'erase',None, None, exc))
@@ -536,7 +536,7 @@ class RAID(Device):
                 p.join()
         try:
             exc.get(block=False)
-        except Queue.Empty:
+        except m.Queue.Empty:
             pass
         else:
             logging.error("# Error: Could not secure erase " + self.getDevPath())
@@ -551,7 +551,8 @@ class RAID(Device):
         '''
         if self.getType() == 'sw_mdadm':
             import multiprocessing
-            exc = Queue.Queue()
+            m = multiprocessing.Manager()
+            exc = m.Queue()
             ps = []
             for d in self.__raidTec.getDevices():
                 p = multiprocessing.Process(target=self.operator,args=(d,'condition',nj, iod, exc))
@@ -561,7 +562,7 @@ class RAID(Device):
                 p.join()
         try:
             exc.get(block=False)
-        except Queue.Empty:
+        except m.Queue.Empty:
             pass
         else:
             logging.error("# Error: Could not precondition " + self.getDevPath())
