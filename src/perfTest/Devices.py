@@ -450,13 +450,14 @@ class RAID(Device):
     def __init__(self, devtype, path, devname, config=None, vendor=None):
         '''
         Constructor
-        @param devices The devices that should be used for this Raid, as str list.
-        @param raidlevel The desired Raidlevel.
-        @param type The Raid type, either "hardware" or "software"
+        @param config The config file describing the RAID set
         '''
         super(RAID, self).__init__(devtype, path, devname, vendor)
+        ## Type of raid, read from config, e.g. sw_mdadm, hw_lsi
         self.__type = None
+        ## The config file describing the RAID device
         self.__config = config
+        ## The used RAID technology, linux sw RAID, lsi hw RAID
         self.__raidTec = None
 
     def getType(self): return self.__type

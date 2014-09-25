@@ -94,6 +94,7 @@ class Mdadm(RAIDtec):
             self.setUtil(stdout.rstrip("\n"))
 
     def checkRaidPath(self):
+        logging.error("# Checking for device "+self.getDevPath())
         try:
             mode = lstat(self.getDevPath()).st_mode
         except OSError:
