@@ -10,6 +10,8 @@ import subprocess
 import json
 from lxml import etree
 from time import sleep
+import Queue
+import sys
 
 from fio.FioJob import FioJob
 from system.OS import Storcli
@@ -522,19 +524,23 @@ class RAID(Device):
         '''
         Carries out the secure erase for a RAID device.
         '''
+        if self.getType() == 'sw_mdadm':
+            import multiprocessing
+            exc = Queue.Queue()
+            ps = []
+            for d in self.__raidTec.getDevices():
+                p = multiprocessing.Process(target=self.operator,args=(d,'erase',None, None, exc))
+                ps.append(p)
+                p.start()
+            for p in ps:
+                p.join()
         try:
-            if self.getType() == 'sw_mdadm':
-                import multiprocessing
-                ps = []
-                for d in self.__raidTec.getDevices():
-                    p = multiprocessing.Process(target=self.operator,args=(d,'erase',None, None))
-                    ps.append(p)
-                    p.start()
-                for p in ps:
-                    p.join()
-        except RuntimeError:
+            exc.get(block=False)
+        except Queue.Empty:
+            pass
+        else:
             logging.error("# Error: Could not secure erase " + self.getDevPath())
-            exit(1)
+            raise RuntimeError, "secure erase error"
         # After secure erase create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after secure erase!")
         self.createRaid()
@@ -543,34 +549,33 @@ class RAID(Device):
         '''
         Carries out the preconditioning for a RAID device.
         '''
+        if self.getType() == 'sw_mdadm':
+            import multiprocessing
+            exc = Queue.Queue()
+            ps = []
+            for d in self.__raidTec.getDevices():
+                p = multiprocessing.Process(target=self.operator,args=(d,'condition',nj, iod, exc))
+                ps.append(p)
+                p.start()
+            for p in ps:
+                p.join()
         try:
-            if self.getType() == 'sw_mdadm':
-                import multiprocessing
-                ps = []
-                for d in self.__raidTec.getDevices():
-                    p = multiprocessing.Process(target=self.operator,args=(d,'condition',nj, iod))
-                    ps.append(p)
-                    p.start()
-                for p in ps:
-                    p.join()
-        except RuntimeError:
+            exc.get(block=False)
+        except Queue.Empty:
+            pass
+        else:
             logging.error("# Error: Could not precondition " + self.getDevPath())
-            exit(1)
+            raise RuntimeError, "precondition error"
         # After preconditioning create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after workload independet preconditioning!")
         self.createRaid()
 
-    def operator(self, path, op, nj, iod):
-        tmpSSD = SSD('ssd', path, self.getDevName())
-        if op == 'erase':
-            try:
+    def operator(self, path, op, nj, iod, exc):
+        try:
+            tmpSSD = SSD('ssd', path, self.getDevName())
+            if op == 'erase':
                 tmpSSD.secureErase()
-            except RuntimeError:
-                logging.error("# Error: Could not secure erase " + path)
-                raise
-        if op == 'condition':
-            try:
+            if op == 'condition':
                 tmpSSD.precondition(nj, iod)
-            except RuntimeError:
-                logging.error("# Error: Could not precondition " + path)
-                raise
+        except RuntimeError:
+            exc.put(sys.exc_info())
