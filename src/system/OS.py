@@ -96,14 +96,17 @@ class Mdadm(RAIDtec):
             return S_ISBLK(mode)
 
     def createVD(self, level, devices):
-        args = [self.getUtil(), "--create", self.getDevPath(), "--quiet", "--metadata=default", str("--level=" + str(level)), str("--raid-devices=" + str(len(devices)))]
+        match = re.search('^\/dev\/(.*)$)', self.getDevPath())
+        vdNum = match.group(1)
+        self.getDevPath()
+        args = [self.getUtil(), "--create", vdNum, "--quiet", "--metadata=default", str("--level=" + str(level)), str("--raid-devices=" + str(len(devices)))]
         for dev in devices:
             args.append(dev)
         logging.info("# Creating raid device "+self.getDevPath())
         logging.info("# Command line: "+subprocess.list2cmdline(args))
         ##Execute the commandline
-        process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stderr = process.communicate()[1]
+        mdadm = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stderr = mdadm.communicate()[1]
         if stderr != '':
             logging.error("mdadm encountered an error: " + stderr)
             raise RuntimeError, "mdadm command error"
