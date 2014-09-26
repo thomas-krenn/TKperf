@@ -327,7 +327,7 @@ class Storcli(RAIDtec):
                     logging.info("# The VD changed, the new on is: " + vd)
             self.setVD(vd)
             bd = [x for x in BDsafter if x not in BDsbefore]
-            if len(bd) != 1 or bd[0] != self.getDevPath():
+            if (len(bd) != 1) or (('/dev/'+bd[0]) != self.getDevPath()):
                 logging.info("Got BD: " + bd[0])
                 logging.error("# Error: The new block device doesn't match the tested device path!")
                 raise RuntimeError, "New block dev doesn't match tested dev error"
