@@ -25,7 +25,9 @@ class Mail(object):
         self.__msg['Subject'] = subj
         self.__msg['From'] = sender
         self.__msg['To'] = rcpt
-        self.__smtp = smtplib.SMTP('mail.thomas-krenn.com')
+        self.__smtp = smtplib.SMTP('localhost')
+
+    def setSMTP(self, smtp): self.__smtp = smtp
 
     def addMsg(self, msg):
         msgText = MIMEText(msg, 'plain')
