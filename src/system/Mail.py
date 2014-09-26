@@ -46,6 +46,14 @@ class Mail(object):
         name = path.basename(path.normpath(filename))
         att.add_header('Content-Disposition','attachment',filename=name)
         self.__msg.attach(att)
+        
+    def addTextAttachment(self,filename):
+        fp=open(filename,'rb')
+        att = MIMEApplication(fp.read(),_subtype="txt")
+        fp.close()
+        name = path.basename(path.normpath(filename))
+        att.add_header('Content-Disposition','attachment',filename=name)
+        self.__msg.attach(att)
 
     def send(self):
         self.__smtp.sendmail(self.__sender, self.__rcpt, self.__msg.as_string())
