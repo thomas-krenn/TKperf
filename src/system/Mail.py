@@ -39,6 +39,14 @@ class Mail(object):
         att.add_header('Content-Disposition','attachment',filename=name)
         self.__msg.attach(att)
 
+    def addXMLAttachment(self,filename):
+        fp=open(filename,'rb')
+        att = MIMEApplication(fp.read(),_subtype="xml")
+        fp.close()
+        name = path.basename(path.normpath(filename))
+        att.add_header('Content-Disposition','attachment',filename=name)
+        self.__msg.attach(att)
+
     def send(self):
         self.__smtp.sendmail(self.__sender, self.__rcpt, self.__msg.as_string())
         self.__smtp.quit()
