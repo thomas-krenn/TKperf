@@ -204,15 +204,17 @@ class Storcli(RAIDtec):
                 vdCheck = None
                 for line in stdout.splitlines():
                     match = re.search('^Description = (\w+)$',line)
-                    if match.group(1) == 'No VDs have been configured':
-                        vdCheck = False
-                    else:
-                        vdCheck = True
+                    if match != None:
+                        if match.group(1) == 'No VDs have been configured':
+                            vdCheck = False
+                        else:
+                            vdCheck = True
                     match = re.search('^Status = (\w+)$',line)
-                    if match.group(1) == 'Failure':
-                        vdCheck = False
-                    else:
-                        vdCheck = True
+                    if match != None:
+                        if match.group(1) == 'Failure':
+                            vdCheck = False
+                        else:
+                            vdCheck = True
                 return vdCheck
         else:
             logging.info("# VD not set, checking for PDs: ")
@@ -225,11 +227,12 @@ class Storcli(RAIDtec):
             else:
                 for line in stdout.splitlines():
                     match = re.search('^Description = (\w+)$',line)
-                    if match.group(1) == 'No VDs have been configured':
-                        vdCheck = False
-                        break
+                    if match != None:
+                        if match.group(1) == 'No VDs have been configured':
+                            vdCheck = False
+                            break
                     match = re.search('^PDs for VD ([0-9]+) \:$',line)
-                    if match.group(1) != None:
+                    if match != None:
                         vdNum = match.group(1)
                         PDs = self.getPDsFromVD(vdNum)
                         if set(self.getDevices()) == set(PDs):
@@ -255,7 +258,7 @@ class Storcli(RAIDtec):
             PDs = []
             for line in stdout.splitlines():
                 match = re.search('^([0-9]+\:[0-9]+).*$',line)
-                if match.group(1) != None:
+                if match != None:
                     PDs.append(match.group(1))
             logging.info("# Found PDs for VD "+ vdNum +":")
             logging.info(PDs)
