@@ -225,6 +225,7 @@ class Storcli(RAIDtec):
                 logging.error("storcli encountered an error: " + stderr)
                 raise RuntimeError, "storcli command error"
             else:
+                vdCheck = None
                 for line in stdout.splitlines():
                     match = re.search('^Description = (\w+)$',line)
                     if match != None:
