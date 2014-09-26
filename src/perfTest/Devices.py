@@ -565,7 +565,10 @@ class RAID(Device):
                 pass
             else:
                 logging.error("# Error: Could not precondition " + self.getDevPath())
-                raise RuntimeError, "prcondition error"
+                raise RuntimeError, "precondition error"
+        if self.getType() == 'hw_lsi':
+            tmpSSD = SSD('ssd', self.getDevPath(), self.getDevName())
+            tmpSSD.precondition(nj, iod)
         # After preconditioning create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after workload independet preconditioning!")
         self.createRaid()
