@@ -323,9 +323,9 @@ class Storcli(RAIDtec):
             BDsafter = self.getBlockDevs()
             vd = [x for x in VDsafter if x not in VDsbefore]
             if self.getVD() != None:
-                if vd != self.getVD():
-                    logging.info("# The VD changed, the new on is: " + vd)
-            self.setVD(vd)
+                if vd[0] != self.getVD():
+                    logging.info("# The VD changed, the new on is: " + vd[0])
+            self.setVD(vd[0])
             bd = [x for x in BDsafter if x not in BDsbefore]
             if (len(bd) != 1) or (('/dev/'+bd[0]) != self.getDevPath()):
                 logging.info("Got BD: " + bd[0])
