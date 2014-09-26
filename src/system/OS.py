@@ -191,28 +191,75 @@ class Storcli(RAIDtec):
         Checks if the virtual drive of the RAID controller is available.
         @return True if yes, False if not
         '''
-        logging.info("# Checking for virtual drive "+self.getVD())
-        match = re.search('^[0-9]\/([0-9]+)',self.getVD())
-        vdNum = match.group(1)
+        if self.getVD() != None:
+            logging.info("# Checking for virtual drive "+self.getVD())
+            match = re.search('^[0-9]\/([0-9]+)',self.getVD())
+            vdNum = match.group(1)
+            storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = storcli.communicate()
+            if storcli.returncode != 0:
+                logging.error("storcli encountered an error: " + stderr)
+                raise RuntimeError, "storcli command error"
+            else:
+                vdCheck = None
+                for line in stdout.splitlines():
+                    match = re.search('^Description = (\w+)$',line)
+                    if match.group(1) == 'No VDs have been configured':
+                        vdCheck = False
+                    else:
+                        vdCheck = True
+                    match = re.search('^Status = (\w+)$',line)
+                    if match.group(1) == 'Failure':
+                        vdCheck = False
+                    else:
+                        vdCheck = True
+                return vdCheck
+        else:
+            logging.info("# VD not set, checking for PDs: ")
+            logging.info(self.getDevices())
+            storcli = subprocess.Popen([self.getUtil(),'/c0/vall', 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = storcli.communicate()
+            if storcli.returncode != 0:
+                logging.error("storcli encountered an error: " + stderr)
+                raise RuntimeError, "storcli command error"
+            else:
+                for line in stdout.splitlines():
+                    match = re.search('^Description = (\w+)$',line)
+                    if match.group(1) == 'No VDs have been configured':
+                        vdCheck = False
+                        break
+                    match = re.search('^PDs for VD ([0-9]+) \:$',line)
+                    if match.group(1) != None:
+                        vdNum = match.group(1)
+                        PDs = self.getPDsFromVD(vdNum)
+                        if set(self.getDevices()) == set(PDs):
+                            self.setVD(vdNum)
+                            vdCheck = True
+                            break
+                        else:
+                            vdCheck = False
+                return vdCheck
+
+    def getPDsFromVD(self,vdNum):
+        '''
+        Returns a list of PDs for a given VD.
+        @param vdNum Number of VD to check for
+        @return A list of enclosure:device IDs
+        '''
         storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
             raise RuntimeError, "storcli command error"
         else:
-            vdCheck = None
+            PDs = []
             for line in stdout.splitlines():
-                match = re.search('^Description = (\w+)$',line)
-                if match.group(1) == 'No VDs have been configured':
-                    vdCheck = False
-                else:
-                    vdCheck = True
-                match = re.search('^Status = (\w+)$',line)
-                if match.group(1) == 'Failure':
-                    vdCheck = False
-                else:
-                    vdCheck = True
-            return vdCheck
+                match = re.search('^([0-9]+\:[0-9]+).*$',line)
+                if match.group(1) != None:
+                    PDs.append(match.group(1))
+            logging.info("# Found PDs for VD "+ vdNum +":")
+            logging.info(PDs)
+            return PDs
 
     def checkVDs(self):
         '''
