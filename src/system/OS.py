@@ -237,6 +237,7 @@ class Storcli(RAIDtec):
                         PDs = self.getPDsFromVD(vdNum)
                         if set(self.getDevices()) == set(PDs):
                             self.setVD('0/'+vdNum)
+                            logging.info("# Set VD as "+self.getVD())
                             vdCheck = True
                             break
                         else:
