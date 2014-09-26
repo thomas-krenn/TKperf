@@ -275,6 +275,10 @@ class Storcli(RAIDtec):
             logging.info("# Using block device " + bd)
 
     def deleteVD(self):
+        '''
+        Deletes a virtual drive, self.__vd must be a string like 0/0 specifying
+        the virtual drive.
+        '''
         match = re.search('^[0-9]\/([0-9]+)',self.getVD())
         vdNum = match.group(1)
         storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -289,8 +293,6 @@ class Storcli(RAIDtec):
         '''
         Checks if a virtual device is ready, i.e. if no rebuild on any PDs is running
         and if not initializarion process is going on.
-        @param vd ID of the VD, e.g. 0/0.
-        @param devices Array of enclosusre:PD IDs, e.g. ['e252:1','e252:2']
         @return True if VD is ready, False if not
         '''
         ready = None

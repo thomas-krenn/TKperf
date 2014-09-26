@@ -539,6 +539,9 @@ class RAID(Device):
             else:
                 logging.error("# Error: Could not secure erase " + self.getDevPath())
                 raise RuntimeError, "secure erase error"
+        if self.getType() == 'hw_lsi':
+            logging.info("# Secure Erase not implemented on LSI controllers, skipping...")
+            return
         # After secure erase create the raid device
         logging.info("# Creating raid device "+self.getDevPath()+" after secure erase!")
         self.createRaid()
