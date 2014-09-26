@@ -304,6 +304,8 @@ class Storcli(RAIDtec):
         logging.info("# Creating raid device with storcli")
         logging.info("# Command line: "+subprocess.list2cmdline(args))
         # Fetch VDs before creating the new one
+        # Wait for update of lsblk
+        sleep(5)
         self.checkVDs()
         self.checkBlockDevs()
         VDsbefore = self.getVDs()
