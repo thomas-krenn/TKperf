@@ -236,7 +236,7 @@ class Storcli(RAIDtec):
                         vdNum = match.group(1)
                         PDs = self.getPDsFromVD(vdNum)
                         if set(self.getDevices()) == set(PDs):
-                            self.setVD(vdNum)
+                            self.setVD('0/'+vdNum)
                             vdCheck = True
                             break
                         else:
