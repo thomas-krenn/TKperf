@@ -11,6 +11,7 @@ from string import split
 import re
 from os import lstat
 from stat import S_ISBLK
+from time import sleep
 
 class RAIDtec(object):
     '''
@@ -313,6 +314,8 @@ class Storcli(RAIDtec):
             logging.error("storcli encountered an error: " + stderr)
             raise RuntimeError, "storcli command error"
         else:
+            # Wait for update of lsblk
+            sleep(5)
             # Fetch VDs after creating the new one
             self.checkVDs()
             self.checkBlockDevs()
@@ -324,12 +327,12 @@ class Storcli(RAIDtec):
                     logging.info("# The VD changed, the new on is: " + vd)
             self.setVD(vd)
             bd = [x for x in BDsafter if x not in BDsbefore]
-            if bd != self.getDevPath():
-                logging.info("Got BD: " + bd)
+            if len(bd) != 1 or bd[0] != self.getDevPath():
+                logging.info("Got BD: " + bd[0])
                 logging.error("# Error: The new block device doesn't match the tested device path!")
                 raise RuntimeError, "New block dev doesn't match tested dev error"
             logging.info("# Created VD " + self.getVD())
-            logging.info("# Using block device " + bd)
+            logging.info("# Using block device " + bd[0])
 
     def deleteVD(self):
         '''
