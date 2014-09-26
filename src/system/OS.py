@@ -89,7 +89,7 @@ class Mdadm(RAIDtec):
             self.setUtil(stdout.rstrip("\n"))
 
     def checkRaidPath(self):
-        logging.error("# Checking for device "+self.getDevPath())
+        logging.info("# Checking for device "+self.getDevPath())
         try:
             mode = lstat(self.getDevPath()).st_mode
         except OSError:
@@ -159,7 +159,6 @@ class Storcli(RAIDtec):
     def __init__(self, path, level, devices):
         '''
         Constructor
-        @param config The config file describing the RAID set
         '''
         super(Storcli, self).__init__(path, level, devices)
         ## The virtual drive of the raid controller
@@ -188,6 +187,11 @@ class Storcli(RAIDtec):
             self.setUtil(stdout.rstrip("\n"))
 
     def checkRaidPath(self):
+        '''
+        Checks if the virtual drive of the RAID controller is available.
+        @return True if yes, False if not
+        '''
+        logging.info("# Checking for virtual drive "+self.getVD())
         match = re.search('^[0-9]\/([0-9]+)',self.getVD())
         vdNum = match.group(1)
         storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -196,17 +200,19 @@ class Storcli(RAIDtec):
             logging.error("storcli encountered an error: " + stderr)
             raise RuntimeError, "storcli command error"
         else:
+            vdCheck = None
             for line in stdout.splitlines():
                 match = re.search('^Description = (\w+)$',line)
                 if match.group(1) == 'No VDs have been configured':
-                    return False
+                    vdCheck = False
                 else:
-                    return True
+                    vdCheck = True
                 match = re.search('^Status = (\w+)$',line)
                 if match.group(1) == 'Failure':
-                    return False
+                    vdCheck = False
                 else:
-                    return True
+                    vdCheck = True
+            return vdCheck
 
     def checkVDs(self):
         '''
