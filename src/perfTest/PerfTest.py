@@ -332,7 +332,7 @@ class SsdPerfTest(PerfTest):
         
         #add the fio version, nj, iod and general info of one test to the report
         for keys in tests.iterkeys():
-            if keys != 'writesat':
+            if keys != 'lat':
                 rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                                  self.getTestDate())
                 rst.addFioJobInfo(tests[keys].getOptions().getNj(), tests[keys].getOptions().getIod())
