@@ -7,6 +7,8 @@ from cStringIO import StringIO
 from copy import deepcopy
 import os
 import inspect
+import subprocess
+import logging
 
 import perfTest.DeviceTests as dt
 from perfTest.StdyState import StdyState
@@ -189,7 +191,14 @@ class RstReport(object):
         f.write(self.__rst.getvalue())
         self.__rst.close()
         f.close()
-        
+    
+    def toPDF(self,pdfgen):
+        pdf = subprocess.Popen(pdfgen, [self.__testname+'.rst'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        stderr = pdf.communicate()[1]
+        if pdf.returncode != 0:
+            logging.error("generating the PDF encountered an error: " + stderr)
+            raise RuntimeError, "PDF gen command error"
+    
     def addDevInfo(self,devStr,featMat):
         '''
         Add info about the tested device to the report.

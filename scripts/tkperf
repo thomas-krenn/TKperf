@@ -16,6 +16,7 @@ from perfTest.Options import Options
 from perfTest.PerfTest import SsdPerfTest
 from perfTest.PerfTest import HddPerfTest
 import perfTest.PerfTest as pT
+from system.Mail import Mail
 
 if __name__ == '__main__':
     tkPerfVersion = "TKperf Version: " + pT.__version__
@@ -46,6 +47,9 @@ if __name__ == '__main__':
                         choices=['iops','tp'],action='append',dest='hddt')
     parser.add_argument("-ssdt","--ssd_type",help="choose which tests are run",
                         choices=['iops','lat','tp','writesat'],action='append',dest='ssdt')
+    parser.add_argument("-m","--mail",help="Send reports or errors to mail address")
+    parser.add_argument("-smtp","--smtp",help="Use the specified smtp server to send mails")
+    parser.add_argument("-g","--gen-report",help="Set and specify command to gen pdf report")
     args = parser.parse_args()
     # Configure logging levels
     if args.fromxml == False:
@@ -132,9 +136,40 @@ if __name__ == '__main__':
     print "Starting "+args.mode+" mode..."
     print "Testing device:"
     print devToTest.getDevInfo()
+    if args.mail != None:
+        if args.smtp == None:
+            print "Please specify a smtp server to send mails"
+        else:
+            mail = Mail('TKperf message', 'root@tkperf.local', args.mail)
+            mail.setSMTP(args.smtp)
     try:
         myTest.run()
+        if args.gen-report != None:
+            try:
+                myTest.getRstReport().toPDF(args.gen-report)
+            except RuntimeError:
+                print "### Error! ###"
+                print "Generating PDF failed."
+        if args.mail != None and args.smtp != None:
+            try:
+                mail.addMsg('Please find your TKperf report as attachement!')
+                if args.gen-report != None:
+                    mail.addPDFAttachment(args.testname+'.pdf')
+                mail.addXMLAttachment(args.testname+'.rst')
+                mail.addXMLAttachment(args.testname+'.xml')
+                mail.send()
+            except MessageError:
+                print "### Error! ###"
+                print "Preparing mail failed."
     except RuntimeError:
         print "### Error! ###"
         print "Running the test failed, please inspect the log file!"
+        if args.mail != None and args.smtp != None:
+            try:
+                mail.addMsg('A TKperf error occured, please inspect the log file!')
+                mail.addTextAttachment(logfile)
+                mail.send()
+            except MessageError:
+                print "### Error! ###"
+                print "Mail sending failed."
         exit(1)
