@@ -27,8 +27,6 @@ class RAIDtec(object):
         self.__level = level
         ## List of devices
         self.__devices = devices
-        ## List of current RAID virtual drives
-        self.__vds = None
         ## List of block Devices in OS
         self.__blockdevs = None
 
@@ -36,13 +34,10 @@ class RAIDtec(object):
     def getDevPath(self): return self.__path
     def getLevel(self): return self.__level
     def getDevices(self): return self.__devices
-    def getVDs(self): return self.__vds
     def getBlockDevs(self): return self.__blockdevs
 
     def setUtil(self, u):
         self.__util = u
-    def setVDs(self, v):
-        self.__vds = v
 
     def checkBlockDevs(self):
         '''
@@ -169,9 +164,13 @@ class Storcli(RAIDtec):
         super(Storcli, self).__init__(path, level, devices)
         ## The virtual drive of the raid controller
         self.__vd = None
+        ## List of current RAID virtual drives
+        self.__vds = None
 
     def getVD(self): return self.__vd
+    def getVDs(self): return self.__vds
     def setVD(self,v): self.__vd = v
+    def setVDs(self, v): self.__vds = v
 
     def initialize(self):
         '''
