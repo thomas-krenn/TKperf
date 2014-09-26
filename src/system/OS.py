@@ -51,6 +51,8 @@ class RAIDtec(object):
             raise RuntimeError, "lsblk command error"
         else:
             self.__blockdevs = stdout.splitlines()
+            logging.info("# Got the following BDs: ")
+            logging.info(self.getBlockDevs())
 
     @abstractmethod
     def initialize(self):
@@ -230,6 +232,7 @@ class Storcli(RAIDtec):
                     match = re.search('^Description = (\w+)$',line)
                     if match != None:
                         if match.group(1) == 'No VDs have been configured':
+                            logging.info("# No VDs configured!")
                             vdCheck = False
                             break
                     match = re.search('^PDs for VD ([0-9]+) \:$',line)
@@ -322,6 +325,7 @@ class Storcli(RAIDtec):
             self.setVD(vd)
             bd = [x for x in BDsafter if x not in BDsbefore]
             if bd != self.getDevPath():
+                logging.info("Got BD: " + bd)
                 logging.error("# Error: The new block device doesn't match the tested device path!")
                 raise RuntimeError, "New block dev doesn't match tested dev error"
             logging.info("# Created VD " + self.getVD())
