@@ -155,7 +155,7 @@ if __name__ == '__main__':
                 mail.addMsg('Please find your TKperf report as attachement!')
                 if args.gen-report != None:
                     mail.addPDFAttachment(args.testname+'.pdf')
-                mail.addXMLAttachment(args.testname+'.rst')
+                mail.addTextAttachment(args.testname+'.rst')
                 mail.addXMLAttachment(args.testname+'.xml')
                 mail.send()
             except MessageError:
