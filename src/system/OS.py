@@ -235,9 +235,8 @@ class Storcli(RAIDtec):
     def createVD(self):
         '''
         Creates a virtual drive from a given raid level and a list of
-        enclosure:drive IDs.
-        @param level The desired raid level
-        @param devices The list of raid devices as strings, e.g. ['e252:1','e252:2']
+        enclosure:drive IDs. self.__devices must be a list of raid devices as
+        strings, e.g. ['e252:1','e252:2'].
         ''' 
         encid = split(self.getDevices()[0], ":")[0]
         args = [self.getUtil(), '/c0', 'add', 'vd', str('type=r' + str(self.getLevel))]
@@ -247,13 +246,33 @@ class Storcli(RAIDtec):
         args.append(devicearg.rstrip(","))
         logging.info("# Creating raid device with storcli")
         logging.info("# Command line: "+subprocess.list2cmdline(args))
+        # Fetch VDs before creating the new one
+        self.checkVDs()
+        self.checkBlockDevs()
+        VDsbefore = self.getVDs()
+        BDsbefore = self.getBlockDevs()
         process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        (stdout,stderr) = process.communicate()
+        stderr = process.communicate()[1]
         if process.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
             raise RuntimeError, "storcli command error"
         else:
-            logging.info(stdout)
+            # Fetch VDs after creating the new one
+            self.checkVDs()
+            self.checkBlockDevs()
+            VDsafter = self.getVDs()
+            BDsafter = self.getBlockDevs()
+            vd = [x for x in VDsafter if x not in VDsbefore]
+            if self.getVD() != None:
+                if vd != self.getVD():
+                    logging.info("# The VD changed, the new on is: " + vd)
+            self.setVD(vd)
+            bd = [x for x in BDsafter if x not in BDsbefore]
+            if bd != self.getDevPath():
+                logging.error("# Error: The new block device doesn't math the tested device path!")
+                raise RuntimeError, "New block dev doesn't match tested dev error"
+            logging.info("# Created VD " + self.getVD())
+            logging.info("# Using block device " + bd)
 
     def deleteVD(self):
         match = re.search('^[0-9]\/([0-9]+)',self.getVD())
