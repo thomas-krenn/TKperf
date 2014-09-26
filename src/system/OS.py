@@ -281,7 +281,8 @@ class Storcli(RAIDtec):
             raise RuntimeError, "storcli command error"
         else:
             self.setVDs(stdout.splitlines())
-            logging.info("# Got the following VDs: "+self.getVDs())
+            logging.info("# Got the following VDs: ")
+            logging.info(self.getVDs())
 
     def createVD(self):
         '''
@@ -290,7 +291,7 @@ class Storcli(RAIDtec):
         strings, e.g. ['e252:1','e252:2'].
         ''' 
         encid = split(self.getDevices()[0], ":")[0]
-        args = [self.getUtil(), '/c0', 'add', 'vd', str('type=r' + str(self.getLevel))]
+        args = [self.getUtil(), '/c0', 'add', 'vd', str('type=r' + str(self.getLevel()))]
         devicearg = "drives=" + encid + ":"
         for dev in self.getDevices():
             devicearg += split(dev, ":")[1] + ","
@@ -320,7 +321,7 @@ class Storcli(RAIDtec):
             self.setVD(vd)
             bd = [x for x in BDsafter if x not in BDsbefore]
             if bd != self.getDevPath():
-                logging.error("# Error: The new block device doesn't math the tested device path!")
+                logging.error("# Error: The new block device doesn't match the tested device path!")
                 raise RuntimeError, "New block dev doesn't match tested dev error"
             logging.info("# Created VD " + self.getVD())
             logging.info("# Using block device " + bd)
