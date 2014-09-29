@@ -170,10 +170,10 @@ if __name__ == '__main__':
         print "Running the test failed, please inspect the log file!"
         if args.mail != None and args.smtp != None:
             try:
-                mail.addMsg('A TKperf error occured, please inspect the log file!')
+                mail.addMsg('A TKperf error occurred, please inspect the log file!')
                 mail.addTextAttachment(logfile)
                 mail.send()
             except MessageError:
                 print "### Error! ###"
-                print "Mail sending failed."
+                print "Sending mail failed."
         exit(1)
