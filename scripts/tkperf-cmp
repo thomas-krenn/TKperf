@@ -9,7 +9,9 @@ import logging
 import sys
 from os import makedirs
 from os import path
-
+from os import walk
+import zipfile
+import shutil
 
 from perfTest.Devices import SSD
 from perfTest.Devices import HDD
@@ -29,7 +31,9 @@ if __name__ == '__main__':
     parser.add_argument("-v","--version", help="get the version information", action='version',version=tkPerfVersion)
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
-    parser.add_argument("-f","--folder", help="store compare plots in a subfolder",type=str)
+    parser.add_argument("-f","--folder", help="store compare plots in a subfolder, specify name of folder",type=str)
+    parser.add_argument("-z","--zip",help="store compare plots in a zip archive, requires '-f' as zip is created from subfolder, the folder is removed afterwards",
+                        action ='store_true')
 
     args = parser.parse_args()
     if args.debug == True:
@@ -44,14 +48,14 @@ if __name__ == '__main__':
         if file.endswith('.xml'):
             file = file[:-4]
         args.xmls[i] = file
-
     # Check if plots go into a subfolder
-    try: 
-        makedirs(args.folder)
-    except OSError:
-        if not path.isdir(args.folder):
-            raise
-
+    if args.folder != None:
+        try: 
+            makedirs(args.folder)
+        except OSError:
+            if not path.isdir(args.folder):
+                raise
+    # Generate objects and plots
     toCompare = []
     for file in args.xmls:
         if args.mode == 'ssd':
@@ -68,4 +72,17 @@ if __name__ == '__main__':
     pcp.compILPlt(toCompare, 'IOPS', args.folder)
     pcp.compILPlt(toCompare, 'LAT', args.folder)
     pcp.compTPPlt(toCompare, args.folder)
+    # Check if a zip archive should be created
+    if args.zip:
+        if args.folder == None:
+            print "### Error! ###"
+            print "Please use Option '-f' in conjunction with '-z'."
+        else:
+            zfile = zipfile.ZipFile(args.folder+'.zip', 'w')
+            for root, dirs, files in walk(args.folder):
+                for file in files:  
+                    zfile.write(path.join(root, file))
+            zfile.close()
+            shutil.rmtree(args.folder)
+            if zfile != None: print args.folder+'.zip'
     exit(0)
