@@ -7,6 +7,9 @@ Created on 27.06.2012
 import argparse
 import logging
 import sys
+from os import makedirs
+from os import path
+
 
 from perfTest.Devices import SSD
 from perfTest.Devices import HDD
@@ -26,6 +29,7 @@ if __name__ == '__main__':
     parser.add_argument("-v","--version", help="get the version information", action='version',version=tkPerfVersion)
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
+    parser.add_argument("-f","--folder", help="store compare plots in a subfolder",type=str)
 
     args = parser.parse_args()
     if args.debug == True:
@@ -35,11 +39,18 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(filename='tkperf-cmp.log',level=logging.INFO)
 
-    #strip the filename suffix as it is appended automatically
+    # Strip the filename suffix as it is appended automatically
     for i,file in enumerate(args.xmls):
         if file.endswith('.xml'):
             file = file[:-4]
         args.xmls[i] = file
+
+    # Check if plots go into a subfolder
+    try: 
+        makedirs(args.folder)
+    except OSError:
+        if not path.isdir(args.folder):
+            raise
 
     toCompare = []
     for file in args.xmls:
@@ -53,8 +64,8 @@ if __name__ == '__main__':
         myTest.fromXml()
         toCompare.append(myTest)
 
-    pcp.compWriteSatIOPSPlt(toCompare)
-    pcp.compILPlt(toCompare,'IOPS')
-    pcp.compILPlt(toCompare,'LAT')
-    pcp.compTPPlt(toCompare)
+    pcp.compWriteSatIOPSPlt(toCompare, args.folder)
+    pcp.compILPlt(toCompare, 'IOPS', args.folder)
+    pcp.compILPlt(toCompare, 'LAT', args.folder)
+    pcp.compTPPlt(toCompare, args.folder)
     exit(0)

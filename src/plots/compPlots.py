@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 __colorTable__ = ['#0000FF','#32cd32','#ffff00','#00ffff','#b22222','#9932cc','#ff4500']
 
-def compWriteSatIOPSPlt(testsToPlot):
+def compWriteSatIOPSPlt(testsToPlot, subfolder=None):
     """
     Compare multiple tests and create a write saturation IOPS plot.
     All test objects in testsToPlot are plotted.
@@ -42,9 +42,12 @@ def compWriteSatIOPSPlt(testsToPlot):
     plt.ylabel("Avg. IOPS")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':10})
-    plt.savefig('compWriteSatIOPSPlt.png',dpi=300)
-    
-def compILPlt(testsToPlot,mode):
+    if subfolder == None:
+        plt.savefig('compWriteSatIOPSPlt.png',dpi=300)
+    else:
+        plt.savefig(subfolder+'/compWriteSatIOPSPlt.png',dpi=300)
+
+def compILPlt(testsToPlot, mode, subfolder=None):
     """
     Compare multiple tests and create an IOPS or Latency plot.
     All test objects in testsToPlot are plotted.
@@ -84,9 +87,12 @@ def compILPlt(testsToPlot,mode):
     plt.ylabel("Avg. "+title + " at 4kB Block Size")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3,fancybox=True, shadow=True,prop={'size':10})
-    plt.savefig('comp'+title+'Plt.png',dpi=300)
+    if subfolder == None:
+        plt.savefig('comp'+title+'Plt.png',dpi=300)
+    else:
+        plt.savefig(subfolder+'/comp'+title+'Plt.png',dpi=300)
 
-def compTPPlt(testsToPlot):
+def compTPPlt(testsToPlot, subfolder=None):
     """
     Compare multiple tests and create a throughput plot.
     All test objects in testsToPlot are plotted.
@@ -140,4 +146,7 @@ def compTPPlt(testsToPlot):
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.18),
        ncol=3,fancybox=True, shadow=True,prop={'size':9})
     plt.suptitle("TP R/W Measurement Test",fontweight='bold')
-    plt.savefig('compTPPlt.png',dpi=300)
+    if subfolder == None:
+        plt.savefig('compTPPlt.png',dpi=300)
+    else:
+        plt.savefig(subfolder+'/compTPPlt.png',dpi=300)
