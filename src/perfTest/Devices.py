@@ -317,7 +317,7 @@ class SSD(Device):
         '''
         frozen = True
         security = False
-        logging.info("#Starting Secure Erase for device: "+self.getDevPath())
+        logging.info("# Starting Secure Erase for device: "+self.getDevPath())
         out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
@@ -328,9 +328,9 @@ class SSD(Device):
                 if line.find("frozen") > -1:
                     if line.find("not") > -1:
                         frozen = False
-                        logging.info("#Not in frozen state")
+                        logging.info("# Not in frozen state")
             if frozen:
-                logging.error("#Device still in frozen state")
+                logging.error("# Device still in frozen state")
                 raise RuntimeError, "frozen state error"
             if not frozen:
                 out = subprocess.Popen(['hdparm', '--user-master','u',
@@ -338,7 +338,7 @@ class SSD(Device):
                                        stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 stdout,stderr = out.communicate()
                 if out.returncode != 0:
-                    logging.error("#Error: command 'hdparm --user-master u --security-set-pass pwd returned an error code.")
+                    logging.error("# Error: command 'hdparm --user-master u --security-set-pass pwd returned an error code.")
                     logging.error(stderr)
                     raise RuntimeError, "hdparm command error"
                 else:
@@ -353,10 +353,10 @@ class SSD(Device):
                             if line.find("Master password") > -1:
                                 if lines[i+2].find("not") == -1 and lines[i+2].find("enabled") > -1:
                                     security = True
-                                    logging.info("#Successfully enabled security for hdparm")
+                                    logging.info("# Successfully enabled security for hdparm")
                                     break
                                 else:
-                                    logging.info("#Security NOT enabled for hdparm")
+                                    logging.info("# Security NOT enabled for hdparm")
                                     raise RuntimeError, "hdparm command error"
                         if security:
                             out = subprocess.Popen(['hdparm', '--user-master','u',
@@ -364,11 +364,11 @@ class SSD(Device):
                                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                             stdout,stderr = out.communicate()
                             if out.returncode != 0:
-                                logging.error("#Error: command 'hdparm --user-master u --security-erase pwd returned an error code.")
+                                logging.error("# Error: command 'hdparm --user-master u --security-erase pwd returned an error code.")
                                 logging.error(stderr)
                                 raise RuntimeError, "hdparm command error"
                             else:
-                                logging.info("#Successfully carried out secure erase for "+self.getDevPath())
+                                logging.info("# Successfully carried out secure erase for "+self.getDevPath())
                                 #Check if security is diasbled again
                                 out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                                 (stdout,stderr) = out.communicate()
@@ -385,17 +385,17 @@ class SSD(Device):
                                                 return True
                                             else:
                                                 #Try to disable security manually
-                                                logging.info("#Security still enabled for hdparm, therefore calling disable.")
+                                                logging.info("# Security still enabled for hdparm, therefore calling disable.")
                                                 out = subprocess.Popen(['hdparm', '--user-master','u',
                                                     '--security-disable','pwd',self.getDevPath()],
                                                    stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                                                 stdout,stderr = out.communicate()
                                                 if out.returncode != 0:
-                                                    logging.error("#Error: command 'hdparm --user-master u --security-disable pwd returned an error code.")
+                                                    logging.error("# Error: command 'hdparm --user-master u --security-disable pwd returned an error code.")
                                                     logging.error(stderr)
                                                     raise RuntimeError, "hdparm command error"
                                                 else:
-                                                    logging.info("#Successfully deactivated security for hdparm.")
+                                                    logging.info("# Successfully deactivated security for hdparm.")
                                                     return True
 
     def precondition(self,nj=1,iod=1):
