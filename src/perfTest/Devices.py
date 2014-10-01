@@ -431,7 +431,7 @@ class SSD(Device):
                                                         return True
         elif self.getIntfce() == 'sas':
             logging.info("# Using sg_format as secure erase for SAS device.")
-            out = subprocess.Popen(['sg_format', '--format', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['sg_format', '--format', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error("# Error: sg_format --format encountered an error: " + stderr)
