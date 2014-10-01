@@ -230,51 +230,81 @@ class Device(object):
         file is.
         @return True if the device info was set, False if not.
         '''
-        #device info has already been set
+        # The device info has already been set
         if self.__devinfo != None:
             return True
-        
-        out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        (stdout,stderr) = out.communicate()
-        if stderr != '':
-            logging.error("hdparm -I encountered an error: " + stderr)
-            logging.error("Please use a description file to set device information!")
-            return False
-        else:
-            self.__devinfo = ""
-            for line in stdout.split('\n'):
-                if line.find("questionable sense data") > -1 or line.find("bad/missing sense data") > -1:
-                    logging.error("hdparm sense data may be incorrect!")
-                    logging.error("Please use a description file to set device information!")
-                    return False
-                if line.find("Model Number") > -1:
-                    self.__devinfo += line + '\n'
-                if line.find("Serial Number") > -1:
-                    self.__devinfo += line +'\n'
-                if line.find("Firmware Revision") > -1:
-                    self.__devinfo += line + '\n'
-                if line.find("Media Serial Num") > -1:
-                    self.__devinfo += line + '\n'
-                if line.find("Media Manufacturer") > -1:
-                    self.__devinfo += line + '\n'
-                if line.find("device size with M = 1000*1000") > -1:
-                    self.__devinfo += line + '\n'
-            #Check for write caching state
-            stdout = ''
-            stderr = ''
-            out = subprocess.Popen(['hdparm','-W',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        # If no interface is specified, use hdparm
+        if self.getIntfce() == None:
+            out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
             if stderr != '':
-                logging.error("hdparm -W encountered an error: " + stderr)
+                logging.error("hdparm -I encountered an error: " + stderr)
                 logging.error("Please use a description file to set device information!")
                 return False
-            for line in stdout.split('\n'):
-                if line.find("write-caching") > -1:
-                    line = line.lstrip(' ')
-                    line = '\t' + line
-                    self.__devinfo += line + '\n'
-            logging.info("# Testing device: " + self.__devinfo)
-            return True
+            else:
+                self.__devinfo = ""
+                for line in stdout.split('\n'):
+                    if line.find("questionable sense data") > -1 or line.find("bad/missing sense data") > -1:
+                        logging.error("hdparm sense data may be incorrect!")
+                        logging.error("Please use a description file to set device information!")
+                        return False
+                    if line.find("Model Number") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("Serial Number") > -1:
+                        self.__devinfo += line +'\n'
+                    if line.find("Firmware Revision") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("Media Serial Num") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("Media Manufacturer") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("device size with M = 1000*1000") > -1:
+                        self.__devinfo += line + '\n'
+                #Check for write caching state
+                stdout = ''
+                stderr = ''
+                out = subprocess.Popen(['hdparm','-W',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                (stdout,stderr) = out.communicate()
+                if stderr != '':
+                    logging.error("# Error: hdparm -W encountered an error: " + stderr)
+                    logging.error("# Please use a description file to set device information!")
+                    return False
+                for line in stdout.split('\n'):
+                    if line.find("write-caching") > -1:
+                        line = line.lstrip(' ')
+                        line = '\t' + line
+                        self.__devinfo += line + '\n'
+                logging.info("# Testing device: " + self.__devinfo)
+        # For sas devices use sg utils
+        if self.getIntfce() == 'sas':
+            out = subprocess.Popen(['sginfo', '-a', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if out.returncode != 0:
+                logging.error("sginfo -a encountered an error: " + stderr)
+                return False
+            else:
+                self.__devinfo = ""
+                for line in stdout.split('\n'):
+                    if line.find("Vendor") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("Product") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("Revision Level") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("Serial Number") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("Write Cache Enabled") > -1:
+                        self.__devinfo += line + '\n'
+                out = subprocess.Popen(['sg_readcap', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                (stdout,stderr) = out.communicate()
+                if out.returncode != 0:
+                    logging.error("sg_readcap encountered an error: " + stderr)
+                    return False
+                else:
+                    for line in stdout.split('\n'):
+                        if line.find("Device size") > -1:
+                            self.__devinfo += line + '\n'
+        return True
 
     def toXml(self,root):
         '''
