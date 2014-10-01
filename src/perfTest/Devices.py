@@ -10,7 +10,6 @@ import subprocess
 import json
 from lxml import etree
 from time import sleep
-import sys
 
 from fio.FioJob import FioJob
 from system.OS import Storcli
@@ -77,6 +76,8 @@ class Device(object):
         self.__devisavailable = ia
     def setDevIsMounted(self,im):
         self.__devismounted = im
+    def setInterface(self,intf):
+        self.__intfce = intf
 
     def initialize(self):
         '''
