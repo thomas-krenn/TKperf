@@ -19,13 +19,14 @@
   * os
   Under Ubuntu it is normally sufficient to install:
 	$ sudo apt-get install python-argparse python-matplotlib \
-	  python-lxml python-numpy
+	  python-lxml python-numpy python-simplejson
 * The following software is required:
   * FIO version 2.0.3 or higher.
     Please note that older FIO versions are not supported due to an incompatibility
     in the terse output of FIO. The tests will not produce any valuable 
     information if FIO is older than 2.0.3.
   * hdparm
+  * sg3-utils
 
 == Setup ==
 * TKperf checks if FIO is found with:
