@@ -349,6 +349,9 @@ class SSD(Device):
         frozen = True
         security = False
         logging.info("# Starting Secure Erase for device: "+self.getDevPath())
+        #before starting the erase sleep, to ensure previous device operations are finished
+        logging.info("# Sleeping for 10 seconds...")
+        sleep(10)
         if self.getIntfce() == None:
             out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
@@ -413,7 +416,7 @@ class SSD(Device):
                                             if line.find("Master password") > -1:
                                                 if lines[i+2].find("not") > -1 and lines[i+2].find("enabled") > -1:
                                                     security = False
-                                                    logging.info("#Successfully deactivated security for hdparm.")
+                                                    logging.info("# Successfully deactivated security for hdparm.")
                                                     return True
                                                 else:
                                                     #Try to disable security manually
