@@ -37,20 +37,20 @@ class RstReport(object):
         print >>self.__rst,".. include:: <isonum.txt>"
         print >>self.__rst,".. raw:: pdf\n"
         print >>self.__rst,"\tPageBreak\n"
-        
+
     def addFooter(self):
         print >>self.__rst,".. |logo| image:: " + os.path.dirname(inspect.getfile(RstReport)) + "/pics/TKperf_logo.png"
         print >>self.__rst,"\t:height: 90px"
         print >>self.__rst,".. footer::"
-        print >>self.__rst,"\t http://www.thomas-krenn.com |logo| Page ###Page### of ###Total###\n"
-    
+        print >>self.__rst,"\t |logo| A `Thomas-Krenn <http://www.thomas-krenn.com/>`_ project, Page ###Page### of ###Total###\n"
+
     def addChapter(self,chap):
         print >>self.__rst, chap
         line = "="
         for i in chap:
             line += "="
         print >>self.__rst, line+'\n'
-        
+
     def addSection(self,sec):
         print >>self.__rst, sec
         line = "-"
