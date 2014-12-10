@@ -301,6 +301,9 @@ class Storcli(RAIDtec):
         for dev in self.getDevices():
             devicearg += split(dev, ":")[1] + ","
         args.append(devicearg.rstrip(","))
+        # Set write through wit noreadahead
+        args.append('wt')
+        args.append('nora')
         logging.info("# Creating raid device with storcli")
         logging.info("# Command line: "+subprocess.list2cmdline(args))
         # Fetch VDs before creating the new one
