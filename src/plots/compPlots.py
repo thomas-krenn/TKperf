@@ -59,6 +59,7 @@ def compILPlt(testsToPlot, mode, subfolder=None):
     plt.clf()#clear plot
     x = range(3)
     width = 1/len(testsToPlot)
+    max_y = 0
     for i in range(len(x)):
         x[i] = x[i] + (i * width)
     for i,tests in enumerate(testsToPlot):
@@ -75,9 +76,12 @@ def compILPlt(testsToPlot, mode, subfolder=None):
             testVal = [mixWLds[0][1],mixWLds[1][1],mixWLds[2][1]]
         plt.bar(x, testVal, width,label=test.getTestname(),color = __colorTable__[i])
         x = [v + width for v in x]
+        if max(testVal) > max_y:
+            max_y = max(testVal)
     ticksx = [(len(testsToPlot)/2) * width, 1 + width + 0.5, 2 + (2 * width) + 0.5 ]
     labelsx = ['Read','50/50','Write']
     plt.xticks(ticksx, labelsx)
+    plt.ylim(0, max_y * 1.15)
     if mode == "IOPS":
         title = "IOPS"
     if mode == "LAT":
