@@ -84,11 +84,12 @@ def compILPlt(testsToPlot, mode, subfolder=None):
     plt.ylim(0, max_y * 1.15)
     if mode == "IOPS":
         title = "IOPS"
+        plt.ylabel("Avg. " + title + " at 4k Block Size")
     if mode == "LAT":
         title = "LAT"
+        plt.ylabel("Avg. "+ title + " (ms) at 4k Block Size")
     plt.suptitle(title + " Measurement Test",fontweight='bold')
     plt.xlabel("R/W Workload")
-    plt.ylabel("Avg. "+title + " at 4kB Block Size")
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3,fancybox=True, shadow=True,prop={'size':10})
     if subfolder == None:
