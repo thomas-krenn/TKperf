@@ -79,7 +79,10 @@ def compILPlt(testsToPlot, mode, subfolder=None):
         if max(testVal) > max_y:
             max_y = max(testVal)
     ticksx = [(len(testsToPlot)/2) * width, 1 + width + 0.5, 2 + (2 * width) + 0.5 ]
-    labelsx = ['Read','50/50','Write']
+    if mode == "IOPS":
+        labelsx = ['Read','50/50','Write']
+    if mode == "LAT":
+        labelsx = ['Read','65/35','Write']
     plt.xticks(ticksx, labelsx)
     plt.ylim(0, max_y * 1.15)
     if mode == "IOPS":
