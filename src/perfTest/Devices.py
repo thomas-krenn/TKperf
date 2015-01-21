@@ -548,10 +548,11 @@ class RAID(Device):
         self.__raidTec.initialize()
 
     def readDevInfo(self):
-        #FIXME Add correct info about raid setup
         devInfo = ""
-        devInfo += self.__type + "\n"
-        devInfo += ', '.join(self.__raidTec.getDevices())
+        devInfo += "RAID type: " + self.__type + "\n"
+        devInfo += "RAID devices: "
+        devInfo += ', '.join(self.__raidTec.getDevices()) + "\n"
+        devInfo += "RAID level: "
         devInfo += str(self.__raidTec.getLevel()) + "\n"
         self.setDevInfo(devInfo)
 
