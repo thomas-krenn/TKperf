@@ -6,12 +6,10 @@ Created on 27.06.2012
 '''
 import argparse
 import logging
-import sys
 from os import makedirs
 from os import path
 from os import walk
 import zipfile
-import shutil
 
 from perfTest.Devices import SSD
 from perfTest.Devices import HDD
@@ -32,7 +30,7 @@ if __name__ == '__main__':
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
     parser.add_argument("-f","--folder", help="store compare plots in a subfolder, specify name of folder",type=str)
-    parser.add_argument("-z","--zip",help="store compare plots in a zip archive, requires '-f' as zip is created from subfolder, the folder is removed afterwards",
+    parser.add_argument("-z","--zip",help="store compare plots in a zip archive, requires '-f' as zip is created from subfolder",
                         action ='store_true')
 
     args = parser.parse_args()
