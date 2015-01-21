@@ -1,0 +1,10 @@
+{
+    "devices": [
+        "/dev/sdb",
+        "/dev/sdc",
+        "/dev/sdd"
+    ],
+    "raidlevel": 5,
+    "type": "sw_mdadm"
+}
+sudo tkperf raid SW-I3500-R5-3 /dev/md0 -c raid.cfg -nj 2 -iod 16
