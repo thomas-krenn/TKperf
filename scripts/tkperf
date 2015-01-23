@@ -140,15 +140,6 @@ if __name__ == '__main__':
     print "Starting "+args.mode+" mode..."
     print "Testing device:"
     print devToTest.getDevInfo()
-    if args.mail != None:
-        try:
-            if args.smtp == None:
-                print "Please specify a smtp server to send mails"
-            else:
-                mail = Mail('TKperf message', 'root@tkperf.local', args.mail, args.smtp)
-        except MessageError:
-            print "### Error! ###"
-            print "Creating mail failed."
     try:
         myTest.run()
         if args.gen_report != None:
@@ -159,24 +150,27 @@ if __name__ == '__main__':
                 print "Generating PDF failed."
         if args.mail != None and args.smtp != None:
             try:
+                mail = Mail('TKperf message', 'root@tkperf.local', args.mail, args.smtp)
                 mail.addMsg('Please find your TKperf report as attachment!')
                 if args.gen_report != None:
                     mail.addPDFAttachment(args.testname+'.pdf')
                 mail.addTextAttachment(args.testname+'.rst')
                 mail.addXMLAttachment(args.testname+'.xml')
+                mail.addTextAttachment(logfile)
                 mail.send()
             except MessageError:
                 print "### Error! ###"
-                print "Preparing mail failed."
+                print "Creating and sending mail failed."
     except RuntimeError:
         print "### Error! ###"
-        print "Running the test failed, please inspect the log file!"
+        print "Running the tests failed, please inspect the log file!"
         if args.mail != None and args.smtp != None:
             try:
+                mail = Mail('TKperf message', 'root@tkperf.local', args.mail, args.smtp)
                 mail.addMsg('A TKperf error occurred, please inspect the log file!')
                 mail.addTextAttachment(logfile)
                 mail.send()
             except MessageError:
                 print "### Error! ###"
-                print "Sending mail failed."
+                print "Creating and sending mail failed."
         exit(1)
