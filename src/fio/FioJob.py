@@ -16,22 +16,22 @@ class FioJob(object):
 
     ## Position of write IOPS in the fio terse output.
     terseIOPSWritePos = 48
-    
+
     ## Position of write total IO in the fio terse output
     terseTotIOWritePos = 46
-    
+
     ## Start Position of write latencies in fio terse output
     terseLatStartWritePos = 78
-    
+
     ## Start Position of read latencies in fio terse output
     terseLatStartReadPos = 37
-    
+
     ## Postion of total read throughput.
     terseTPReadPos = 6
-    
+
     ## Postion of total write throughput.
     terseTPWritePos = 47
-    
+
     def __init__(self):
         ''' The constructor '''
         ## Fio path
@@ -49,7 +49,7 @@ class FioJob(object):
         return res
 
     def initialize(self):
-        ''' Initialie Fio path and version. '''
+        ''' Initialize Fio path and version. '''
         fio = subprocess.Popen(['which', 'fio'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         stdout = fio.communicate()[0]
         if fio.returncode != 0:
@@ -61,11 +61,11 @@ class FioJob(object):
         self.__fioVersion = fio.communicate()[0]
 
     def getFioVersion(self):
-        ''' Return the current fio version string. '''
+        ''' Return the current Fio version string. '''
         return self.__fioVersion
 
     def setFioVersion(self,fioStr):
-        ''' Set the used fio version (useful if loading from xml).'''
+        ''' Set the used Fio version (useful if loading from xml). '''
         self.__fioVersion = fioStr
 
     def checkFioVersion(self):
@@ -88,7 +88,7 @@ class FioJob(object):
     def appendXml(self,root):
         '''
         Append the information about Fio to a XML node. 
-        @param root The xml root tag to append the new elements to
+        @param root The xml root tag to append the new elements to.
         ''' 
         data = json.dumps(self.__fioVersion)
         e = etree.SubElement(root,'fioversion')
@@ -107,23 +107,23 @@ class FioJob(object):
         logging.info("# Loading Fio version from xml")
 
     def getKVArgs(self):
-        ''' Return the current configured fio key value arguments. '''
+        ''' Return the current configured Fio key value arguments. '''
         return self.__fioKVArgs
     
     def getSglArgs(self):
-        ''' Return the current configured fio single key arguments. '''
+        ''' Return the current configured Fio single key arguments. '''
         return self.__fioSglArgs
     
     def addKVArg(self,key,value):
         ''' Add a key value pair as an argument to fio.
-        @param key: Name of the option for fio.
-        @param value: Value for the given fio option.  
+        @param key Name of the option for Fio.
+        @param value Value for the given Fio option.
         '''
         self.__fioKVArgs[key] = value
         
     def addSglArg(self,key):
         ''' Add a single value option to fio argument list.
-        @param key: Name of the option being added.
+        @param key Name of the option being added.
         ''' 
         self.__fioSglArgs.append(key)
         
@@ -141,15 +141,15 @@ class FioJob(object):
         return argList
         
     def start(self):
-        ''' Start a fio job with its argument list.
-        The argument list defines the parameters given to fio.
-        @return: [True,standard output] of the fio test or [False,0] on error.
+        ''' Start a Fio job with its argument list.
+        The argument list defines the parameters given to Fio.
+        @return [True,standard output] of the Fio test or [False,0] on error.
         '''
         args = self.prepKVArgs()
         args = self.prepSglArgs(args)
         logging.info('%s',args)
         if len(args) == 0:
-            logging.error("Error: fio argument list is empty.")
+            logging.error("Error: Fio argument list is empty.")
             exit(1)
         out = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
@@ -161,9 +161,9 @@ class FioJob(object):
         
     def getIOPS(self,fioOut):
         '''
-        Parses the average IOPS out of the fio result output.
-        @param fioOut The output of the fio performance test.
-        @return Sum of read IOPS and write IOPS
+        Parses the average IOPS out of the Fio result output.
+        @param fioOut The output of the Fio performance test.
+        @return Sum of read IOPS and write IOPS.
         '''
         #index 7 iops read
         #index 48 iops write
@@ -182,8 +182,8 @@ class FioJob(object):
     
     def getIOPSWrite(self,fioOut):
         '''
-        Parses the average write IOPS out of the fio result output.
-        @param fioOut The output of the fio performance test.
+        Parses the average write IOPS out of the Fio result output.
+        @param fioOut The output of the Fio performance test.
         @return Write IOPS
         '''
         #index 48 iops write
@@ -192,8 +192,8 @@ class FioJob(object):
        
     def getTotIOWrite(self,fioOut):
         '''
-        Parses the write total IO out of the fio result output.
-        @param fioOut The output of the fio performance test.
+        Parses the write total IO out of the Fio result output.
+        @param fioOut The output of the Fio performance test.
         @return Write total IO in KB.
         '''
         #index 46 write total IO
@@ -202,8 +202,8 @@ class FioJob(object):
     
     def getWriteLats(self,fioOut):
         '''
-        Parses the write total latencies out of the fio result output.
-        @param fioOut The output of the fio performance test.
+        Parses the write total latencies out of the Fio result output.
+        @param fioOut The output of the Fio performance test.
         @return [min,max,mean] total write latencies in microseconds.
         '''
         #index 78 write total latency
@@ -214,8 +214,8 @@ class FioJob(object):
         
     def getReadLats(self,fioOut):
         '''
-        Parses the read total latencies out of the fio result output.
-        @param fioOut The output of the fio performance test.
+        Parses the read total latencies out of the Fio result output.
+        @param fioOut The output of the Fio performance test.
         @return [min,max,mean] total read latencies in microseconds.
         '''
         #index 78 write total latency
@@ -226,8 +226,8 @@ class FioJob(object):
         
     def getTotLats(self,fioOut):
         '''
-        Parses the read+write total latencies out of the fio result output.
-        @param fioOut The output of the fio performance test.
+        Parses the read+write total latencies out of the Fio result output.
+        @param fioOut The output of the Fio performance test.
         @return [min,max,mean] total latencies in microseconds.
         '''
         #index 78 write total latency
@@ -241,8 +241,8 @@ class FioJob(object):
 
     def getTPRead(self,fioOut):
         '''
-        Parses the read bandwidth of the fio result output.
-        @param fioOut The output of the fio performance test.
+        Parses the read bandwidth of the Fio result output.
+        @param fioOut The output of the Fio performance test.
         @return Read total bandwidth.
         '''
         #index 6 write total IO
@@ -251,8 +251,8 @@ class FioJob(object):
         
     def getTPWrite(self,fioOut):
         '''
-        Parses the write bandwidth of the fio result output.
-        @param fioOut The output of the fio performance test.
+        Parses the write bandwidth of the Fio result output.
+        @param fioOut The output of the Fio performance test.
         @return Write total bandwidth.
         '''
         #index 47 write total IO
