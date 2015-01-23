@@ -22,14 +22,14 @@ from reports.RstReport import RstReport
 
 class PerfTest(object):
     '''
-    A performance test, consists of multiple Device Tests
+    A performance test, consists of multiple Device Tests.
     '''
     
     def __init__(self,testname,device):
         '''
         A performance test has several reports and plots.
-        @param testname Name of the performance test
-        @param device A Device object, the device to run tests on
+        @param testname Name of the performance test.
+        @param device A Device object, the device to run tests on.
         '''
         ## The output file for the fio job test results.
         self.__testname = testname
@@ -71,8 +71,8 @@ class PerfTest(object):
 
     def collOSInfos(self):
         '''
-        Collects some information about the current OS in use
-        @return True if all infos are present, False on error
+        Collects some information about the current OS in use.
+        @return True if all infos are present, False on error.
         '''
         out = subprocess.Popen(['uname','-r'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
@@ -97,8 +97,8 @@ class PerfTest(object):
     def readCmdLineArgs(self,argv):
         '''
         Reads the command line argument list argv and sets it as
-        __cmdLineArgs
-        @param argv The command line argument list
+        __cmdLineArgs.
+        @param argv The command line argument list.
         '''
         self.__cmdLineArgs = ''
         for arg in argv:
@@ -131,7 +131,7 @@ class PerfTest(object):
     def setCmdLineArgs(self,cmdLineStr):
         '''
         Sets the command line arg string.
-        @param cmdLineStr The command line string
+        @param cmdLineStr The command line string.
         '''
         self.__cmdLineArgs = cmdLineStr
 
@@ -175,6 +175,9 @@ class PerfTest(object):
             v.run()
 
     def genPlots(self):
+        '''
+        Generate the plots/charts for each specific test in the dictionary.
+        '''
         sorted(self.__tests.items())
         for k,v in self.__tests.items():
             logging.info("# Generating plots for "+k+" test")
@@ -219,7 +222,7 @@ class PerfTest(object):
         '''
         Reads out the xml file name 'testname.xml' and initializes the test
         specified with xml. The valid tags are "iops,lat,tp,writesat" for ssd,
-        "iops, tp" for ssd. But there isn't always every test run, so xml can
+        "iops, tp" for hdd. But there isn't always every test run, so xml can
         miss a test.
         '''
         self.getXmlReport().fileToXml(self.getTestname())
@@ -283,6 +286,7 @@ class PerfTest(object):
                         self.addTest(tag, test)
 
     def run(self):
+        ''' The main run method, runs tests, generates plots and rst report. '''
         self.runTests()
         self.toXml()
         self.genPlots()
@@ -290,7 +294,7 @@ class PerfTest(object):
 
 class SsdPerfTest(PerfTest):
     '''
-    A performance test for ssds consists of all ssd tests
+    A performance test for ssds consists of all ssd tests.
     '''
     ## Keys valid for tests
     iopsKey = 'iops'
@@ -301,6 +305,9 @@ class SsdPerfTest(PerfTest):
     testKeys = [iopsKey,latKey,tpKey,wrKey]
 
     def __init__(self,testname,device,options=None):
+        '''
+        Cf. super constructor.
+        '''
         PerfTest.__init__(self, testname, device)
         #Add current date to test
         now = datetime.datetime.now()
@@ -319,6 +326,10 @@ class SsdPerfTest(PerfTest):
             self.addTest(testType, test)
 
     def toRst(self):
+        '''
+        Generate the rst report file, used to convert other report
+        formats from. The file is a simple text file as restructured text.
+        '''
         tests = self.getTests()
         rst = self.getRstReport()
         
@@ -388,6 +399,9 @@ class HddPerfTest(PerfTest):
     testKeys = [iopsKey,tpKey]
 
     def __init__(self,testname,device,options=None):
+        '''
+        Cf. super constructor.
+        '''
         PerfTest.__init__(self, testname, device)
         #Add current date
         now = datetime.datetime.now()
@@ -402,6 +416,10 @@ class HddPerfTest(PerfTest):
             self.addTest(testType, test)
 
     def toRst(self):
+        '''
+        Generate the rst report file, used to convert other report
+        formats from. The file is a simple text file as restructured text.
+        '''
         tests = self.getTests()
         rst = self.getRstReport()
         rst.addFooter()
