@@ -69,6 +69,6 @@ Version 1.0-dev 20121123
       * Throughput
     * Measurement plots
 
-List of contributors to version 1.* branch:
+List of contributors to version 2.* branch:
   Georg Schönberger, Thomas-Krenn.AG (author)
 ################################################################################
