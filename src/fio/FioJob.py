@@ -6,7 +6,6 @@ import logging
 import re
 import json
 from lxml import etree
-from time import sleep
 
 class FioJob(object):
     '''
