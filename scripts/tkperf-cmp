@@ -23,7 +23,7 @@ if __name__ == '__main__':
     tkPerfVersion = "TKperf Version: " + pT.__version__
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd"])
+    parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd","raid"])
     parser.add_argument("xmls", help="XML files to read from", type=str, nargs='+')
 
     parser.add_argument("-v","--version", help="get the version information", action='version',version=tkPerfVersion)
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # Generate objects and plots
     toCompare = []
     for file in args.xmls:
-        if args.mode == 'ssd':
+        if args.mode == 'ssd' or args.mode == 'raid':
             options = Options()
             dummyDev = SSD('ssd',None,file)
             myTest = SsdPerfTest(file, dummyDev, options)
