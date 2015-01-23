@@ -3,7 +3,25 @@ Changelog for TKperf, performance tests for ssd and hdd
 ####################################################################
 
 Visit http://git.thomas-krenn.com/TKperf_v1.git to get current development
-versions of TKperf.
+versions of TKperf and detailed changes.
+
+Version 2.0 20150121
+  * Refactor performance tests and devices with abstract classes
+  * Devices implementing the Device class can be used as test device
+  * Add a system package for interaction with OS command line tools like
+    storcli or mdadm
+  * Added new RAID tests, RAIDs are created automatically
+    * Avago or LSI devices can be tested with a specific RAID config file
+      * Preconditioning is done automatically on all devices in the RAID set
+    * Software RAID with mdadm can be tested with a specific RAID config file
+      * Preconditioning is done automatically on all devices in the RAID set
+      * Secure erase is done automatically on all devices in the RAID set
+  * SAS devices are tested automatically with sf_format and sg_info
+  * Added new TKperf logo
+  * Remove tkperf_dialog.sh as it is obsolete
+  * Fix error in tkperf-comp LAT plot
+  * Enhance tkperf-cmp
+    * Plots can be put into a subfolder and be compressed with zip
 
 Version 1.3 20140804
   * Support 3D plots also with matplotlib < 1.0

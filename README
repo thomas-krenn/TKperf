@@ -17,9 +17,20 @@
   * numpy
   * matplotlib
   * os
-  Under Ubuntu it is normally sufficient to install:
-	$ sudo apt-get install python-argparse python-matplotlib \
-	  python-lxml python-numpy python-simplejson
+  * sys
+  * makedirs, path, walk
+  * zipfile
+  * smtplib
+  * email
+  * ABCMeta, abstractmethod
+  * string.split
+  * lstat
+  * stat.S_ISBLK
+  * string.split
+  * time.sleep
+* Under Ubuntu it is normally sufficient to install:
+    $ sudo apt-get install python-argparse python-matplotlib \
+    python-lxml python-numpy python-simplejson
 * The following software is required:
   * FIO version 2.0.3 or higher.
     Please note that older FIO versions are not supported due to an incompatibility
@@ -27,22 +38,25 @@
     information if FIO is older than 2.0.3.
   * hdparm
   * sg3-utils
+  * rst2pdf
 
 == Setup ==
 * TKperf checks if FIO is found with:
-	$ which fio
+    $ which fio
   Please ensure that FIO is in your path and executable.
 * To install FIO visit
-	http://freecode.com/projects/fio
+    http://freecode.com/projects/fio
 * To fetch FIO per git use:
-	$ git clone git://git.kernel.dk/fio.git
+    $ git clone git://git.kernel.dk/fio.git
 * An installation howto (currently only in German):
-	http://www.thomas-krenn.com/de/wiki/Fio_kompilieren
+    http://www.thomas-krenn.com/de/wiki/Fio_kompilieren
 
 == Installation ==
 * To install TKperf simply call
-	$ sudo python setup.py install
+    $ sudo python setup.py install
 * If the source is updated with git ensure to reinstall TKperf.
+* An installation howto (in German):
+    https://www.thomas-krenn.com/de/wiki/TKperf
 
 == Hardware Prerequisites ==
 * To carry out a Secure Erase it is necessary that the SSD is NOT in the
@@ -52,11 +66,27 @@
 
 == Running a test ==
 * The main script file is called tkperf:
-	$ which tkperf
-	/usr/local/bin/tkperf
+    $ which tkperf
+    /usr/local/bin/tkperf
 * Call tkperf with the command line options described below.
   To get the help output use:
-	$ tkperf -h
+    $ tkperf -h
+=== RAID Tests ===
+* To run a RAID test you have to create a RAID config file (cf. 'examples').
+  The config file specifies RAID type, devices and level. For Avago/LSI use
+  'hw_lsi' as type, for mdadm 'sw_mdadm'. hw_lsi uses enclosure IDs for the
+  devices, you can get them with:
+  # storcli64 /c0 /eall /sall show
+  mdadm uses normal device paths like '/dev/sda', '/dev/sdb' etc.
+  Example config:
+  {
+    "devices": [
+        "252:0",
+        "252:1"
+    ],
+    "raidlevel": 1,
+    "type": "hw_lsi"
+  }
 
 == Log File ==
 * The log file is named after the given test name (e.g. 'intel320' in the
@@ -75,15 +105,24 @@
   See 'man screen' for more information. Basically it is sufficient to call
   'screen', start the script and then detach with 'Ctrl-a d'.
 * As root:
-	# tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb
+    # tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb
 * If hdparm does not output any valuable information for your device,
   use a description file to provide the device informations:
-	# tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
+    # tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
 * Also nohup could be used to start a test. To disable the warning that the
   device will be erased ('-ft', '--force-test'). Note that with nohup it is
   difficult to use sudo and redirect stdout/stderr to output files.
-	# nohup tkperf ssd intel320 /dev/sde -ft -nj 2 \
-	  -iod 16 -rfb 1>runTest.out 2>runTest.err &
+    # nohup tkperf ssd intel320 /dev/sde -ft -nj 2 \
+      -iod 16 -rfb 1>runTest.out 2>runTest.err &
+=== RAID Examples ===
+* To deal with Avago RAID devices, you have to install storcli
+* To deal with software RAID devices, you have to install mdadm
+* First, create the RAID device manually, this has only to be done the first
+  time. Afterwards the RAID is re-created automatically:
+    # storcli64 /c0 add vd type=raid1 drives=252:0,252:1
+  Then check with e.g. 'lsblk' which device was created and start the test
+  with:
+    # tkperf raid LSI-I3500-R5-4 /dev/sdb -c raid5.cfg -nj 2 -iod 16
 
 == SSD Compression ==
 * If the SSD controller uses compression use the '-rfb' switch to ensure that
@@ -104,7 +143,7 @@
 == Loading from XML ==
 * To load an already carried out test from the generated xml file, use
   the '-xml' option:
-	$ sudo tkperf ssd intel520 none -xml
+    $ sudo tkperf ssd intel520 none -xml
 * In this case as tested device 'none' is used, it is there just as a placeholder.
 * Loading from an xml file is useful if something has changed in the plotting
   methods and you want to re-plot the results. This is mainly required during a
@@ -115,6 +154,8 @@
   to seven devices). The script 'tkperf-cmp' generates the compare plots for
   write saturation, throughput, IOPS and latency. To generate the plots use:
   $ tkperf-cmp ssd Samsung840PRO-256GB.xml Samsung840EVO-250GB.xml
+* Guide (in German)
+  https://www.thomas-krenn.com/de/wiki/SSD_Performance_mit_TKperf_vergleichen
 
 == Further information ==
 * To get more information about how the SSD tests are carried out, visit
@@ -124,15 +165,17 @@
 == Help Text ==
 === tkperf ===
 $ tkperf -h
-usage: tkperf [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-xml] [-rfb]
-              [-dsc DESC_FILE] [-ft] [-fm FEATURE_MATRIX] [-hddt {iops,tp}]
-              [-ssdt {iops,lat,tp,writesat}]
-              {hdd,ssd} testname device
+usage: tkperf [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-i {sas}]
+              [-xml] [-rfb] [-dsc DESC_FILE] [-c CONFIG] [-ft]
+              [-fm FEATURE_MATRIX] [-hddt {iops,tp}]
+              [-ssdt {iops,lat,tp,writesat}] [-m MAIL] [-s SMTP]
+              [-g GEN_REPORT]
+              {hdd,ssd,raid} testname device
 
 positional arguments:
-  {hdd,ssd}             specify the test mode for the device
-  testname              name of the fio job, corresponds to the result output
-                        file
+  {hdd,ssd,raid}        specify the test mode for the device
+  testname              name of the performance tests, corresponds to the
+                        result output filenames
   device                device to run fio test on
 
 optional arguments:
@@ -144,6 +187,8 @@ optional arguments:
                         specify number of jobs for fio
   -iod IODEPTH, --iodepth IODEPTH
                         specify iodepth for libaio used by fio
+  -i {sas}, --interface {sas}
+                        specify optional device interface
   -xml, --fromxml       don't run tests but load test objects from xml file
   -rfb, --refill_buffers
                         use Fio's refill buffers option to circumvent any
@@ -151,6 +196,8 @@ optional arguments:
   -dsc DESC_FILE, --desc_file DESC_FILE
                         use a description file for the tested device if hdparm
                         doesn't work correctly
+  -c CONFIG, --config CONFIG
+                        specify the config file for a raid device
   -ft, --force_test     skip checks if the used device is mounted, don't print
                         warnings and force starting the test
   -fm FEATURE_MATRIX, --feature_matrix FEATURE_MATRIX
@@ -159,16 +206,30 @@ optional arguments:
                         choose which tests are run
   -ssdt {iops,lat,tp,writesat}, --ssd_type {iops,lat,tp,writesat}
                         choose which tests are run
+  -m MAIL, --mail MAIL  Send reports or errors to mail address, needs -s to be
+                        set
+  -s SMTP, --smtp SMTP  Use the specified smtp server to send mails, uses port
+                        25 to connect
+  -g GEN_REPORT, --gen_report GEN_REPORT
+                        Set and specify command to generate pdf report, e.g.
+                        rst2pdf
+
 === tkperf-cmp ===
 $ tkperf-cmp -h
-usage: tkperf-cmp [-h] [-v] [-d] [-q] {hdd,ssd} xmls [xmls ...]
+usage: tkperf-cmp [-h] [-v] [-d] [-q] [-f FOLDER] [-z]
+                  {hdd,ssd,raid} xmls [xmls ...]
 
 positional arguments:
-  {hdd,ssd}      specify the test mode for the device
-  xmls           XML files to read from
+  {hdd,ssd,raid}        specify the test mode for the device
+  xmls                  XML files to read from
 
 optional arguments:
-  -h, --help     show this help message and exit
-  -v, --version  get the version information
-  -d, --debug    get detailed debug information
-  -q, --quiet    turn off logging of info messages
+  -h, --help            show this help message and exit
+  -v, --version         get the version information
+  -d, --debug           get detailed debug information
+  -q, --quiet           turn off logging of info messages
+  -f FOLDER, --folder FOLDER
+                        store compare plots in a subfolder, specify name of
+                        folder
+  -z, --zip             store compare plots in a zip archive, requires '-f' as
+                        zip is created from subfolder
