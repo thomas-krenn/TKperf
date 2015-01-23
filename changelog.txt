@@ -22,6 +22,8 @@ Version 2.0 20150121
   * Fix error in tkperf-comp LAT plot
   * Enhance tkperf-cmp
     * Plots can be put into a subfolder and be compressed with zip
+  * If -g is used a PDF report is generated automatically
+  * Reports can be sent to an email automatically, use -m and -s
 
 Version 1.3 20140804
   * Support 3D plots also with matplotlib < 1.0
