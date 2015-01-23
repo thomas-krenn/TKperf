@@ -15,7 +15,7 @@ class Mail(object):
     Sending emails via local smtp.
     '''
 
-    def __init__(self, subj, sender, rcpt):
+    def __init__(self, subj, sender, rcpt, smtp):
         '''
         Constructor
         '''
@@ -25,9 +25,7 @@ class Mail(object):
         self.__msg['Subject'] = subj
         self.__msg['From'] = sender
         self.__msg['To'] = rcpt
-        self.__smtp = smtplib.SMTP('localhost')
-
-    def setSMTP(self, smtp): self.__smtp = smtp
+        self.__smtp = smtplib.SMTP(smtp)
 
     def addMsg(self, msg):
         msgText = MIMEText(msg, 'plain')
