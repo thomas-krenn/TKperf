@@ -28,9 +28,10 @@
   * stat.S_ISBLK
   * string.split
   * time.sleep
+  * setuptools
 * Under Ubuntu it is normally sufficient to install:
     $ sudo apt-get install python-argparse python-matplotlib \
-    python-lxml python-numpy python-simplejson
+    python-lxml python-numpy python-simplejson python-setuptools
 * The following software is required:
   * FIO version 2.0.3 or higher.
     Please note that older FIO versions are not supported due to an incompatibility
