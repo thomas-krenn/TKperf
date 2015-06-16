@@ -38,7 +38,7 @@
     in the terse output of FIO. The tests will not produce any valuable 
     information if FIO is older than 2.0.3.
   * hdparm
-  * sg3-utils
+  * sg3-utils (for testing SAS devices)
   * rst2pdf
 
 == Setup ==
