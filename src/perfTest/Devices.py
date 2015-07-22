@@ -442,6 +442,16 @@ class SSD(Device):
             else:
                 logging.info("# sg_format: " + stdout)
                 return True
+        elif self.getIntfce() == 'nvme':
+            logging.info("# Using nvme format as secure erase for NVME device.")
+            out = subprocess.Popen(['nvme', 'format', self.getDevPath(), '-s=1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if out.returncode != 0:
+                logging.error("# Error: nvme format encountered an error: " + stderr)
+                return False
+            else:
+                logging.info("# nvme format: " + stdout)
+                return True
 
     def precondition(self,nj=1,iod=1):
         ''' 
