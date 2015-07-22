@@ -39,7 +39,7 @@ class Device(object):
         self.__devame = devname
         ## A specific vendor for the device
         self.__vendor = vendor
-        ## A specific interface for the device, e.g. sas
+        ## A specific interface for the device, e.g. sas or nvme
         self.__intfce = intfce
         ## Device specific information for reporting
         self.__devinfo = None

@@ -39,6 +39,8 @@
     information if FIO is older than 2.0.3.
   * hdparm
   * sg3-utils (for testing SAS devices)
+  * nvme-cli (for testing nvme devices)
+    ** E.g. https://github.com/linux-nvme/nvme-cli.git
   * rst2pdf
 
 == Setup ==
