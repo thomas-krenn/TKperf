@@ -304,6 +304,7 @@ class Device(object):
                     for line in stdout.split('\n'):
                         if line.find("Device size") > -1:
                             self.__devinfo += line + '\n'
+                self.__devinfo += "Device Interface: " + self.getIntfce()
         return True
 
     def toXml(self,root):
