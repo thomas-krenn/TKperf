@@ -32,7 +32,7 @@ if __name__ == '__main__':
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
     parser.add_argument("-nj","--numjobs",help="specify number of jobs for fio",type=int)
     parser.add_argument("-iod","--iodepth",help="specify iodepth for libaio used by fio",type=int)
-    parser.add_argument("-i","--interface",help="specify optional device interface",choices=["sas","nvme"])
+    parser.add_argument("-i","--interface",help="specify optional device interface",choices=["sas","nvme","fusion"])
     parser.add_argument("-xml","--fromxml",help="don't run tests but load test objects from xml file",
                         action='store_true')
     parser.add_argument("-rfb","--refill_buffers",help="use Fio's refill buffers option to circumvent any compression of devices",
