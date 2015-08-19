@@ -453,6 +453,39 @@ class SSD(Device):
             else:
                 logging.info("# nvme format: " + stdout)
                 return True
+        elif self.getIntfce() == 'fusion':
+            logging.info("# Using fio-sure-erase as secure erase for fusionio device.")
+            # Mapping to real fusionio device
+            # Get the last char and map it to number
+            fusionNum = ord(self.getDevPath()[-1:]) - ord('a')
+            fusionPath = '/dev/fct' + str(fusionNum)
+            logging.info("# Matched " + self.getDevPath() + "to " + fusionPath)
+            logging.info("# Detaching " + fusionPath)
+            out = subprocess.Popen(['fio-detach', fusionPath],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if out.returncode != 0:
+                logging.error("# Error: command 'fio-detach' returned an error code.")
+                logging.error(stderr)
+                raise RuntimeError, "fio-detach command error"
+            else:
+                logging.info("# Running fio-sure-erase for " + fusionPath)
+                out = subprocess.Popen(['fio-sure-erase', fusionPath, '-y'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                (stdout,stderr) = out.communicate()
+                if out.returncode != 0:
+                    logging.error("# Error: command 'fio-sure-erase' returned an error code.")
+                    logging.error(stderr)
+                    raise RuntimeError, "fio-sure-erase command error"
+                else:
+                    logging.info("# fio-sure-erase: " + stdout)
+                    logging.info("# Attaching " + fusionPath)
+                    out = subprocess.Popen(['fio-attach', fusionPath],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    (stdout,stderr) = out.communicate()
+                    if out.returncode != 0:
+                        logging.error("# Error: command 'fio-attach' returned an error code.")
+                        logging.error(stderr)
+                        raise RuntimeError, "fio-attach command error"
+                    else:
+                        return True
 
     def precondition(self,nj=1,iod=1):
         ''' 
