@@ -772,7 +772,6 @@ class HddIopsTest(DeviceTest):
         Constructor.
         '''
         super(HddIopsTest,self).__init__(testname,device,options)
-        ##Write saturation results: [iops_l,lats_l]
         self.__roundMatrices = []
         self.getFioJob().addKVArg("rw","randrw")
 
