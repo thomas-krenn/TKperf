@@ -85,11 +85,14 @@ class DeviceTest(object):
         if self.__options == None:
             self.__fioJob.addKVArg("numjobs",str(1))
             self.__fioJob.addKVArg("iodepth",str(1))
+            self.__fioJob.addKVArg("runtime",str(60))
         else:
             if self.getOptions().getNj() != None:
                 self.__fioJob.addKVArg("numjobs",str(self.getOptions().getNj()))
             if self.getOptions().getIod() != None:
                 self.__fioJob.addKVArg("iodepth",str(self.getOptions().getIod()))
+            if self.getOptions().getRuntime() != None:
+                self.__fioJob.addKVArg("runtime",str(self.getOptions().getRuntime()))
             if self.getOptions().getXargs() != None:
                 for arg in self.getOptions().getXargs():
                     self.__fioJob.addSglArg(arg)
@@ -132,7 +135,6 @@ class SsdIopsTest(DeviceTest):
         self.__roundMatrices = []
         self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
-        self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
 
     def getRndMatrices(self): return self.__roundMatrices
@@ -296,7 +298,6 @@ class SsdLatencyTest(DeviceTest):
         self.__roundMatrices = []
         self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
-        self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
 
     def getRndMatrices(self): return self.__roundMatrices
@@ -462,7 +463,6 @@ class SsdTPTest(DeviceTest):
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
-        self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
 
     def getRndMatrices(self): return self.__roundMatrices
@@ -633,7 +633,6 @@ class SsdWriteSatTest(DeviceTest):
         self.__roundMatrices = []
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
-        self.getFioJob().addKVArg("runtime","60")
         self.getFioJob().addSglArg("time_based")
 
     def getRnds(self): return self.__rounds
@@ -776,7 +775,6 @@ class HddIopsTest(DeviceTest):
         ##Write saturation results: [iops_l,lats_l]
         self.__roundMatrices = []
         self.getFioJob().addKVArg("rw","randrw")
-        self.getFioJob().addKVArg("runtime","60")
 
     def getRndMatrices(self): return self.__roundMatrices
 
