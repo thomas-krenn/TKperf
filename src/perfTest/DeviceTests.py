@@ -679,9 +679,10 @@ class SsdWriteSatTest(DeviceTest):
         iops = 0 #IOPS per round
         lats_l = []#overall list of latencies
         lats = []#latencies per round
-
-        self.__rounds = maxRounds
-        #assume all rounds must be carried out            
+        
+        #range starts at 0, so 1 must be subtracted
+        self.__rounds = maxRounds - 1
+        #assume all rounds must be carried out
         for i in range(maxRounds):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
