@@ -5,6 +5,14 @@ Changelog for TKperf, performance tests for ssd and hdd
 Visit http://git.thomas-krenn.com/TKperf_v1.git to get current development
 versions of TKperf and detailed changes.
 
+Version 2.1 20151016
+  * Fix max rounds bug for SSD write saturation
+    * If the maximum rounds 1440 was reached for an SSD the number of
+      rounds has not been set correctly.
+  * Add option for specifying test round runtime
+  * Add 'fusion' to valid interface names, secure erasion FusionIO cards
+  * Use nvme format for devices with nvme interface
+
 Version 2.0 20150121
   * Refactor performance tests and devices with abstract classes
   * Devices implementing the Device class can be used as test device
