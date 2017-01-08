@@ -55,16 +55,18 @@ if __name__ == '__main__':
     parser.add_argument("-g","--gen_report",help="Set and specify command to generate pdf report, e.g. rst2pdf")
     args = parser.parse_args()
     # Configure logging levels
+    logformat = '%(asctime)s %(name)-8s %(levelname)-8s %(message)s'
+    logdatefmt = '%Y%m%d %H:%M'
     if args.fromxml == False:
         logfile = args.testname+'.log'
     else:
         logfile = args.testname+'.xml.log'
     if args.debug == True:
-        logging.basicConfig(filename=logfile,level=logging.DEBUG)
+        logging.basicConfig(filename=logfile,level=logging.DEBUG,format=logformat,datefmt=logdatefmt)
     if args.quiet == True:
-        logging.basicConfig(filename=logfile,level=logging.WARNING)
+        logging.basicConfig(filename=logfile,level=logging.WARNING,format=logformat,datefmt=logdatefmt)
     else:
-        logging.basicConfig(filename=logfile,level=logging.INFO)
+        logging.basicConfig(filename=logfile,level=logging.INFO,format=logformat,datefmt=logdatefmt)
     # Create objects, a device and given options
     if args.mode == "ssd":
         devToTest = SSD(args.mode,args.device,args.testname)
