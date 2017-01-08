@@ -588,7 +588,13 @@ class RAID(Device):
         if self.__type == "sw_mdadm":
             self.__raidTec = Mdadm(self.getDevPath(), decoded["raidlevel"], decoded["devices"])
         if self.__type == "hw_lsi":
-            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"])
+            wt = True
+            nora = True
+            if "wt" in decoded:
+                wt = decoded["wt"]
+            if "nora" in decoded:
+                nora = decoded["nora"]
+            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"], wt, nora)
         self.__raidTec.initialize()
 
     def readDevInfo(self):
