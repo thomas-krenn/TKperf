@@ -604,6 +604,11 @@ class RAID(Device):
         devInfo += ', '.join(self.__raidTec.getDevices()) + "\n"
         devInfo += "RAID level: "
         devInfo += str(self.__raidTec.getLevel()) + "\n"
+        if self.__type == "hw_lsi":
+            devInfo += "Controller writethrough: "
+            devInfo += str(self.__raidTec.getWT()) + "\n"
+            devInfo += "Controller noreadahead: "
+            devInfo += str(self.__raidTec.getNORA()) + "\n"
         self.setDevInfo(devInfo)
 
     def createRaid(self):
