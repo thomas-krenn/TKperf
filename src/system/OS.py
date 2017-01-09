@@ -164,7 +164,7 @@ class Storcli(RAIDtec):
         '''
         Constructor
         '''
-        super(Storcli, self).__init__(path, level, devices, readpolicy, writepolicy)
+        super(Storcli, self).__init__(path, level, devices)
         ## The virtual drive of the raid controller
         self.__vd = None
         ## List of current RAID virtual drives
