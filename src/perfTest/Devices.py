@@ -595,8 +595,10 @@ class RAID(Device):
 #            if "nora" in decoded:
 #                nora = decoded["nora"]
 #            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"], wt, nora)
-            readpolicy = nora
-            writepolicy = wt
+            # If no readpolicy is specified, use nora (no read ahead) as default
+            readpolicy = "nora"
+            # If no writepolicy is specified, use wt (write through) as default
+            writepolicy = "wt"
             if "readpolicy" in decoded:
                 readpolicy = decoded["readpolicy"]
             if "writepolicy" in decoded:

@@ -173,10 +173,10 @@ class Storcli(RAIDtec):
 #        self.__wt = wt
 #        ## If noreadahead is set for the controller, default yes
 #        self.__nora = nora
-        ## Read policy of the virtual drive, default to nora (no read ahead)
-        self.__readpolicy = nora
-        ## Write policy of the virtual drive, default to wt (write through)
-        self.__writepolicy = wt
+        ## Read policy of the virtual drive
+        self.__readpolicy = readpolicy
+        ## Write policy of the virtual drive
+        self.__writepolicy = writepolicy
 
     def getVD(self): return self.__vd
     def getVDs(self): return self.__vds
