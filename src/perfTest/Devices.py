@@ -588,13 +588,20 @@ class RAID(Device):
         if self.__type == "sw_mdadm":
             self.__raidTec = Mdadm(self.getDevPath(), decoded["raidlevel"], decoded["devices"])
         if self.__type == "hw_lsi":
-            wt = True
-            nora = True
-            if "wt" in decoded:
-                wt = decoded["wt"]
-            if "nora" in decoded:
-                nora = decoded["nora"]
-            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"], wt, nora)
+#            wt = True
+#            nora = True
+#            if "wt" in decoded:
+#                wt = decoded["wt"]
+#            if "nora" in decoded:
+#                nora = decoded["nora"]
+#            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"], wt, nora)
+            readpolicy = nora
+            writepolicy = wt
+            if "readpolicy" in decoded:
+                readpolicy = decoded["readpolicy"]
+            if "writepolicy" in decoded:
+                writepolicy = decoded["writepolicy"]
+            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"], readpolicy, writepolicy)
         self.__raidTec.initialize()
 
     def readDevInfo(self):
@@ -605,10 +612,14 @@ class RAID(Device):
         devInfo += "RAID level: "
         devInfo += str(self.__raidTec.getLevel()) + "\n"
         if self.__type == "hw_lsi":
-            devInfo += "Controller writethrough: "
-            devInfo += str(self.__raidTec.getWT()) + "\n"
-            devInfo += "Controller noreadahead: "
-            devInfo += str(self.__raidTec.getNORA()) + "\n"
+#            devInfo += "Controller writethrough: "
+#            devInfo += str(self.__raidTec.getWT()) + "\n"
+#            devInfo += "Controller noreadahead: "
+#            devInfo += str(self.__raidTec.getNORA()) + "\n"
+            devInfo += "Controller read policy: "
+            devInfo += str(self.__raidTec.getREADPOLICY()) + "\n"
+            devInfo += "Controller write policy: "
+            devInfo += str(self.__raidTec.getWRITEPOLICY()) + "\n"
         self.setDevInfo(devInfo)
 
     def createRaid(self):
