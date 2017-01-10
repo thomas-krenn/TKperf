@@ -7,7 +7,5 @@
     "type": "hw_lsi",
     "readpolicy": "nora",
     "writepolicy": "wt"
-#    "wt": true,
-#    "nora": true
 }
-sudo tkperf raid LSI-I3500-R1 /dev/sda -c raid1.cfg -nj 2 -iod 16
+sudo tkperf raid MEGARAID-R1 /dev/sda -c raid1.cfg -nj 2 -iod 16
