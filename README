@@ -1,10 +1,11 @@
-== Disclaimer ==
-* !!!!! ATTENTION !!!!!
-  * All data on the tested device is lost! The given device becomes overwritten
-  multiple times, for SSDs a secure erase is carried out also.
-  !!!!!!!!!!!!!!!!!!!!!
+# TKperf performance test tool for SSDs, HDDs and RAID devices
 
-== Requirements ==
+## Disclaimer 
+* **ATTENTION: All data on the tested device is lost!**
+* The given device becomes overwritten multiple times!
+* For SSDs a secure erase is carried out, too.
+
+## Requirements 
 * The following python packages are required:
   * logging
   * json
@@ -34,16 +35,16 @@
     python-lxml python-numpy python-simplejson python-setuptools
 * The following software is required:
   * FIO version 2.0.3 or higher.
-    Please note that older FIO versions are not supported due to an incompatibility
-    in the terse output of FIO. The tests will not produce any valuable 
-    information if FIO is older than 2.0.3.
+    Please note that older FIO versions are not supported due to an
+    incompatibility in the terse output of FIO. The tests will not produce any
+    valuable information if FIO is older than 2.0.3.
   * hdparm
   * sg3-utils (for testing SAS devices)
   * nvme-cli (for testing nvme devices)
-    ** E.g. https://github.com/linux-nvme/nvme-cli.git
+    * E.g. https://github.com/linux-nvme/nvme-cli.git
   * rst2pdf
 
-== Setup ==
+## Setup
 * TKperf checks if FIO is found with:
     $ which fio
   Please ensure that FIO is in your path and executable.
@@ -54,32 +55,33 @@
 * An installation howto (currently only in German):
     http://www.thomas-krenn.com/de/wiki/Fio_kompilieren
 
-== Installation ==
+## Installation
 * To install TKperf simply call
     $ sudo python setup.py install
-* If the source is updated with git ensure to reinstall TKperf.
+* If the source is updated via git ensure to reinstall TKperf.
 * An installation howto (in German):
     https://www.thomas-krenn.com/de/wiki/TKperf
 
-== Hardware Prerequisites ==
+## Hardware Prerequisites
 * To carry out a Secure Erase it is necessary that the SSD is NOT in the
   frozen state.
   (http://www.thomas-krenn.com/en/wiki/SSD_Secure_Erase#Step_1:_NOT_Frozen)
   If the SSD is frozen un- and replug the device while the host is on.
 
-== Running a test ==
+## Running a test
 * The main script file is called tkperf:
     $ which tkperf
     /usr/local/bin/tkperf
 * Call tkperf with the command line options described below.
   To get the help output use:
     $ tkperf -h
-=== RAID Tests ===
+
+### RAID Tests
 * To run a RAID test you have to create a RAID config file (cf. 'examples').
   The config file specifies RAID type, devices and level. For Avago/LSI use
   'hw_lsi' as type, for mdadm 'sw_mdadm'. hw_lsi uses enclosure IDs for the
   devices, you can get them with:
-  # storcli64 /c0 /eall /sall show
+  $ sudo storcli64 /c0 /eall /sall show
   mdadm uses normal device paths like '/dev/sda', '/dev/sdb' etc.
   Example config:
   {
@@ -91,7 +93,7 @@
     "type": "hw_lsi"
   }
 
-== Log File ==
+## Log File
 * The log file is named after the given test name (e.g. 'intel320' in the
   example below). Inspect the log from time to time to ensure that no errors
   occur. In the log all calls to FIO are stated out. Also the results from the
@@ -102,57 +104,59 @@
   If a report is generated from the xml file a seperate log is created. This log
   gets '.xml' appended.
 
-== Examples ==
+## Examples
 * To run a test on a remote machine and ensure it is not stopped if the
   connection closes it is good practice to start the script in a screen session.
   See 'man screen' for more information. Basically it is sufficient to call
   'screen', start the script and then detach with 'Ctrl-a d'.
-* As root:
-    # tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb
+* As root or with 'sudo':
+    $ sudo tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb
 * If hdparm does not output any valuable information for your device,
   use a description file to provide the device informations:
-    # tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
+    $ sudo tkperf ssd intel320 /dev/sde -nj 2 -iod 16 -rfb -dsc intel320.dsc
 * Also nohup could be used to start a test. To disable the warning that the
   device will be erased ('-ft', '--force-test'). Note that with nohup it is
   difficult to use sudo and redirect stdout/stderr to output files.
-    # nohup tkperf ssd intel320 /dev/sde -ft -nj 2 \
+    $ sudo nohup tkperf ssd intel320 /dev/sde -ft -nj 2 \
       -iod 16 -rfb 1>runTest.out 2>runTest.err &
-=== RAID Examples ===
+
+### RAID Examples
 * To deal with Avago RAID devices, you have to install storcli
 * To deal with software RAID devices, you have to install mdadm
 * First, create the RAID device manually, this has only to be done the first
   time. Afterwards the RAID is re-created automatically:
-    # storcli64 /c0 add vd type=raid1 drives=252:0,252:1
+    $ sudo storcli64 /c0 add vd type=raid1 drives=252:0,252:1
   Then check with e.g. 'lsblk' which device was created and start the test
   with:
-    # tkperf raid LSI-I3500-R5-4 /dev/sdb -c raid5.cfg -nj 2 -iod 16
+    $ sudo tkperf raid LSI-I3500-R5-4 /dev/sdb -c raid5.cfg -nj 2 -iod 16
 
-== SSD Compression ==
+## SSD Compression
 * If the SSD controller uses compression use the '-rfb' switch to ensure that
   data buffers used by FIO are completely random. This option enables the
   'refill_buffers' from FIO.
 
-== Description File ==
+## Description File
 * If 'hdparm -I' does not provide any valuable information about a drive, you
   have to provide a so called 'description file'. This file just contains some
   meta information for the pdf report and so it can be a simple text file
   describing the tested device. When calling the script provide the path to the
   description file with '-dsc PATH_TO_FILE'.
 
-== Generate a PDF report ==
+## Generate a PDF report
 * To generate a pdf from the rst use rst2pdf:
-	$ rst2pdf test.rst test.pdf
+    $ rst2pdf test.rst test.pdf
 
-== Loading from XML ==
+## Loading from XML
 * To load an already carried out test from the generated xml file, use
   the '-xml' option:
     $ sudo tkperf ssd intel520 none -xml
-* In this case as tested device 'none' is used, it is there just as a placeholder.
+* In this case as tested device 'none' is used, it is there just as a
+  placeholder.
 * Loading from an xml file is useful if something has changed in the plotting
   methods and you want to re-plot the results. This is mainly required during a
   development process or if a major update/bugfix has been made to tkperf.
 
-== Creating compare plots ==
+## Creating compare plots
 * With the help of the generated xml files multiple devices can be compared (up
   to seven devices). The script 'tkperf-cmp' generates the compare plots for
   write saturation, throughput, IOPS and latency. To generate the plots use:
@@ -160,13 +164,15 @@
 * Guide (in German)
   https://www.thomas-krenn.com/de/wiki/SSD_Performance_mit_TKperf_vergleichen
 
-== Further information ==
+## Further information
 * To get more information about how the SSD tests are carried out, visit
   http://www.snia.org/tech_activities/standards/curr_standards/pts for the
   standard these tests are based on.
 
-== Help Text ==
-=== tkperf ===
+## Help Text
+
+### tkperf
+```
 $ tkperf -h
 usage: tkperf [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-i {sas}]
               [-xml] [-rfb] [-dsc DESC_FILE] [-c CONFIG] [-ft]
@@ -216,8 +222,10 @@ optional arguments:
   -g GEN_REPORT, --gen_report GEN_REPORT
                         Set and specify command to generate pdf report, e.g.
                         rst2pdf
+```
 
-=== tkperf-cmp ===
+### tkperf-cmp
+```
 $ tkperf-cmp -h
 usage: tkperf-cmp [-h] [-v] [-d] [-q] [-f FOLDER] [-z]
                   {hdd,ssd,raid} xmls [xmls ...]
@@ -236,8 +244,9 @@ optional arguments:
                         folder
   -z, --zip             store compare plots in a zip archive, requires '-f' as
                         zip is created from subfolder
+```
 
-== Copyright (C) 2015 Thomas-Krenn.AG ==
+## Copyright (C) 2015-2017 Thomas-Krenn.AG
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 3 of the License, or (at your option) any later

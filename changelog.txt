@@ -1,8 +1,8 @@
 ####################################################################
-Changelog for TKperf, performance tests for ssd and hdd
+Changelog for TKperf, performance tests for ssds, hdds and RAIDs
 ####################################################################
 
-Visit https://github.com/thomas-krenn/TKperf_v1.git to get current development
+Visit https://github.com/thomas-krenn/TKperf to get current development
 versions of TKperf and detailed changes.
 
 Version 2.1 20151016
