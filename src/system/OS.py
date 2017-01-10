@@ -159,7 +159,6 @@ class Storcli(RAIDtec):
     Represents a storcli based RAID technology.
     '''
     
-#    def __init__(self, path, level, devices, wt=True, nora=True):
     def __init__(self, path, level, devices, readpolicy, writepolicy):
         '''
         Constructor
@@ -308,10 +307,6 @@ class Storcli(RAIDtec):
         for dev in self.getDevices():
             devicearg += split(dev, ":")[1] + ","
         args.append(devicearg.rstrip(","))
-#        if self.getWT():
-#            args.append('wt')
-#        if self.getNORA():
-#            args.append('nora')
         if self.getREADPOLICY():
             args.append(self.getREADPOLICY())
         if self.getWRITEPOLICY():
