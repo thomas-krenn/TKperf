@@ -159,7 +159,8 @@ class Storcli(RAIDtec):
     Represents a storcli based RAID technology.
     '''
     
-    def __init__(self, path, level, devices, wt=True, nora=True):
+#    def __init__(self, path, level, devices, wt=True, nora=True):
+    def __init__(self, path, level, devices, readpolicy, writepolicy):
         '''
         Constructor
         '''
@@ -168,19 +169,17 @@ class Storcli(RAIDtec):
         self.__vd = None
         ## List of current RAID virtual drives
         self.__vds = None
-        ## If writethrough is used by the controller, default yes
-        self.__wt = wt
-        ## If noreadahead is set for the controller, default yes
-        self.__nora = nora
+        ## Read policy of the virtual drive
+        self.__readpolicy = readpolicy
+        ## Write policy of the virtual drive
+        self.__writepolicy = writepolicy
 
     def getVD(self): return self.__vd
     def getVDs(self): return self.__vds
-    def getWT(self): return self.__wt
-    def getNORA(self): return self.__nora
+    def getREADPOLICY(self): return self.__readpolicy
+    def getWRITEPOLICY(self): return self.__writepolicy
     def setVD(self,v): self.__vd = v
     def setVDs(self, v): self.__vds = v
-    def setWT(self, w): self.__wt = w
-    def setNORA(self, n): self.__nora = n
 
     def initialize(self):
         '''
@@ -309,10 +308,14 @@ class Storcli(RAIDtec):
         for dev in self.getDevices():
             devicearg += split(dev, ":")[1] + ","
         args.append(devicearg.rstrip(","))
-        if self.getWT():
-            args.append('wt')
-        if self.getNORA():
-            args.append('nora')
+#        if self.getWT():
+#            args.append('wt')
+#        if self.getNORA():
+#            args.append('nora')
+        if self.getREADPOLICY():
+            args.append(self.getREADPOLICY())
+        if self.getWRITEPOLICY():
+            args.append(self.getWRITEPOLICY())
         logging.info("# Creating raid device with storcli")
         logging.info("# Command line: "+subprocess.list2cmdline(args))
         # Fetch VDs before creating the new one

@@ -5,7 +5,9 @@
     ],
     "raidlevel": 1,
     "type": "hw_lsi",
-    "wt": true,
-    "nora": true
+    "readpolicy": "nora",
+    "writepolicy": "wt"
+#    "wt": true,
+#    "nora": true
 }
 sudo tkperf raid LSI-I3500-R1 /dev/sda -c raid1.cfg -nj 2 -iod 16
