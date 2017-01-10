@@ -345,6 +345,18 @@ class Storcli(RAIDtec):
                 logging.info("Got BD: " + bd[0])
                 logging.error("# Error: The new block device doesn't match the tested device path!")
                 raise RuntimeError, "New block dev doesn't match tested dev error"
+            # Set MegaRAID's automatic background initialization (autobgi) to
+            # off to prevent performance influences caused by autobgi
+            match = re.search('^[0-9]\/([0-9]+)', self.getVD())
+            vdNum = match.group(1)
+            storclibgi = subprocess.Popen([self.getUtil(),'/c0/v' + vdNum, 'set autobgi=off'], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            stderr = storclibgi.communicate()[1]
+            if storclibgi.returncode != 0:
+                logging.error("storcli encountered an error: " + stderr)
+                raise RuntimeError, "storcli command error"
+            else:
+                logging.info("# Set autobgi=off for VD " + vdNum)
+            # Log information about the created VD
             logging.info("# Created VD " + self.getVD())
             logging.info("# Using block device " + bd[0])
 
