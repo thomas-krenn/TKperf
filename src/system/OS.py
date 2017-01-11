@@ -307,6 +307,8 @@ class Storcli(RAIDtec):
         for dev in self.getDevices():
             devicearg += split(dev, ":")[1] + ","
         args.append(devicearg.rstrip(","))
+        if str(self.getLevel()) == "10":
+            args.append(str('PDperArray=2'))
         if self.getREADPOLICY():
             args.append(self.getREADPOLICY())
         if self.getWRITEPOLICY():
