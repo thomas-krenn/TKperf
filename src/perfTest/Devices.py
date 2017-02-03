@@ -600,7 +600,7 @@ class RAID(Device):
                 writepolicy = decoded["writepolicy"]
             if "stripsize" in decoded:
                 stripsize = decoded["stripsize"]
-            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"], readpolicy, writepolicy)
+            self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"], readpolicy, writepolicy, stripsize)
         self.__raidTec.initialize()
 
     def readDevInfo(self):
