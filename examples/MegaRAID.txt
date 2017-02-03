@@ -6,6 +6,7 @@
     "raidlevel": 1,
     "type": "hw_lsi",
     "readpolicy": "nora",
-    "writepolicy": "wt"
+    "writepolicy": "wt",
+    "stripsize": "256"
 }
 sudo tkperf raid MEGARAID-R1 /dev/sda -c raid1.cfg -nj 2 -iod 16

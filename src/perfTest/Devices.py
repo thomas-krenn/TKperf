@@ -592,10 +592,14 @@ class RAID(Device):
             readpolicy = "nora"
             # If no writepolicy is specified, use wt (write through) as default
             writepolicy = "wt"
+            # If no stripsize is specified, use 256 (KB) as default
+            stripsize = "strip=256"
             if "readpolicy" in decoded:
                 readpolicy = decoded["readpolicy"]
             if "writepolicy" in decoded:
                 writepolicy = decoded["writepolicy"]
+            if "stripsize" in decoded:
+                stripsize = decoded["stripsize"]
             self.__raidTec = Storcli(self.getDevPath(), decoded["raidlevel"], decoded["devices"], readpolicy, writepolicy)
         self.__raidTec.initialize()
 
@@ -611,6 +615,8 @@ class RAID(Device):
             devInfo += str(self.__raidTec.getREADPOLICY()) + "\n"
             devInfo += "Controller write policy: "
             devInfo += str(self.__raidTec.getWRITEPOLICY()) + "\n"
+            devInfo += "Controller strip size: "
+            devInfo += str(self.__raidTec.getSTRIPSIZE()) + "\n"
         self.setDevInfo(devInfo)
 
     def createRaid(self):
