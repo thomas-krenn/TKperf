@@ -159,7 +159,7 @@ class Storcli(RAIDtec):
     Represents a storcli based RAID technology.
     '''
     
-    def __init__(self, path, level, devices, readpolicy, writepolicy):
+    def __init__(self, path, level, devices, readpolicy, writepolicy, stripsize):
         '''
         Constructor
         '''
@@ -172,11 +172,14 @@ class Storcli(RAIDtec):
         self.__readpolicy = readpolicy
         ## Write policy of the virtual drive
         self.__writepolicy = writepolicy
+        ## Strip size of the virtual drive
+        self.__stripsize = stripsize
 
     def getVD(self): return self.__vd
     def getVDs(self): return self.__vds
     def getREADPOLICY(self): return self.__readpolicy
     def getWRITEPOLICY(self): return self.__writepolicy
+    def getSTRIPSIZE(self): return self.__stripsize
     def setVD(self,v): self.__vd = v
     def setVDs(self, v): self.__vds = v
 
@@ -313,6 +316,8 @@ class Storcli(RAIDtec):
             args.append(self.getREADPOLICY())
         if self.getWRITEPOLICY():
             args.append(self.getWRITEPOLICY())
+        if self.getSTRIPSIZE():
+            args.append(str('strip=' + str(self.getSTRIPSIZE())))
         logging.info("# Creating raid device with storcli")
         logging.info("# Command line: "+subprocess.list2cmdline(args))
         # Fetch VDs before creating the new one
