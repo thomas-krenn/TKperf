@@ -455,7 +455,7 @@ class SSD(Device):
             output_line = list(filter(None, stdout.decode().split('\n')))
             for line in output_line:
                 if 'lbaf' in line and 'in use' in line:
-                    lbaf_opt = line.split()[1]
+                    lbaf_opt = '-l={}'.format(line.split()[1])
             logging.info("# Using nvme format as secure erase for NVME device.")
             out = subprocess.Popen(['nvme', 'format', self.getDevPath(), '-s=1', lbaf_opt],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
