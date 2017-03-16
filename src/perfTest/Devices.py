@@ -444,8 +444,20 @@ class SSD(Device):
                 logging.info("# sg_format: " + stdout)
                 return True
         elif self.getIntfce() == 'nvme':
+            # Detect the correct lbaf of the nvme device and use it for the format command.
+            lbaf_opt = ''
+            logging.info('# Detect used nvme lbaf.')
+            out = subprocess.Popen(['nvme', 'id-ns', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if out.returncode != 0:
+                logging.error('# Error: nvme id-ns encountered an error: ' + stderr)
+                return False
+            output_line = list(filter(None, stdout.decode().split('\n')))
+            for line in output_line:
+                if 'lbaf' in line and 'in use' in line:
+                    lbaf_opt = '-l={}'.format(line.split()[1])
             logging.info("# Using nvme format as secure erase for NVME device.")
-            out = subprocess.Popen(['nvme', 'format', self.getDevPath(), '-s=1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['nvme', 'format', self.getDevPath(), '-s=1', lbaf_opt],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error("# Error: nvme format encountered an error: " + stderr)
