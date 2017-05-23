@@ -558,7 +558,7 @@ class SsdTPTest(DeviceTest):
                             logging.info("Reached steady state at round %d",i)
                         #running from 0 to 24
                         if i == ((StdyState.testRnds) - 1):
-                            self.setReachStdyState(False)
+                            self.getStdyState().setReachStdyState(False)
                             logging.warn("#Did not reach steady state for bs %s",j)
                         #In both cases we are done with steady state checking
                         if steadyState == True or i == ((StdyState.testRnds) - 1):
