@@ -348,6 +348,7 @@ class SSD(Device):
         @return True if device is secure erased, False if not.
         '''
         frozen = True
+        locked = True
         security = False
         logging.info("# Starting Secure Erase for device: "+self.getDevPath())
         #before starting the erase sleep, to ensure previous device operations are finished
@@ -365,10 +366,17 @@ class SSD(Device):
                         if line.find("not") > -1:
                             frozen = False
                             logging.info("# Not in frozen state")
-                if frozen:
-                    logging.error("# Device still in frozen state")
-                    raise RuntimeError, "frozen state error"
-                if not frozen:
+                    if line.find("locked") > -1:
+                        if line.find("not") > -1:
+                            locked = False
+                            logging.info("# Not in locked state")
+                if frozen or locked:
+                    if frozen:
+                        logging.error("# Device still in frozen state")
+                    if locked:
+                        logging.error("# Device still in locked state")
+                    raise RuntimeError, "frozen/locked state error (for details see log)"
+                if not (frozen or locked):
                     out = subprocess.Popen(['hdparm', '--user-master','u',
                                             '--security-set-pass','pwd',self.getDevPath()],
                                            stdout=subprocess.PIPE,stderr=subprocess.PIPE)
