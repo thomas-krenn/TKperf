@@ -14,7 +14,6 @@ from time import sleep
 from fio.FioJob import FioJob
 from system.OS import Storcli
 from system.OS import Mdadm
-from django.test._doctest import master
 
 
 class Device(object):
