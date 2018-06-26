@@ -698,6 +698,7 @@ class RAID(Device):
     def operator(self, path, op, nj, iod, exc):
         try:
             tmpSSD = SSD('ssd', path, self.getDevName())
+            tmpSSD.setInterface(self.getIntfce())
             if op == 'erase':
                 tmpSSD.secureErase()
             if op == 'condition':
