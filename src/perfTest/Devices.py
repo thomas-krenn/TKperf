@@ -102,7 +102,7 @@ class Device(object):
             return True
         else:
             return False
-    
+
     def isMounted(self): return self.__devismounted
     def isAvailable(self): return self.__devisavailable
 
@@ -305,13 +305,32 @@ class Device(object):
                         if line.find("Device size") > -1:
                             self.__devinfo += line + '\n'
                 self.__devinfo += "Device Interface: " + self.getIntfce()
+        # For nvme devices use nvme tools
+        elif self.getIntfce() == 'nvme':
+            out = subprocess.Popen(['nvme', 'id-ctrl', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if out.returncode != 0:
+                logging.error("nvme id-ctrl encountered an error: " + stderr)
+                return False
+            else:
+                self.__devinfo = ""
+                for line in stdout.split('\n'):
+                    if line.find("sn") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("mn") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("fr") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("tnvmcap") > -1:
+                        self.__devinfo += line + '\n'
+                self.__devinfo += "Device Interface: " + self.getIntfce()
         return True
 
     def toXml(self,root):
         '''
         Get the Xml representation of the device.
         @param r The xml root tag to append the new elements to
-        ''' 
+        '''
         data = json.dumps(self.__devinfo)
         e = etree.SubElement(root,'devinfo')
         e.text = data
@@ -319,7 +338,7 @@ class Device(object):
             data = json.dumps(self.__featureMatrix)
             e = etree.SubElement(root,'featmatrix')
             e.text = data
-    
+
     def fromXml(self,root):
         '''
         Loads the information about a device from XML.
@@ -337,7 +356,7 @@ class SSD(Device):
     '''
     ## Number of rounds to carry out workload independent preconditioning.
     wlIndPrecRnds = 2
-    
+
     def readDevInfo(self):
         super(SSD, self).readDevInfo()
 
@@ -500,7 +519,7 @@ class SSD(Device):
                         return True
 
     def precondition(self,nj=1,iod=1):
-        ''' 
+        '''
         Workload independent preconditioning for SSDs.
         Write two times the device with streaming I/O.
         @return True if precontioning succeded
