@@ -1,11 +1,12 @@
 # TKperf performance test tool for SSDs, HDDs and RAID devices
 
-## Disclaimer 
+## Disclaimer
 * **ATTENTION: All data on the tested device is lost!**
 * The given device becomes overwritten multiple times!
 * For SSDs a secure erase is carried out, too.
+* For RAID devices each device becomes overwritten or secure erased
 
-## Requirements 
+## Requirements
 * The following python packages are required:
   * logging
   * json
@@ -97,7 +98,7 @@
 * The log file is named after the given test name (e.g. 'intel320' in the
   example below). Inspect the log from time to time to ensure that no errors
   occur. In the log all calls to FIO are stated out. Also the results from the
-  steady rounds are written to the log file. If you have any doubts that the 
+  steady rounds are written to the log file. If you have any doubts that the
   results in the pdf report are correct check the log what performance values
   FIO returned. As the log file contains the FIO output in terse version, read
   the FIO HOWTO to find out how to interpret it.
@@ -173,10 +174,9 @@
 
 ### tkperf
 ```
-$ tkperf -h
-usage: tkperf [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-i {sas}]
-              [-xml] [-rfb] [-dsc DESC_FILE] [-c CONFIG] [-ft]
-              [-fm FEATURE_MATRIX] [-hddt {iops,tp}]
+usage: tkperf [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-rt RUNTIME]
+              [-i {sas,nvme,fusion}] [-xml] [-rfb] [-dsc DESC_FILE]
+              [-c CONFIG] [-ft] [-fm FEATURE_MATRIX] [-hddt {iops,tp}]
               [-ssdt {iops,lat,tp,writesat}] [-m MAIL] [-s SMTP]
               [-g GEN_REPORT]
               {hdd,ssd,raid} testname device
@@ -196,7 +196,10 @@ optional arguments:
                         specify number of jobs for fio
   -iod IODEPTH, --iodepth IODEPTH
                         specify iodepth for libaio used by fio
-  -i {sas}, --interface {sas}
+  -rt RUNTIME, --runtime RUNTIME
+                        specify the fio runtime of one test round, if not set
+                        this is 60 seconds
+  -i {sas,nvme,fusion}, --interface {sas,nvme,fusion}
                         specify optional device interface
   -xml, --fromxml       don't run tests but load test objects from xml file
   -rfb, --refill_buffers
@@ -246,7 +249,7 @@ optional arguments:
                         zip is created from subfolder
 ```
 
-## Copyright (C) 2015-2017 Thomas-Krenn.AG
+## Copyright (C) 2015-2018 Thomas-Krenn.AG
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
 Foundation; either version 3 of the License, or (at your option) any later

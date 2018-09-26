@@ -3,7 +3,7 @@ Created on 07.08.2012
 
 @author: gschoenb
 '''
-__version__ = '2.1'
+__version__ = '2.2'
 
 import logging
 import subprocess
@@ -24,7 +24,7 @@ class PerfTest(object):
     '''
     A performance test, consists of multiple Device Tests.
     '''
-    
+
     def __init__(self,testname,device):
         '''
         A performance test has several reports and plots.
@@ -33,22 +33,22 @@ class PerfTest(object):
         '''
         ## The output file for the fio job test results.
         self.__testname = testname
-        
+
         ## The device object to run test on.
         self.__device = device
-        
+
         ## Xml file to write test results to
         self.__xmlReport = XmlReport(self.__testname)
-        
+
         ## Rst file to generate pdf of
         self.__rstReport = RstReport(self.__testname)
-        
+
         ## Dictionary of tests to carry out
         self.__tests = {}
-        
+
         ## Date the test has been carried out
         self.__testDate = None
-        
+
         ## Per default use the version from main module
         self.__IOPerfVersion = __version__
 
@@ -142,7 +142,7 @@ class PerfTest(object):
         @param test The test object to be added.
         '''
         self.__tests[key] = test
-    
+
     def resetTests(self):
         '''
         Clear the dictionary containing the tests.
@@ -253,7 +253,7 @@ class PerfTest(object):
         options = Options(None,None)
         # Initialize device and performance tests
         if isinstance(self, SsdPerfTest):
-            device = SSD('ssd',None,self.getTestname()) 
+            device = SSD('ssd',None,self.getTestname())
             device.fromXml(root)
             for tag in SsdPerfTest.testKeys:
                 #check which test tags are in the xml file
@@ -272,7 +272,7 @@ class PerfTest(object):
                         test.fromXml(elem)
                         self.addTest(tag, test)
         elif isinstance(self, HddPerfTest):
-            device = HDD('hdd',None,self.getTestname()) 
+            device = HDD('hdd',None,self.getTestname())
             device.fromXml(root)
             for tag in HddPerfTest.testKeys:
                 for elem in root.iterfind(tag):
@@ -332,7 +332,7 @@ class SsdPerfTest(PerfTest):
         '''
         tests = self.getTests()
         rst = self.getRstReport()
-        
+
         rst.addFooter()
         rst.addTitle()
         #add the device information and the feature matrix for one device
@@ -340,7 +340,7 @@ class SsdPerfTest(PerfTest):
             rst.addDevInfo(tests[keys].getDevice().getDevInfo(),tests[keys].getDevice().getFeatureMatrix())
             break
         rst.addCmdLine(self.getCmdLineArgs())
-        
+
         #add the fio version, nj, iod and general info of one test to the report
         for keys in tests.iterkeys():
             if keys != 'lat':
@@ -365,7 +365,7 @@ class SsdPerfTest(PerfTest):
             rst.addSection("Measurement Plots")
             for i,fig in enumerate(tests['tp'].getFigures()):
                 rst.addFigure(fig,'ssd','tp',i)
-            rst.addSection("Measurement Window Summary Table")    
+            rst.addSection("Measurement Window Summary Table")
             rst.addTable(tests['tp'].getTables()[0],dt.SsdTPTest.bsLabels,'tp')
         if SsdPerfTest.latKey in tests:
             rst.addChapter("Latency")
@@ -376,8 +376,8 @@ class SsdPerfTest(PerfTest):
                 #but we need them to generate the measurement overview table
                 if i == 2 or i == 3: continue
                 rst.addFigure(fig,'ssd','lat',i)
-            rst.addSection("Measurement Window Summary Table")    
-            rst.addTable(tests['lat'].getTables()[0],dt.SsdLatencyTest.bsLabels,'avg-lat')#avg lat 
+            rst.addSection("Measurement Window Summary Table")
+            rst.addTable(tests['lat'].getTables()[0],dt.SsdLatencyTest.bsLabels,'avg-lat')#avg lat
             rst.addTable(tests['lat'].getTables()[1],dt.SsdLatencyTest.bsLabels,'max-lat')#max lat
         if SsdPerfTest.wrKey in tests:
             rst.addChapter("Write Saturation")
@@ -429,7 +429,7 @@ class HddPerfTest(PerfTest):
             rst.addDevInfo(tests[keys].getDevice().getDevInfo(),tests[keys].getDevice().getFeatureMatrix())
             break
         rst.addCmdLine(self.getCmdLineArgs())
-        
+
         #Setup and OS infos are the same for all tests, just take one
         for keys in tests.iterkeys():
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),

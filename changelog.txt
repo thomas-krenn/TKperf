@@ -5,6 +5,17 @@ Changelog for TKperf, performance tests for ssds, hdds and RAIDs
 Visit https://github.com/thomas-krenn/TKperf to get current development
 versions of TKperf and detailed changes.
 
+Version 2.2 20180926
+  * Add timestamps to log messages
+  * Add read and write policies for megaraid devices
+  * Use markdown for README
+  * Set auto background initialization to off for megaraid devices
+  * Fix device number to 2 if megaraid RAID10 devices are created
+  * Add strip size for megaraid devices
+  * NVME: use correct lbaf for nvme format command
+  * Set correct StdyState if device did not reach steady state
+  * NVME: use correct interface with NVME RAID devices
+
 Version 2.1 20151016
   * Fix max rounds bug for SSD write saturation
     * If the maximum rounds 1440 was reached for an SSD the number of

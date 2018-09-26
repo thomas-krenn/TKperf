@@ -3,7 +3,7 @@
 Created on 27.06.2012
 
 @author: gschoenb
-@version: 2.1
+@version: 2.2
 '''
 import argparse
 import logging
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     parser.add_argument("mode", help="specify the test mode for the device", choices=["hdd","ssd","raid"])
     parser.add_argument("testname",help="name of the performance tests, corresponds to the result output filenames")
     parser.add_argument("device",help="device to run fio test on")
-    
+
     parser.add_argument("-v","--version", help="get the version information", action='version',version=tkPerfVersion)
     parser.add_argument("-d","--debug", help="get detailed debug information",action ='store_true')
     parser.add_argument("-q","--quiet", help="turn off logging of info messages",action ='store_true')
