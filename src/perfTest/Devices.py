@@ -303,7 +303,6 @@ class Device(object):
                     for line in stdout.split('\n'):
                         if line.find("Device size") > -1:
                             self.__devinfo += line + '\n'
-                self.__devinfo += "Device Interface: " + self.getIntfce()
         # For nvme devices use nvme tools
         elif self.getIntfce() == 'nvme':
             out = subprocess.Popen(['nvme', 'id-ctrl', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -322,7 +321,31 @@ class Device(object):
                         self.__devinfo += line + '\n'
                     if line.find("tnvmcap") > -1:
                         self.__devinfo += line + '\n'
-                self.__devinfo += "Device Interface: " + self.getIntfce()
+        # For usb devices use udevadm and blockdev
+        elif self.getIntfce() == 'usb':
+            out = subprocess.Popen(['udevadm', 'info', '--name=' + self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if out.returncode != 0:
+                logging.error("udevadm info encountered an error: " + stderr)
+                return False
+            else:
+                self.__devinfo = "udevadm Device Info section\n"
+                for line in stdout.split('\n'):
+                    if line.find("ID_VENDOR") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("ID_MODEL") > -1:
+                        self.__devinfo += line + '\n'
+                    if line.find("ID_SERIAL") > -1:
+                        self.__devinfo += line + '\n'
+                out = subprocess.Popen(['blockdev', '--getsize64' ,self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                (stdout,stderr) = out.communicate()
+                if out.returncode != 0:
+                    logging.error("blockdev encountered an error: " + stderr)
+                    return False
+                else:
+                    self.__devinfo += "Device Size (bytes): " + stdout
+        if self.getIntfce() != None:
+            self.__devinfo += "Device Interface: " + self.getIntfce()
         logging.info("# Testing device: " + self.__devinfo)
         return True
 
