@@ -274,7 +274,6 @@ class Device(object):
                         line = line.lstrip(' ')
                         line = '\t' + line
                         self.__devinfo += line + '\n'
-                logging.info("# Testing device: " + self.__devinfo)
         # For sas devices use sg utils
         elif self.getIntfce() == 'sas':
             out = subprocess.Popen(['sginfo', '-a', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -324,6 +323,7 @@ class Device(object):
                     if line.find("tnvmcap") > -1:
                         self.__devinfo += line + '\n'
                 self.__devinfo += "Device Interface: " + self.getIntfce()
+        logging.info("# Testing device: " + self.__devinfo)
         return True
 
     def toXml(self,root):
@@ -331,7 +331,11 @@ class Device(object):
         Get the Xml representation of the device.
         @param r The xml root tag to append the new elements to
         '''
-        data = json.dumps(self.__devinfo)
+        data = self.__devinfo
+        if not all(ord(char) < 128 for char in data):
+            data = json.dumps(data, ensure_ascii=False).encode('utf8')
+        else:
+            data = json.dumps(data)
         e = etree.SubElement(root,'devinfo')
         e.text = data
         if self.__featureMatrix != None:
