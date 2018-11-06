@@ -222,6 +222,70 @@ class Device(object):
     def precondition(self):
         ''' Carry out workload independent preconditioning. '''
 
+    def devInfoHdparm(self):
+        out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("hdparm -I encountered an error: " + stderr)
+            logging.error("Please use a description file to set device information!")
+            return False
+        else:
+            self.__devinfo = ""
+            for line in stdout.split('\n'):
+                if line.find("questionable sense data") > -1 or line.find("bad/missing sense data") > -1:
+                    logging.error("hdparm sense data may be incorrect!")
+                    logging.error("Please use a description file to set device information!")
+                    return False
+                if line.find("Model Number") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("Serial Number") > -1:
+                    self.__devinfo += line +'\n'
+                if line.find("Firmware Revision") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("Media Serial Num") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("Media Manufacturer") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("device size with M = 1000*1000") > -1:
+                    self.__devinfo += line + '\n'
+            #Check for write caching state
+            stdout = ''
+            stderr = ''
+            out = subprocess.Popen(['hdparm','-W',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if stderr != '':
+                logging.error("# Error: hdparm -W encountered an error: " + stderr)
+                logging.error("# Please use a description file to set device information!")
+                return False
+            for line in stdout.split('\n'):
+                if line.find("write-caching") > -1:
+                    line = line.lstrip(' ')
+                    line = '\t' + line
+                    self.__devinfo += line + '\n'
+
+    def devInfoUdevadm(self):
+        out = subprocess.Popen(['udevadm', 'info', '--name=' + self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if out.returncode != 0:
+            logging.error("udevadm info encountered an error: " + stderr)
+            return False
+        else:
+            self.__devinfo = "udevadm Device Info section\n"
+            for line in stdout.split('\n'):
+                if line.find("ID_VENDOR") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("ID_MODEL") > -1:
+                    self.__devinfo += line + '\n'
+                if line.find("ID_SERIAL") > -1:
+                    self.__devinfo += line + '\n'
+            out = subprocess.Popen(['blockdev', '--getsize64' ,self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (stdout,stderr) = out.communicate()
+            if out.returncode != 0:
+                logging.error("blockdev encountered an error: " + stderr)
+                return False
+            else:
+                self.__devinfo += "Device Size (bytes): " + stdout
+
     @abstractmethod
     def readDevInfo(self):
         '''
@@ -233,47 +297,16 @@ class Device(object):
         # The device info has already been set
         if self.__devinfo != None:
             return True
-        # If no interface is specified, use hdparm
-        if self.getIntfce() == None:
-            out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            (stdout,stderr) = out.communicate()
-            if stderr != '':
-                logging.error("hdparm -I encountered an error: " + stderr)
-                logging.error("Please use a description file to set device information!")
-                return False
-            else:
-                self.__devinfo = ""
-                for line in stdout.split('\n'):
-                    if line.find("questionable sense data") > -1 or line.find("bad/missing sense data") > -1:
-                        logging.error("hdparm sense data may be incorrect!")
-                        logging.error("Please use a description file to set device information!")
-                        return False
-                    if line.find("Model Number") > -1:
-                        self.__devinfo += line + '\n'
-                    if line.find("Serial Number") > -1:
-                        self.__devinfo += line +'\n'
-                    if line.find("Firmware Revision") > -1:
-                        self.__devinfo += line + '\n'
-                    if line.find("Media Serial Num") > -1:
-                        self.__devinfo += line + '\n'
-                    if line.find("Media Manufacturer") > -1:
-                        self.__devinfo += line + '\n'
-                    if line.find("device size with M = 1000*1000") > -1:
-                        self.__devinfo += line + '\n'
-                #Check for write caching state
-                stdout = ''
-                stderr = ''
-                out = subprocess.Popen(['hdparm','-W',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                (stdout,stderr) = out.communicate()
-                if stderr != '':
-                    logging.error("# Error: hdparm -W encountered an error: " + stderr)
-                    logging.error("# Please use a description file to set device information!")
+        # If no interface is specified or compactflash is used, try to call hdparm
+        if self.getIntfce() == None or self.getIntfce() == 'compactflash':
+            # If hdparm has bad data, try to use udevadm and blockdev
+            if not self.devInfoHdparm():
+                # If udevadm or blockdev returns an error users have to use a dsc file
+                if not self.devInfoUdevadm():
+                    logging.error("# Error: hdparm and udevadm encountered errors.")
+                    logging.error("Please use a description file to set device information!")
                     return False
-                for line in stdout.split('\n'):
-                    if line.find("write-caching") > -1:
-                        line = line.lstrip(' ')
-                        line = '\t' + line
-                        self.__devinfo += line + '\n'
+
         # For sas devices use sg utils
         elif self.getIntfce() == 'sas':
             out = subprocess.Popen(['sginfo', '-a', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -323,27 +356,9 @@ class Device(object):
                         self.__devinfo += line + '\n'
         # For usb devices use udevadm and blockdev
         elif self.getIntfce() == 'usb':
-            out = subprocess.Popen(['udevadm', 'info', '--name=' + self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            (stdout,stderr) = out.communicate()
-            if out.returncode != 0:
-                logging.error("udevadm info encountered an error: " + stderr)
+            if not self.devInfoUdevadm():
                 return False
-            else:
-                self.__devinfo = "udevadm Device Info section\n"
-                for line in stdout.split('\n'):
-                    if line.find("ID_VENDOR") > -1:
-                        self.__devinfo += line + '\n'
-                    if line.find("ID_MODEL") > -1:
-                        self.__devinfo += line + '\n'
-                    if line.find("ID_SERIAL") > -1:
-                        self.__devinfo += line + '\n'
-                out = subprocess.Popen(['blockdev', '--getsize64' ,self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                (stdout,stderr) = out.communicate()
-                if out.returncode != 0:
-                    logging.error("blockdev encountered an error: " + stderr)
-                    return False
-                else:
-                    self.__devinfo += "Device Size (bytes): " + stdout
+
         if self.getIntfce() != None:
             self.__devinfo += "Device Interface: " + self.getIntfce()
         logging.info("# Testing device: " + self.__devinfo)
