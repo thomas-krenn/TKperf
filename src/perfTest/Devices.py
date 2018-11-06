@@ -223,6 +223,7 @@ class Device(object):
         ''' Carry out workload independent preconditioning. '''
 
     def devInfoHdparm(self):
+        logging.info("# Trying to get device info with hdparm")
         out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
@@ -263,8 +264,10 @@ class Device(object):
                     line = line.lstrip(' ')
                     line = '\t' + line
                     self.__devinfo += line + '\n'
+            return True
 
     def devInfoUdevadm(self):
+        logging.info("# Trying to get device info with udevadm")
         out = subprocess.Popen(['udevadm', 'info', '--name=' + self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if out.returncode != 0:
@@ -287,6 +290,7 @@ class Device(object):
                 return False
             else:
                 self.__devinfo += "Device Size (bytes): " + stdout
+            return True
 
     def hasNonASCII(self, line):
         if not all(ord(char) < 128 for char in line):
@@ -317,6 +321,7 @@ class Device(object):
 
         # For sas devices use sg utils
         elif self.getIntfce() == 'sas':
+            logging.info("# Trying to get device info with sginfo")
             out = subprocess.Popen(['sginfo', '-a', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
@@ -348,6 +353,7 @@ class Device(object):
                             self.__devinfo += line + '\n'
         # For nvme devices use nvme tools
         elif self.getIntfce() == 'nvme':
+            logging.info("# Trying to get device info with nvme id-ctrl")
             out = subprocess.Popen(['nvme', 'id-ctrl', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
