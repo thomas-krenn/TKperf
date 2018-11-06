@@ -356,7 +356,7 @@ class Device(object):
         '''
         data = self.__devinfo
         if not all(ord(char) < 128 for char in data):
-            data = json.dumps(data, ensure_ascii=False).encode('utf8')
+            data = json.dumps(data, ensure_ascii=False)
         else:
             data = json.dumps(data)
         e = etree.SubElement(root,'devinfo')
