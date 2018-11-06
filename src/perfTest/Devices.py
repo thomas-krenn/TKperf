@@ -236,6 +236,7 @@ class Device(object):
                     logging.error("hdparm sense data may be incorrect!")
                     logging.error("Please use a description file to set device information!")
                     return False
+                if self.hasNonASCII(line): continue
                 if line.find("Model Number") > -1:
                     self.__devinfo += line + '\n'
                 if line.find("Serial Number") > -1:
@@ -272,6 +273,7 @@ class Device(object):
         else:
             self.__devinfo = "udevadm Device Info section\n"
             for line in stdout.split('\n'):
+                if self.hasNonASCII(line): continue
                 if line.find("ID_VENDOR") > -1:
                     self.__devinfo += line + '\n'
                 if line.find("ID_MODEL") > -1:
@@ -285,6 +287,12 @@ class Device(object):
                 return False
             else:
                 self.__devinfo += "Device Size (bytes): " + stdout
+
+    def hasNonASCII(self, line):
+        if not all(ord(char) < 128 for char in line):
+            return True
+        else:
+            return False
 
     @abstractmethod
     def readDevInfo(self):
@@ -317,6 +325,7 @@ class Device(object):
             else:
                 self.__devinfo = ""
                 for line in stdout.split('\n'):
+                    if self.hasNonASCII(line): continue
                     if line.find("Vendor") > -1:
                         self.__devinfo += line + '\n'
                     if line.find("Product") > -1:
@@ -334,6 +343,7 @@ class Device(object):
                     return False
                 else:
                     for line in stdout.split('\n'):
+                        if self.hasNonASCII(line): continue
                         if line.find("Device size") > -1:
                             self.__devinfo += line + '\n'
         # For nvme devices use nvme tools
@@ -346,6 +356,7 @@ class Device(object):
             else:
                 self.__devinfo = ""
                 for line in stdout.split('\n'):
+                    if self.hasNonASCII(line): continue
                     if line.find("sn") > -1:
                         self.__devinfo += line + '\n'
                     if line.find("mn") > -1:
@@ -369,11 +380,7 @@ class Device(object):
         Get the Xml representation of the device.
         @param r The xml root tag to append the new elements to
         '''
-        data = self.__devinfo
-        if not all(ord(char) < 128 for char in data):
-            data = json.dumps(data, ensure_ascii=False)
-        else:
-            data = json.dumps(data)
+        data = json.dumps(self.__devinfo)
         e = etree.SubElement(root,'devinfo')
         e.text = data
         if self.__featureMatrix != None:
