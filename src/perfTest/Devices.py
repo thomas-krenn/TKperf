@@ -309,8 +309,8 @@ class Device(object):
         # The device info has already been set
         if self.__devinfo != None:
             return True
-        # If no interface is specified or compactflash is used, try to call hdparm
-        if self.getIntfce() == None or self.getIntfce() == 'compactflash':
+        # If no interface is specified or compactflash/sdcard is used, try to call hdparm
+        if self.getIntfce() == None or self.getIntfce() == 'compactflash' or self.getIntfce() == 'sdcard':
             # If hdparm has bad data, try to use udevadm and blockdev
             if not self.devInfoHdparm():
                 # If udevadm or blockdev returns an error users have to use a dsc file
