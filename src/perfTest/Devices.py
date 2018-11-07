@@ -422,7 +422,7 @@ class SSD(Device):
         @return True if supported, False if not
         '''
         logging.info("# Checking for Enhanced Secure Erase with hdparm")
-        command = 'hdparm -I ' + self.getDevPath() + ' | grep "supported: enhanced erase"'
+        command = 'hdparm -I ' + self.getDevPath() + ' | grep -q "supported: enhanced erase"'
         logging.info("# Running command: " + command)
         rc = None
         try:
