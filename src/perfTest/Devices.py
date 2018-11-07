@@ -415,144 +415,170 @@ class SSD(Device):
     def readDevInfo(self):
         super(SSD, self).readDevInfo()
 
-    def secureErase(self):
+    def secureEraseSupported(self):
         '''
-        Carries out a secure erase via hdparm or sg_format for the given device.
-        sg_format is used only for SAS devices
-        @return True if device is secure erased, False if not.
+        Checks if hdparm returns the string "supported: enhanced erase". This
+        indicates that the device supports an ATA secure erase.
+        @return True if supported, False if not
         '''
+        logging.info("# Checking for Enhanced Secure Erase with hdparm")
+        command = 'hdparm -I ' + self.getDevPath() + ' | grep "supported: enhanced erase"'
+        logging.info("# Running command: " + command)
+        rc = None
+        try:
+            rc = subprocess.check_call(command, shell=True)
+        except:
+            logging.warn("# Enhanced Secure Erase not supported by device " + self.getDevPath())
+            return False
+        if rc == 0:
+            logging.info("# Enhanced Secure Erase supported by device " + self.getDevPath())
+            return True
+
+    def secureEraseHdparm(self):
         frozen = True #as default we assume that the device is frozen, locked and secured
         locked = True
         secured = True
         securitySet = False
-        logging.info("# Starting Secure Erase for device: "+self.getDevPath())
+        #start hdparm to grab the state for frozen, locked and secured
+        out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("hdparm -I encountered an error: " + stderr)
+            raise RuntimeError, "hdparm command error"
+        else:
+            skipSetSecurity = False
+            for line in stdout.split('\n'):
+                if line.find("frozen") > -1:
+                    if line.find("not") > -1:
+                        frozen = False
+                        logging.info("# Not in frozen state")
+                if line.find("locked") > -1:
+                    if line.find("not") > -1:
+                        locked = False
+                        logging.info("# Not in locked state")
+                if line.find("enabled") > -1:
+                    if line.find("not") > -1:
+                        secured = False
+                        logging.info("# Security not enabled")
+            if frozen or locked or secured:
+                if frozen:
+                    logging.error("# Device still in frozen state")
+                    raise RuntimeError, "frozen state error (for details see log)"
+                if locked:
+                    logging.error("# Device still in locked state, therefore skipping the password set step")
+                    #try a secure erase with password "pwd", if this is OK return OK, if this fails raise a RunTimeError
+                    #all this is controlled by setting skipSetSecurity to True
+                    skipSetSecurity = True
+                if secured:
+                    logging.error("# Device security already set, therefore skipping the password set step")
+                    skipSetSecurity = True
+            if not frozen:
+                #the frozen state can only be cured by a power cycle and this is not feasible only by software, so we need to check for "not frozen" here
+                if not skipSetSecurity:
+                    #the secured state (or locked) was not detected in previous steps so we start to set the security password here
+                    out = subprocess.Popen(['hdparm', '--user-master','u',
+                                            '--security-set-pass','pwd',self.getDevPath()],
+                                            stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    stdout,stderr = out.communicate()
+                    if out.returncode != 0:
+                        logging.error("# Error: command 'hdparm --user-master u --security-set-pass pwd returned an error code.")
+                        logging.error(stderr)
+                        raise RuntimeError, "hdparm command error on setting the security"
+                #at this point the password is set, either by the above command or it has been left over from a previous run
+                #the next step is to check with hdparm if this states that the master password has been set successfully
+                out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                (stdout,stderr) = out.communicate()
+                if stderr != '':
+                    logging.error("hdparm -I encountered an error: " + stderr)
+                    raise RuntimeError, "hdparm command error"
+                else:
+                    logging.info("hdparm -I ran successfully, now checking if it states that the password has been set or not")
+                    lines = stdout.split('\n')
+                    masterPasswordFound = False
+                    for i,line in enumerate(lines):
+                        if line.find("Master password") > -1:
+                            masterPasswordFound = True
+                            logging.info("'Master password' found in hdparm output")
+                            if lines[i+2].find("not") == -1 and lines[i+2].find("enabled") > -1:
+                                securitySet = True
+                                logging.info("# Successfully enabled security for hdparm")
+                                break
+                            else:
+                                logging.info("# Security NOT enabled for hdparm")
+                                raise RuntimeError, "hdparm command error"
+                    if not masterPasswordFound:
+                        logging.info("'Master password' has not been found in hdparm output, continuing anyway (as it is assumed that it is set nethertheless)")
+                        securitySet = True
+                    if securitySet:
+                        logging.info("Security flag is set")
+                        #Note that is doesn't seem to be advised to use blkdiscard instead of hdparm's secure erase here
+                        #(as suggested in https://github.com/thomas-krenn/TKperf/issues/3). blkdiscard always throw errors
+                        #in our setup when e.g. called manually from the command line.
+                        logging.info("Starting secure erase via hdparm")
+                        out = subprocess.Popen(['hdparm', '--user-master','u',
+                                                '--security-erase','pwd',self.getDevPath()],
+                                                stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                        stdout,stderr = out.communicate()
+                        logging.info("Secure erase done, checking its output")
+                        if out.returncode != 0:
+                            logging.error("# Error: command 'hdparm --user-master u --security-erase pwd returned an error code.")
+                            logging.error(stderr)
+                            raise RuntimeError, "hdparm command error"
+                        else:
+                            logging.info("# Successfully carried out secure erase for "+self.getDevPath())
+                            #Check if security is diasbled again by parsing the hdparm output
+                            out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                            (stdout,stderr) = out.communicate()
+                            if stderr != '':
+                                logging.error("hdparm -I encountered an error: " + stderr)
+                                raise RuntimeError, "hdparm command error"
+                            else:
+                                lines = stdout.split('\n')
+                                masterPasswordFound = False
+                                for i,line in enumerate(lines):
+                                    if line.find("Master password") > -1:
+                                        masterPasswordFound = True
+                                        logging.info("'Master password' found in post secure erase check")
+                                        if lines[i+2].find("not") > -1 and lines[i+2].find("enabled") > -1:
+                                            securitySet = False
+                                            logging.info("# Successfully deactivated security for hdparm.")
+                                            return True
+                                        else:
+                                            #Try to disable security manually
+                                            logging.info("# Security still enabled for hdparm, therefore calling disable.")
+                                            out = subprocess.Popen(['hdparm', '--user-master','u',
+                                                '--security-disable','pwd',self.getDevPath()],
+                                                stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                                            stdout,stderr = out.communicate()
+                                            if out.returncode != 0:
+                                                logging.error("# Error: command 'hdparm --user-master u --security-disable pwd returned an error code.")
+                                                logging.error(stderr)
+                                                raise RuntimeError, "hdparm command error"
+                                            else:
+                                                logging.info("# Successfully deactivated security for hdparm.")
+                                                return True
+                                if not masterPasswordFound:
+                                    logging.info("'Master password' has not been found in hdparm output of post seucre erase check")
+                                logging.info("Finished post secure erase 'Master password' check")
+                    else:
+                        logging.warn("Security flag is NOT set, therefore NO SECURE ERASE has been carried out!!!!!!!!!!!!!!!!!!!!!!")
+
+    def secureErase(self):
+        '''
+        Carries out a secure erase via hdparm (if supported), blkdiscard, fstrim,
+        sg_format, fio-sure-erase or nvme format for the given device.
+        sg_format is used only for SAS devices
+        fio-sure-erase is used for fusionio devices
+        nvme format is used for nvme devices
+        @return True if device is secure erased, False if not.
+        '''
+        logging.info("# Trying to run Secure Erase for device: " + self.getDevPath())
         #before starting the erase sleep, to ensure previous device operations are finished
         logging.info("# Sleeping for 10 seconds...")
         sleep(10)
-        if self.getIntfce() == None:
-            #start hdparm to grab the state for frozen, locked and secured
-            out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            (stdout,stderr) = out.communicate()
-            if stderr != '':
-                logging.error("hdparm -I encountered an error: " + stderr)
-                raise RuntimeError, "hdparm command error"
-            else:
-                skipSetSecurity = False
-                for line in stdout.split('\n'):
-                    if line.find("frozen") > -1:
-                        if line.find("not") > -1:
-                            frozen = False
-                            logging.info("# Not in frozen state")
-                    if line.find("locked") > -1:
-                        if line.find("not") > -1:
-                            locked = False
-                            logging.info("# Not in locked state")
-                    if line.find("enabled") > -1:
-                        if line.find("not") > -1:
-                            secured = False
-                            logging.info("# Security not enabled")
-                if frozen or locked or secured:
-                    if frozen:
-                        logging.error("# Device still in frozen state")
-                        raise RuntimeError, "frozen state error (for details see log)"
-                    if locked:
-                        logging.error("# Device still in locked state, therefore skipping the password set step")
-                        #try a secure erase with password "pwd", if this is OK return OK, if this fails raise a RunTimeError
-                        #all this is controlled by setting skipSetSecurity to True
-                        skipSetSecurity = True
-                    if secured:
-                        logging.error("# Device security already set, therefore skipping the password set step")
-                        skipSetSecurity = True
-                if not frozen:
-                    #the frozen state can only be cured by a power cycle and this is not feasible only by software, so we need to check for "not frozen" here
-                    if not skipSetSecurity:
-                        #the secured state (or locked) was not detected in previous steps so we start to set the security password here
-                        out = subprocess.Popen(['hdparm', '--user-master','u',
-                                                '--security-set-pass','pwd',self.getDevPath()],
-                                               stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                        stdout,stderr = out.communicate()
-                        if out.returncode != 0:
-                            logging.error("# Error: command 'hdparm --user-master u --security-set-pass pwd returned an error code.")
-                            logging.error(stderr)
-                            raise RuntimeError, "hdparm command error on setting the security"
-                    #at this point the password is set, either by the above command or it has been left over from a previous run
-                    #the next step is to check with hdparm if this states that the master password has been set successfully
-                    out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                    (stdout,stderr) = out.communicate()
-                    if stderr != '':
-                        logging.error("hdparm -I encountered an error: " + stderr)
-                        raise RuntimeError, "hdparm command error"
-                    else:
-                        logging.info("hdparm -I ran successfully, now checking if it states that the password has been set or not")
-                        lines = stdout.split('\n')
-                        masterPasswordFound = False
-                        for i,line in enumerate(lines):
-                            if line.find("Master password") > -1:
-                                masterPasswordFound = True
-                                logging.info("'Master password' found in hdparm output")
-                                if lines[i+2].find("not") == -1 and lines[i+2].find("enabled") > -1:
-                                    securitySet = True
-                                    logging.info("# Successfully enabled security for hdparm")
-                                    break
-                                else:
-                                    logging.info("# Security NOT enabled for hdparm")
-                                    raise RuntimeError, "hdparm command error"
-                        if not masterPasswordFound:
-                            logging.info("'Master password' has not been found in hdparm output, continuing anyway (as it is assumed that it is set nethertheless)")
-                            securitySet = True
-                        if securitySet:
-                            logging.info("Security flag is set")
-                            #Note that is doesn't seem to be advised to use blkdiscard instead of hdparm's secure erase here
-                            #(as suggested in https://github.com/thomas-krenn/TKperf/issues/3). blkdiscard always throw errors
-                            #in our setup when e.g. called manually from the command line.
-                            logging.info("Starting secure erase via hdparm")
-                            out = subprocess.Popen(['hdparm', '--user-master','u',
-                                                    '--security-erase','pwd',self.getDevPath()],
-                                                   stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                            stdout,stderr = out.communicate()
-                            logging.info("Secure erase done, checking its output")
-                            if out.returncode != 0:
-                                logging.error("# Error: command 'hdparm --user-master u --security-erase pwd returned an error code.")
-                                logging.error(stderr)
-                                raise RuntimeError, "hdparm command error"
-                            else:
-                                logging.info("# Successfully carried out secure erase for "+self.getDevPath())
-                                #Check if security is diasbled again by parsing the hdparm output
-                                out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                                (stdout,stderr) = out.communicate()
-                                if stderr != '':
-                                    logging.error("hdparm -I encountered an error: " + stderr)
-                                    raise RuntimeError, "hdparm command error"
-                                else:
-                                    lines = stdout.split('\n')
-                                    masterPasswordFound = False
-                                    for i,line in enumerate(lines):
-                                        if line.find("Master password") > -1:
-                                            masterPasswordFound = True
-                                            logging.info("'Master password' found in post secure erase check")
-                                            if lines[i+2].find("not") > -1 and lines[i+2].find("enabled") > -1:
-                                                securitySet = False
-                                                logging.info("# Successfully deactivated security for hdparm.")
-                                                return True
-                                            else:
-                                                #Try to disable security manually
-                                                logging.info("# Security still enabled for hdparm, therefore calling disable.")
-                                                out = subprocess.Popen(['hdparm', '--user-master','u',
-                                                    '--security-disable','pwd',self.getDevPath()],
-                                                   stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                                                stdout,stderr = out.communicate()
-                                                if out.returncode != 0:
-                                                    logging.error("# Error: command 'hdparm --user-master u --security-disable pwd returned an error code.")
-                                                    logging.error(stderr)
-                                                    raise RuntimeError, "hdparm command error"
-                                                else:
-                                                    logging.info("# Successfully deactivated security for hdparm.")
-                                                    return True
-                                    if not masterPasswordFound:
-                                        logging.info("'Master password' has not been found in hdparm output of post seucre erase check")
-                                    logging.info("Finished post secure erase 'Master password' check")
-                        else:
-                            logging.warn("Security flag is NOT set, therefore NO SECURE ERASE has been carried out!!!!!!!!!!!!!!!!!!!!!!")
+        if self.getIntfce() == None or self.getIntfce() == 'compactflash' or self.getIntfce() == 'sdcard' or self.getIntfce() == 'usb':
+            if self.secureEraseSupported():
+                self.secureEraseHdparm()
         elif self.getIntfce() == 'sas':
             logging.info("# Using sg_format as secure erase for SAS device.")
             out = subprocess.Popen(['sg_format', '--format', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
