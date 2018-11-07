@@ -602,7 +602,7 @@ class SSD(Device):
             elif self.secureEraseBlkdiscard():
                 logging.info("# Succesfully used blkdiscard as Secure Erase not supported by device: " + self.getDevPath())
             else:
-                logging.warn("# Neither Secure Erase nor blkdiscard supporte by device: " + self.getDevPath())
+                logging.warn("# Neither Secure Erase nor blkdiscard supported by device: " + self.getDevPath())
                 logging.warn("# Continuing tests without running Secure Erase/blkdiscard")
         elif self.getIntfce() == 'sas':
             logging.info("# Using sg_format as secure erase for SAS device.")
