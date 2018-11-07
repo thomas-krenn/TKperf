@@ -428,7 +428,7 @@ class SSD(Device):
         try:
             rc = subprocess.check_call(command, shell=True)
         except:
-            logging.warn("# Enhanced Secure Erase not supported by device " + self.getDevPath())
+            logging.warn("# Enhanced Secure Erase NOT supported by device " + self.getDevPath())
             return False
         if rc == 0:
             logging.info("# Enhanced Secure Erase supported by device " + self.getDevPath())
@@ -558,10 +558,25 @@ class SSD(Device):
                                                 logging.info("# Successfully deactivated security for hdparm.")
                                                 return True
                                 if not masterPasswordFound:
-                                    logging.info("'Master password' has not been found in hdparm output of post seucre erase check")
+                                    logging.info("'Master password' has not been found in hdparm output of post secure erase check")
                                 logging.info("Finished post secure erase 'Master password' check")
                     else:
                         logging.warn("Security flag is NOT set, therefore NO SECURE ERASE has been carried out!!!!!!!!!!!!!!!!!!!!!!")
+
+    def secureEraseBlkdiscard(self):
+        '''
+        Runs a discard on all blocks of the device if supported
+        @return True if blocks were discarded, False if not
+        '''
+        logging.info("# Trying to discard all blocks with blkdiscard.")
+        out = subprocess.Popen(['blkdiscard', '-v', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if out.returncode != 0:
+            logging.error("# Error: blkdiscard error: " + stderr)
+            return False
+        else:
+            logging.info("# Discarded all blocks with blkdiscard: " + stdout)
+            return True
 
     def secureErase(self):
         '''
@@ -579,6 +594,8 @@ class SSD(Device):
         if self.getIntfce() == None or self.getIntfce() == 'compactflash' or self.getIntfce() == 'sdcard' or self.getIntfce() == 'usb':
             if self.secureEraseSupported():
                 self.secureEraseHdparm()
+            elif self.secureEraseBlkdiscard():
+                logging.info("# Succesfully used blkdiscard as Secure Erase not supported by device: " + self.getDevPath())
         elif self.getIntfce() == 'sas':
             logging.info("# Using sg_format as secure erase for SAS device.")
             out = subprocess.Popen(['sg_format', '--format', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
