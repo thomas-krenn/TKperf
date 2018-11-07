@@ -435,6 +435,11 @@ class SSD(Device):
             return True
 
     def secureEraseHdparm(self):
+        '''
+        Runs an enhanced erase (secure erase) if supported by hdparm. If the device
+        is frozen or locked tries to resolve this states.
+        @return True if secure erase was carried out
+        '''
         frozen = True #as default we assume that the device is frozen, locked and secured
         locked = True
         secured = True
@@ -572,7 +577,7 @@ class SSD(Device):
         out = subprocess.Popen(['blkdiscard', '-v', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if out.returncode != 0:
-            logging.error("# Error: blkdiscard error: " + stderr)
+            logging.warn("# blkdiscard returned an error: " + stderr)
             return False
         else:
             logging.info("# Discarded all blocks with blkdiscard: " + stdout)
@@ -596,6 +601,9 @@ class SSD(Device):
                 self.secureEraseHdparm()
             elif self.secureEraseBlkdiscard():
                 logging.info("# Succesfully used blkdiscard as Secure Erase not supported by device: " + self.getDevPath())
+            else:
+                logging.warn("# Neither Secure Erase nor blkdiscard supporte by device: " + self.getDevPath())
+                logging.warn("# Continuing tests without running Secure Erase/blkdiscard")
         elif self.getIntfce() == 'sas':
             logging.info("# Using sg_format as secure erase for SAS device.")
             out = subprocess.Popen(['sg_format', '--format', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
