@@ -776,7 +776,7 @@ class RAID(Device):
             # If no writepolicy is specified, use wt (write through) as default
             writepolicy = "wt"
             # If no stripsize is specified, use 256 (KB) as default
-            stripsize = "strip=256"
+            stripsize = "256"
             if "readpolicy" in decoded:
                 readpolicy = decoded["readpolicy"]
             if "writepolicy" in decoded:
