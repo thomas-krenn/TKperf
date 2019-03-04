@@ -71,14 +71,14 @@ class StdyState(object):
         avgRange = avg * 0.20
         if (maxY - minY) > avgRange:
             stdyState = False
-        
+
         #do linear regression to calculate slope of linear best fit
         y = np.array(ys)
         x = np.array(xs)
         A = np.vstack([x, np.ones(len(x))]).T
         #calculate k*x+d
-        k, d = np.linalg.lstsq(A, y)[0]
-        
+        k, d = np.linalg.lstsq(A, y, rcond=-1)[0]
+
         #as we have a measurement window of 4, we calculate
         #the slope excursion in  the window
         slopeExc = k * self.testMesWindow
@@ -100,29 +100,29 @@ class StdyState(object):
 
     def appendXml(self,r):
         '''
-        Append the information about a steady state test to a XML node. 
+        Append the information about a steady state test to a XML node.
         @param root The xml root tag to append the new elements to
-        ''' 
+        '''
         data = json.dumps(list(self.__stdyRnds))
         e = etree.SubElement(r,'stdyrounds')
         e.text = data
-        
+
         data = json.dumps(list(self.__stdyValues))
         e = etree.SubElement(r,'stdyvalues')
         e.text = data
-        
+
         data = json.dumps(self.__stdySlope)
         e = etree.SubElement(r,'stdyslope')
         e.text = data
-        
+
         data = json.dumps(self.__stdyAvg)
         e = etree.SubElement(r,'stdyavg')
         e.text = data
-        
+
         data = json.dumps(self.__reachStdyState)
         e = etree.SubElement(r,'reachstdystate')
         e.text = data
-        
+
         data = json.dumps(self.__rounds)
         e = etree.SubElement(r,'rndnr')
         e.text = data
@@ -144,7 +144,7 @@ class StdyState(object):
 
     def toLog(self):
         '''
-        Log information about the steady state and how it 
+        Log information about the steady state and how it
         has been reached.
         '''
         logging.info("Rounds of steady state:")
