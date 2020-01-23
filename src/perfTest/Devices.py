@@ -430,6 +430,10 @@ class Device(object):
 
         if self.getIntfce() != None:
             self.__devinfo += "Device Interface: " + self.getIntfce()
+        if self.getLogicalSectorSize() != None:
+            self.__devinfo += "Device Logical Sector Size: " + self.getLogicalSectorSize()
+        if self.getPhysicalSectorSize() != None:
+            self.__devinfo += "Device Physical Sector Size: " + self.getPhysicalSectorSize()
         logging.info("# Testing device: " + self.__devinfo)
         return True
 
