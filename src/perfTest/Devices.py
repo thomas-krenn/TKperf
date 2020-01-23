@@ -96,6 +96,8 @@ class Device(object):
         try:
             self.__devsizeb = self.calcDevSizeB()
             self.__devsizekb = self.calcDevSizeKB()
+            self.__devphysectorsizeb = self.calcDevPhysicalSectorSizeB()
+            self.__devlogsectorsizeb = self.calcDevLogicalSectorSizeB()
             self.__devismounted = self.checkDevIsMounted()
             self.__devisavailable = self.checkDevIsAvbl()
             self.readDevInfo()
@@ -166,6 +168,46 @@ class Device(object):
                 logging.error("blockdev --getsize64 returned zero.")
                 raise RuntimeError, "blockdev error"
             return byteSize
+
+    def calcDevPhysicalSectorSizeB(self):
+        '''
+        Get the physical sector size in Bytes.
+        The function calls 'blockdev' to determine the pyhsical sector size
+        @return Size on success
+        @exception RuntimeError if blockdev fails or size is 0
+        '''
+        out = subprocess.Popen(['blockdev','--getpbsz',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("blockdev --getpbsz encountered an error: " + stderr)
+            raise RuntimeError, "blockdev error"
+        else:
+            phySectorSize = int(stdout)
+            if phySectorSize == 0:
+                logging.error("blockdev --getpbsz returned zero.")
+                raise RuntimeError, "blockdev error"
+            logging.info("#Device" + self.__path + " physical sector size: " + str(phySectorSize))
+            return phySectorSize
+
+    def calcDevLogicalSectorSizeB(self):
+        '''
+        Get the logical sector size in Bytes.
+        The function calls 'blockdev' to determine the logical sector size
+        @return Size on success
+        @exception RuntimeError if blockdev fails or size is 0
+        '''
+        out = subprocess.Popen(['blockdev','--getss',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        (stdout,stderr) = out.communicate()
+        if stderr != '':
+            logging.error("blockdev --getss encountered an error: " + stderr)
+            raise RuntimeError, "blockdev error"
+        else:
+            logSectorSize = int(stdout)
+            if logSectorSize == 0:
+                logging.error("blockdev --getss returned zero.")
+                raise RuntimeError, "blockdev error"
+            logging.info("#Device" + self.__path + " logical sector size: " + str(logSectorSize))
+            return logSectorSize
 
     def checkDevIsMounted(self):
         '''
