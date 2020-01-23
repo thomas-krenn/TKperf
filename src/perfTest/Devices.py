@@ -49,6 +49,10 @@ class Device(object):
         self.__devsizeb = None
         ## The size of the device in kilo bytes
         self.__devsizekb = None
+        ## The physical sector size of the device in bytes
+        self.__devphysectorsizeb = None
+        ## The logical sector size of the device in bytes
+        self.__devlogsectorsizeb = None
         ## Check if the device is mounted
         self.__devismounted = None
         ## Check if a valid partition is used
@@ -63,6 +67,8 @@ class Device(object):
     def getIntfce(self): return self.__intfce
     def getDevInfo(self): return self.__devinfo
     def getFeatureMatrix(self): return self.__featureMatrix
+    def getPhysicalSectorSize(self): return self.__devphysectorsizeb
+    def getLogicalSectorSize(self): return self.__devlogsectorsizeb
 
     def setDevInfo(self,dInfo):
         self.__devinfo = dInfo
@@ -78,6 +84,10 @@ class Device(object):
         self.__devismounted = im
     def setInterface(self,intf):
         self.__intfce = intf
+    def setPhysicalSectorSize(self,psize):
+        self.__devphysectorsizeb = psize
+    def setLogicalSectorSize(self,lsize):
+        self.__devlogsectorsizeb = lsize
 
     def initialize(self):
         '''
