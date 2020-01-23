@@ -136,6 +136,11 @@ class SsdIopsTest(DeviceTest):
         self.__roundMatrices = []
         self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
+        # If the device has 4K native sector size and uses it logically,
+        # remove 512 from test block sizes
+        if self.getDevice().getLogicalSectorSize() == 4096:
+            if "512" in SsdIopsTest.bsLabels:
+                SsdIopsTest.bsLabels.remove("512")
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
@@ -298,6 +303,11 @@ class SsdLatencyTest(DeviceTest):
         self.__roundMatrices = []
         self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
+        # If the device has 4K native sector size and uses it logically,
+        # remove 512 from test block sizes
+        if self.getDevice().getLogicalSectorSize() == 4096:
+            if "512" in SsdLatencyTest.bsLabels:
+                SsdLatencyTest.bsLabels.remove("512")
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
@@ -452,7 +462,7 @@ class SsdTPTest(DeviceTest):
     A class to carry out the Throughput test.
     '''
     ##Labels of block sizes for throughput test
-    bsLabels = ["1024k","64k","8k","4k","512",]
+    bsLabels = ["1024k","64k","8k","4k","512"]
     
     def __init__(self,testname,device,options):
         '''
@@ -462,6 +472,11 @@ class SsdTPTest(DeviceTest):
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
+        # If the device has 4K native sector size and uses it logically,
+        # remove 512 from test block sizes
+        if self.getDevice().getLogicalSectorSize() == 4096:
+            if "512" in SsdTPTest.bsLabels:
+                SsdTPTest.bsLabels.remove("512")
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
