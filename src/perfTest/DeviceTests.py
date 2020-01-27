@@ -68,6 +68,10 @@ class DeviceTest(object):
     def initialize(self):
         ''' Initialize Device and FioJob to setup params. '''
         self.getDevice().initialize()
+        #If the current device is 4K native, remove 512 from performance test block sizes
+        if self.getDevice().getLogicalSectorSize() == 4096:
+            logging.info("# Removing 512 from block sizes as device has 4096 logical sector size")
+            self.prepareBsLabels(None, "512")
         self.initFio()
         self.__fioJob.checkFioVersion()
 
@@ -109,6 +113,9 @@ class DeviceTest(object):
     def run(self):
         ''' Run the type specific performance test. '''
     @abstractmethod
+    def prepareBsLabels(self, bsToAdd, bsToRemove):
+        ''' Prepare the block sizes used by a performance test round. '''
+    @abstractmethod
     def toXml(self):
         ''' Get the Xml representation of a test. '''
     @abstractmethod
@@ -136,11 +143,17 @@ class SsdIopsTest(DeviceTest):
         self.__roundMatrices = []
         self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
-        # If the device has 4K native sector size and uses it logically,
-        # remove 512 from test block sizes
-        if self.getDevice().getLogicalSectorSize() == 4096:
-            if "512" in SsdIopsTest.bsLabels:
-                SsdIopsTest.bsLabels.remove("512")
+
+    def prepareBsLabels(self, bsToAdd, bsToRemove):
+        '''
+        Add or remove block sizes from the static block size list.
+        '''
+        if bsToAdd != None:
+            if bsToAdd not in SsdIopsTest.bsLabels:
+                SsdIopsTest.bsLabels.append(bsToAdd)
+        if bsToRemove != None:
+            if bsToRemove in SsdIopsTest.bsLabels:
+                SsdIopsTest.bsLabels.remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
@@ -308,6 +321,17 @@ class SsdLatencyTest(DeviceTest):
         if self.getDevice().getLogicalSectorSize() == 4096:
             if "512" in SsdLatencyTest.bsLabels:
                 SsdLatencyTest.bsLabels.remove("512")
+
+    def prepareBsLabels(self, bsToAdd, bsToRemove):
+        '''
+        Add or remove block sizes from the static block size list.
+        '''
+        if bsToAdd != None:
+            if bsToAdd not in SsdLatencyTest.bsLabels:
+                SsdLatencyTest.bsLabels.append(bsToAdd)
+        if bsToRemove != None:
+            if bsToRemove in SsdLatencyTest.bsLabels:
+                SsdLatencyTest.bsLabels.remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
@@ -478,6 +502,17 @@ class SsdTPTest(DeviceTest):
             if "512" in SsdTPTest.bsLabels:
                 SsdTPTest.bsLabels.remove("512")
 
+    def prepareBsLabels(self, bsToAdd, bsToRemove):
+        '''
+        Add or remove block sizes from the static block size list.
+        '''
+        if bsToAdd != None:
+            if bsToAdd not in SsdTPTest.bsLabels:
+                SsdTPTest.bsLabels.append(bsToAdd)
+        if bsToRemove != None:
+            if bsToRemove in SsdTPTest.bsLabels:
+                SsdTPTest.bsLabels.remove(bsToRemove)
+
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
 
@@ -647,6 +682,13 @@ class SsdWriteSatTest(DeviceTest):
         self.getFioJob().addKVArg("rw","randwrite")
         self.getFioJob().addKVArg("bs","4k")   
 
+    def prepareBsLabels(self, bsToAdd, bsToRemove):
+        '''
+        Add or remove block sizes from the static block size list.
+        Currently not used by a write saturation test.
+        '''
+        pass
+
     def getRnds(self): return self.__rounds
     def getRndMatrices(self): return self.__roundMatrices
 
@@ -788,6 +830,17 @@ class HddIopsTest(DeviceTest):
         self.__roundMatrices = []
         self.getFioJob().addKVArg("rw","randrw")
 
+    def prepareBsLabels(self, bsToAdd, bsToRemove):
+        '''
+        Add or remove block sizes from the static block size list.
+        '''
+        if bsToAdd != None:
+            if bsToAdd not in HddIopsTest.bsLabels:
+                HddIopsTest.bsLabels.append(bsToAdd)
+        if bsToRemove != None:
+            if bsToRemove in HddIopsTest.bsLabels:
+                HddIopsTest.bsLabels.remove(bsToRemove)
+
     def getRndMatrices(self): return self.__roundMatrices
 
     def toLog(self):
@@ -918,6 +971,17 @@ class HddTPTest(DeviceTest):
         super(HddTPTest,self).__init__(testname,device,options)
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
+
+    def prepareBsLabels(self, bsToAdd, bsToRemove):
+        '''
+        Add or remove block sizes from the static block size list.
+        '''
+        if bsToAdd != None:
+            if bsToAdd not in HddTPTest.bsLabels:
+                HddTPTest.bsLabels.append(bsToAdd)
+        if bsToRemove != None:
+            if bsToRemove in HddTPTest.bsLabels:
+                HddTPTest.bsLabels.remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
 
