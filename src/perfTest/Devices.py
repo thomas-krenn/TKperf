@@ -8,6 +8,7 @@ from abc import ABCMeta, abstractmethod
 import logging
 import subprocess
 import json
+import re
 from lxml import etree
 from time import sleep
 
@@ -459,7 +460,18 @@ class Device(object):
         self.__devinfo = json.loads(root.findtext('devinfo'))
         if(root.findtext('featmatrix')):
             self.__devinfo = json.loads(root.findtext('featmatrix'))
-        logging.info("# Loading device info from xml")
+        for line in self.__devinfo.split('\n'):
+            if 'Device Logical Sector Size' in line:
+                match = re.search(r'^Device Logical Sector Size\: ([0-9]+)', line)
+                if match != None:
+                    self.__devlogsectorsizeb = int(match.group(1))
+                    logging.info("# Loaded device logical block size from xml: " + str(self.__devlogsectorsizeb))
+            if 'Device Interface' in line:
+                match = re.search(r'^Device Interface\: ([a-z]+)', line)
+                if match != None:
+                    self.__intfce = match.group(1)
+                    logging.info("# Loaded device interface from xml: " + str(self.__intfce))
+        logging.info("# Loaded device info from xml")
 
 class SSD(Device):
     '''
