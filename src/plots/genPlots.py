@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import matplotlib.colors as pltm
 from mpl_toolkits.mplot3d import Axes3D
 
 import numpy as np
@@ -241,7 +242,7 @@ def mes3DPlt(toPlot,mode):
     else:
         ax = Axes3D(fig)
     for j,wl in enumerate(matrix):
-        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
+        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color=pltm.colorConverter.to_rgba_array(colorTable[j]))
         for pos in range(len(ypos)):
             ypos[pos] += 1
             
@@ -297,7 +298,7 @@ def latMes3DPlt(toPlot):
         rect = fig.add_subplot(2, 1, 1).get_position()
         ax = Axes3D(fig, rect)
     for j,wl in enumerate(avgMatrix):
-        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
+        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color=pltm.colorConverter.to_rgba_array(colorTable[j]))
         for pos in range(len(ypos)):
             ypos[pos] += 1
     ax.xaxis.set_ticks([]) 
@@ -313,7 +314,7 @@ def latMes3DPlt(toPlot):
     #reset ypos
     ypos = np.array([0.25] * len(bsLabels)) 
     for j,wl in enumerate(maxMatrix):
-        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color = colorTable[j])
+        ax.bar3d(xpos,ypos,zpos, dx, dy, wl, color=pltm.colorConverter.to_rgba_array(colorTable[j]))
         for pos in range(len(ypos)):
             ypos[pos] += 1
             
@@ -786,5 +787,3 @@ def getMinMax(values, currMin, currMax):
         else:
             newMin = currMin
     return [newMin,newMax]
-    
-    
