@@ -279,6 +279,10 @@ class SsdIopsTest(DeviceTest):
         logging.info("########### Loading IOPS test from "+self.getTestname()+".xml ###########")
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
+        #If the current device is 4K native, remove 512 from performance test block sizes
+        if self.getDevice().getLogicalSectorSize() == 4096:
+            logging.info("# Removing 512 from block sizes as device has 4096 logical sector size")
+            self.prepareBsLabels(None, "512")
         self.getFioJob().fromXml(root)
         self.getOptions().fromXml(root)
         self.toLog()
@@ -468,6 +472,10 @@ class SsdLatencyTest(DeviceTest):
         logging.info("########### Loading latency test from "+self.getTestname()+".xml ###########")
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
+        #If the current device is 4K native, remove 512 from performance test block sizes
+        if self.getDevice().getLogicalSectorSize() == 4096:
+            logging.info("# Removing 512 from block sizes as device has 4096 logical sector size")
+            self.prepareBsLabels(None, "512")
         self.getFioJob().fromXml(root)
         self.getOptions().fromXml(root)
         self.toLog()
@@ -655,6 +663,10 @@ class SsdTPTest(DeviceTest):
         logging.info("########### Loading TP test from "+self.getTestname()+".xml ###########")
         self.__roundMatrices = json.loads(root.findtext('roundmat'))
         self.__stdyState.fromXml(root)
+        #If the current device is 4K native, remove 512 from performance test block sizes
+        if self.getDevice().getLogicalSectorSize() == 4096:
+            logging.info("# Removing 512 from block sizes as device has 4096 logical sector size")
+            self.prepareBsLabels(None, "512")
         self.getFioJob().fromXml(root)
         self.getOptions().fromXml(root)
         self.toLog()
