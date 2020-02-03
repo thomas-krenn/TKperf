@@ -320,11 +320,6 @@ class SsdLatencyTest(DeviceTest):
         self.__roundMatrices = []
         self.__stdyState = StdyState()
         self.getFioJob().addKVArg("rw","randrw")
-        # If the device has 4K native sector size and uses it logically,
-        # remove 512 from test block sizes
-        if self.getDevice().getLogicalSectorSize() == 4096:
-            if "512" in SsdLatencyTest.bsLabels:
-                SsdLatencyTest.bsLabels.remove("512")
 
     def prepareBsLabels(self, bsToAdd, bsToRemove):
         '''
@@ -504,11 +499,6 @@ class SsdTPTest(DeviceTest):
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
-        # If the device has 4K native sector size and uses it logically,
-        # remove 512 from test block sizes
-        if self.getDevice().getLogicalSectorSize() == 4096:
-            if "512" in SsdTPTest.bsLabels:
-                SsdTPTest.bsLabels.remove("512")
 
     def prepareBsLabels(self, bsToAdd, bsToRemove):
         '''
