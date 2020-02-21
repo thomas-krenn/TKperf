@@ -358,7 +358,7 @@ class SsdPerfTest(PerfTest):
             for i,fig in enumerate(tests['iops'].getFigures()):
                 rst.addFigure(fig,'ssd','iops',i)
             rst.addSection("Measurement Window Summary Table")
-            rst.addTable(tests['iops'].getTables()[0],dt.SsdIopsTest.bsLabels,'iops')
+            rst.addTable(tests['iops'].getTables()[0],tests['iops'].getBsLables(),'iops')
         if SsdPerfTest.tpKey in tests:
             rst.addChapter("Throughput")
             rst.addTestInfo('ssd','tp',tests['tp'])

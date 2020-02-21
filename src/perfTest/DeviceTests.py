@@ -129,8 +129,6 @@ class SsdIopsTest(DeviceTest):
     '''
     Representing an IOPS test for a ssd based device.
     '''
-    ##Labels of block sizes
-    bsLabels = ["1024k","128k","64k","32k","16k","8k","4k","512"]
     ##Percentages of mixed workloads
     mixWlds = [100,95,65,50,35,5,0]
 
@@ -139,6 +137,8 @@ class SsdIopsTest(DeviceTest):
         Constructor.
         '''
         super(SsdIopsTest,self).__init__(testname,device,options)
+        ## Labels of block sizes to run tests with
+        self.__bsLabels = ["1024k","128k","64k","32k","16k","8k","4k","512"]
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
@@ -149,14 +149,15 @@ class SsdIopsTest(DeviceTest):
         Add or remove block sizes from the static block size list.
         '''
         if bsToAdd != None:
-            if bsToAdd not in SsdIopsTest.bsLabels:
-                SsdIopsTest.bsLabels.append(bsToAdd)
+            if bsToAdd not in self.getBsLables():
+                self.getBsLables().append(bsToAdd)
         if bsToRemove != None:
-            if bsToRemove in SsdIopsTest.bsLabels:
-                SsdIopsTest.bsLabels.remove(bsToRemove)
+            if bsToRemove in self.getBsLables():
+                self.getBsLables().remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
+    def getBsLables(self): return self.__bsLabels
 
     def toLog(self):
         '''
@@ -179,7 +180,7 @@ class SsdIopsTest(DeviceTest):
         rndMatrix = []
         for i in SsdIopsTest.mixWlds:
             rwRow = []
-            for j in SsdIopsTest.bsLabels:
+            for j in self.getBsLables():
                 self.getFioJob().addKVArg("rwmixread",str(i))
                 self.getFioJob().addKVArg("bs",j)
                 call,jobOut = self.getFioJob().start()

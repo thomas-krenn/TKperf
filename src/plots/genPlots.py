@@ -121,7 +121,7 @@ def stdyStConvPlt(toPlot,mode):
     if mode == "IOPS":
         for i in range(len(lines)):
             min_y,max_y = getMinMax(lines[i], min_y, max_y)
-            plt.plot(x,lines[i],'o-',label='bs='+dt.SsdIopsTest.bsLabels[i])
+            plt.plot(x,lines[i],'o-',label='bs='+toPlot.getBsLables()[i])
     if mode == "LAT":
         for i in range(len(readLines)):
             min_y,max_y = getMinMax(readLines[i], min_y, max_y)
@@ -165,7 +165,7 @@ def mes2DPlt(toPlot,mode):
     calcMsmtTable(toPlot, mode)
     if mode == "IOPS":
         wlds = dt.SsdIopsTest.mixWlds
-        bsLabels = dt.SsdIopsTest.bsLabels
+        bsLabels = toPlot.getBsLables()
         mixWLds = toPlot.getTables()[0]
     if mode == "avg-LAT" or mode == "max-LAT":
         wlds = dt.SsdLatencyTest.mixWlds
@@ -177,7 +177,7 @@ def mes2DPlt(toPlot,mode):
 
     plt.clf()#clear plot
     if mode == "IOPS":
-        x = getBS(dt.SsdIopsTest.bsLabels)
+        x = getBS(toPlot.getBsLables())
     if mode == "avg-LAT" or mode == "max-LAT":
         x = getBS(dt.SsdLatencyTest.bsLabels)
         
@@ -222,7 +222,7 @@ def mes3DPlt(toPlot,mode):
         #reverse the block size in each table row, to start with 512B
         for row in matrix:
             row.reverse()
-        bsLabels = list(dt.SsdIopsTest.bsLabels)
+        bsLabels = list(toPlot.getBsLables())
         mixWlds = list(dt.SsdIopsTest.mixWlds)
     
     #define positions for bars
@@ -656,7 +656,7 @@ def calcMsmtTable(toPlot,mode):
     mesWin = toPlot.getStdyState().getStdyRnds() #get measurement window, only include these values
     if mode == "IOPS":
         wlds = dt.SsdIopsTest.mixWlds
-        bsLabels = dt.SsdIopsTest.bsLabels
+        bsLabels = toPlot.getBsLables()
     if mode == "avg-LAT" or mode == "max-LAT":
         wlds = dt.SsdLatencyTest.mixWlds
         bsLabels = dt.SsdLatencyTest.bsLabels

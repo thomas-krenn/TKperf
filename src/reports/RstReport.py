@@ -337,7 +337,7 @@ class RstReport(object):
                 print >>desc, dt.SsdIopsTest.mixWlds
                 desc.write('\t\t\t')
                 print >>desc, "For block sizes",
-                print >>desc, dt.SsdIopsTest.bsLabels
+                print >>desc, test.getBsLables()
                 desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
                 desc.write("The average number of read and write IOPS is measured and summed up, therefore 56 values are ")
                 desc.write("the result of the two loops.\n")
