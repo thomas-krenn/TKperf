@@ -302,8 +302,6 @@ class SsdLatencyTest(DeviceTest):
     '''
     ##Percentages of mixed workloads.
     mixWlds = [100,65,0]
-    ##Labels of block sizes.
-    bsLabels = ["8k","4k","512"]
 
     def __init__(self,testname,device,options=None):
         '''
@@ -317,6 +315,8 @@ class SsdLatencyTest(DeviceTest):
             if options.getXargs() != None:
                 wsoptions.setXargs(options.getXargs())
         super(SsdLatencyTest,self).__init__(testname,device,wsoptions)
+        ## Labels of block sizes to run tests with
+        self.__bsLabels = ["8k","4k","512"]
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
@@ -327,14 +327,15 @@ class SsdLatencyTest(DeviceTest):
         Add or remove block sizes from the static block size list.
         '''
         if bsToAdd != None:
-            if bsToAdd not in SsdLatencyTest.bsLabels:
-                SsdLatencyTest.bsLabels.append(bsToAdd)
+            if bsToAdd not in self.getBsLables():
+                self.getBsLables().append(bsToAdd)
         if bsToRemove != None:
-            if bsToRemove in SsdLatencyTest.bsLabels:
-                SsdLatencyTest.bsLabels.remove(bsToRemove)
+            if bsToRemove in self.getBsLables():
+                self.getBsLables().remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
+    def getBsLables(self): return self.__bsLabels
 
     def toLog(self):
         '''
@@ -357,7 +358,7 @@ class SsdLatencyTest(DeviceTest):
         rndMatrix = []        
         for i in SsdLatencyTest.mixWlds:
             rwRow = []
-            for j in SsdLatencyTest.bsLabels:
+            for j in self.getBsLables():
                 self.getFioJob().addKVArg("rwmixread",str(i))
                 self.getFioJob().addKVArg("bs",j)
                 call,jobOut = self.getFioJob().start()

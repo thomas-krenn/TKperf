@@ -380,7 +380,7 @@ class RstReport(object):
                 print >>desc, dt.SsdLatencyTest.mixWlds
                 desc.write('\t\t\t')
                 print >>desc, "For block sizes",
-                print >>desc, dt.SsdLatencyTest.bsLabels
+                print >>desc, test.getBsLables()
                 desc.write("\nFor all block sizes random read, a 65/35 read/write mixed workload and random write is carried out for 60 ") 
                 desc.write("seconds using direct IO. ")
                 desc.write("For every combination the Min, Max and Mean Latency is measured. ")

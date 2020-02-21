@@ -125,13 +125,13 @@ def stdyStConvPlt(toPlot,mode):
     if mode == "LAT":
         for i in range(len(readLines)):
             min_y,max_y = getMinMax(readLines[i], min_y, max_y)
-            plt.plot(x,readLines[i],'s-',label='bs='+dt.SsdLatencyTest.bsLabels[i]+' read')
+            plt.plot(x,readLines[i],'s-',label='bs='+toPlot.getBsLables()[i]+' read')
         for i in range(len(mixLines)):
             min_y,max_y = getMinMax(mixLines[i], min_y, max_y)
-            plt.plot(x,mixLines[i],'^-',label='bs='+dt.SsdLatencyTest.bsLabels[i]+' mixed')
+            plt.plot(x,mixLines[i],'^-',label='bs='+toPlot.getBsLables()[i]+' mixed')
         for i in range(len(writeLines)):
             min_y,max_y = getMinMax(writeLines[i], min_y, max_y)
-            plt.plot(x,writeLines[i],'o-',label='bs='+dt.SsdLatencyTest.bsLabels[i]+' write')
+            plt.plot(x,writeLines[i],'o-',label='bs='+toPlot.getBsLables()[i]+' write')
     
     plt.xticks(x)
     plt.suptitle(mode+" Steady State Convergence Plot",fontweight='bold')
@@ -169,7 +169,7 @@ def mes2DPlt(toPlot,mode):
         mixWLds = toPlot.getTables()[0]
     if mode == "avg-LAT" or mode == "max-LAT":
         wlds = dt.SsdLatencyTest.mixWlds
-        bsLabels = dt.SsdLatencyTest.bsLabels
+        bsLabels = toPlot.getBsLables()
         if mode == "avg-LAT":
             mixWLds = toPlot.getTables()[0]
         if mode == "max-LAT":
@@ -179,7 +179,7 @@ def mes2DPlt(toPlot,mode):
     if mode == "IOPS":
         x = getBS(toPlot.getBsLables())
     if mode == "avg-LAT" or mode == "max-LAT":
-        x = getBS(dt.SsdLatencyTest.bsLabels)
+        x = getBS(toPlot.getBsLables())
         
     max_y = 0
     min_y = 0
@@ -275,7 +275,7 @@ def latMes3DPlt(toPlot):
     '''
     colorTable = ['#0000FF','#008080','#00FFFF']
     mixWlds = list(dt.SsdLatencyTest.mixWlds)
-    bsLabels = list(dt.SsdLatencyTest.bsLabels)
+    bsLabels = list(toPlot.getBsLables())
 
     avgMatrix = deepcopy(toPlot.getTables()[0])
     maxMatrix = deepcopy(toPlot.getTables()[1])
@@ -659,7 +659,7 @@ def calcMsmtTable(toPlot,mode):
         bsLabels = toPlot.getBsLables()
     if mode == "avg-LAT" or mode == "max-LAT":
         wlds = dt.SsdLatencyTest.mixWlds
-        bsLabels = dt.SsdLatencyTest.bsLabels
+        bsLabels = toPlot.getBsLables()
 
     #each row will be a workload percentage
     for i in range(len(wlds)):

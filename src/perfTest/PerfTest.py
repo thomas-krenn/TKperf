@@ -377,8 +377,8 @@ class SsdPerfTest(PerfTest):
                 if i == 2 or i == 3: continue
                 rst.addFigure(fig,'ssd','lat',i)
             rst.addSection("Measurement Window Summary Table")
-            rst.addTable(tests['lat'].getTables()[0],dt.SsdLatencyTest.bsLabels,'avg-lat')#avg lat
-            rst.addTable(tests['lat'].getTables()[1],dt.SsdLatencyTest.bsLabels,'max-lat')#max lat
+            rst.addTable(tests['lat'].getTables()[0],tests['lat'].getBsLables(),'avg-lat')#avg lat
+            rst.addTable(tests['lat'].getTables()[1],tests['lat'].getBsLables(),'max-lat')#max lat
         if SsdPerfTest.wrKey in tests:
             rst.addChapter("Write Saturation")
             rst.addTestInfo('ssd','writesat',tests['writesat'])
