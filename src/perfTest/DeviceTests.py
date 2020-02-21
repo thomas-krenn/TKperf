@@ -821,8 +821,6 @@ class HddIopsTest(DeviceTest):
     '''
     ## Number of rounds to carry out the tests
     maxRnds = 128
-    ## Labels of block sizes for IOPS test
-    bsLabels = ["64k","16k","4k"]
     ## Percentages of mixed workloads for IOPS test.
     mixWlds = [100,50,0]
     
@@ -831,6 +829,8 @@ class HddIopsTest(DeviceTest):
         Constructor.
         '''
         super(HddIopsTest,self).__init__(testname,device,options)
+        ## Labels of block sizes for IOPS test
+        self.__bsLables = ["64k","16k","4k"]
         self.__roundMatrices = []
         self.getFioJob().addKVArg("rw","randrw")
 
@@ -839,13 +839,14 @@ class HddIopsTest(DeviceTest):
         Add or remove block sizes from the static block size list.
         '''
         if bsToAdd != None:
-            if bsToAdd not in HddIopsTest.bsLabels:
-                HddIopsTest.bsLabels.append(bsToAdd)
+            if bsToAdd not in self.getBsLabels():
+                self.getBsLabels().append(bsToAdd)
         if bsToRemove != None:
-            if bsToRemove in HddIopsTest.bsLabels:
-                HddIopsTest.bsLabels.remove(bsToRemove)
+            if bsToRemove in self.getBsLabels():
+                self.getBsLabels().remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
+    def getBsLabels(self): return self.__bsLabels
 
     def toLog(self):
         '''
@@ -904,7 +905,7 @@ class HddIopsTest(DeviceTest):
         rndMatrix = []
         for i in HddIopsTest.mixWlds:
             rwRow = []
-            for j in HddIopsTest.bsLabels:
+            for j in self.getBsLabels():
                 self.getFioJob().addKVArg("rwmixread",str(i))
                 self.getFioJob().addKVArg("bs",j)
                 call,jobOut = self.getFioJob().start()

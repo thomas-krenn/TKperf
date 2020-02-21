@@ -543,7 +543,7 @@ def IOPSplot(toPlot):
     matrices = toPlot.getRndMatrices()
     
     wlds = dt.HddIopsTest.mixWlds
-    bsLabels = dt.HddIopsTest.bsLabels
+    bsLabels = toPlot.getBsLabels()
     
     #each row will be a workload percentage
     mixWLds = []

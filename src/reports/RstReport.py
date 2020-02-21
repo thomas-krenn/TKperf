@@ -416,7 +416,7 @@ class RstReport(object):
                 print >>desc, dt.HddIopsTest.mixWlds
                 desc.write('\t\t\t')
                 print >>desc, "For block sizes",
-                print >>desc, dt.HddIopsTest.bsLabels
+                print >>desc, test.getBsLabels()
                 desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
                 desc.write("The IOPS of one round are an indicator for the random performance of the corresponding area.")
                 self.addString(desc.getvalue())
