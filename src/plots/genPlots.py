@@ -499,7 +499,7 @@ def TPplot(toPlot):
     #As the values are converted to KB, copy the matrices
     matrices = deepcopy(toPlot.getRndMatrices())
     rnds = dt.HddTPTest.maxRnds
-    bsLabels = dt.HddTPTest.bsLabels
+    bsLabels = toPlot.getBsLabels()
     
     #values for scaling the axes
     max_y = 0
@@ -605,7 +605,7 @@ def TPBoxPlot(toPlot):
     '''
     #As the values are converted to KB, copy the matrices
     matrices = deepcopy(toPlot.getRndMatrices())
-    bsLabels = dt.HddTPTest.bsLabels
+    bsLabels = toPlot.getBsLabels()
     
     plt.clf()#clear
     boxes = []

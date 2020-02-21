@@ -830,7 +830,7 @@ class HddIopsTest(DeviceTest):
         '''
         super(HddIopsTest,self).__init__(testname,device,options)
         ## Labels of block sizes for IOPS test
-        self.__bsLables = ["64k","16k","4k"]
+        self.__bsLabels = ["64k","16k","4k"]
         self.__roundMatrices = []
         self.getFioJob().addKVArg("rw","randrw")
 
@@ -966,14 +966,14 @@ class HddTPTest(DeviceTest):
     '''
     ## Number of rounds to carry out the tests
     maxRnds = 128
-    ##Labels of block sizes for throughput test
-    bsLabels = ["1024k","4k"]
     
     def __init__(self,testname,device,options=None):
         '''
         Constructor.
         '''
         super(HddTPTest,self).__init__(testname,device,options)
+        ## Labels of block sizes for IOPS test
+        self.__bsLabels = ["1024k","4k"]
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
 
@@ -982,13 +982,14 @@ class HddTPTest(DeviceTest):
         Add or remove block sizes from the static block size list.
         '''
         if bsToAdd != None:
-            if bsToAdd not in HddTPTest.bsLabels:
-                HddTPTest.bsLabels.append(bsToAdd)
+            if bsToAdd not in self.getBsLabels():
+                self.getBsLabels().append(bsToAdd)
         if bsToRemove != None:
-            if bsToRemove in HddTPTest.bsLabels:
-                HddTPTest.bsLabels.remove(bsToRemove)
+            if bsToRemove in self.getBsLabels():
+                self.getBsLabels().remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
+    def getBsLabels(self): return self.__bsLabels
 
     def toLog(self):
         '''
@@ -1081,7 +1082,7 @@ class HddTPTest(DeviceTest):
             increment = increment - rem
         logging.info("Increment in byte: "+str(increment))
         #Number of rounds are the same for IOPS and throughput
-        for j in HddTPTest.bsLabels:
+        for j in self.getBsLabels():
             tpRead_l = []
             tpWrite_l = []
             logging.info("#################")

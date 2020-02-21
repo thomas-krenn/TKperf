@@ -426,7 +426,7 @@ class RstReport(object):
                 desc.write("The throughput test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
                 print >>desc, "For block sizes ",
-                print >>desc, dt.HddTPTest.bsLabels
+                print >>desc, test.getBsLabels()
                 desc.write('\t\t')
                 print >>desc, "For range(" + str(dt.HddTPTest.maxRnds) + ")"
                 desc.write('\t\t\t')
