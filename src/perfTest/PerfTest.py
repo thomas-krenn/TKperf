@@ -358,7 +358,7 @@ class SsdPerfTest(PerfTest):
             for i,fig in enumerate(tests['iops'].getFigures()):
                 rst.addFigure(fig,'ssd','iops',i)
             rst.addSection("Measurement Window Summary Table")
-            rst.addTable(tests['iops'].getTables()[0],tests['iops'].getBsLables(),'iops')
+            rst.addTable(tests['iops'].getTables()[0],tests['iops'].getBsLabels(),'iops')
         if SsdPerfTest.tpKey in tests:
             rst.addChapter("Throughput")
             rst.addTestInfo('ssd','tp',tests['tp'])
@@ -366,7 +366,7 @@ class SsdPerfTest(PerfTest):
             for i,fig in enumerate(tests['tp'].getFigures()):
                 rst.addFigure(fig,'ssd','tp',i)
             rst.addSection("Measurement Window Summary Table")
-            rst.addTable(tests['tp'].getTables()[0],dt.SsdTPTest.bsLabels,'tp')
+            rst.addTable(tests['tp'].getTables()[0],tests['tp'].getBsLabels(),'tp')
         if SsdPerfTest.latKey in tests:
             rst.addChapter("Latency")
             rst.addTestInfo('ssd','lat',tests['lat'])
@@ -377,8 +377,8 @@ class SsdPerfTest(PerfTest):
                 if i == 2 or i == 3: continue
                 rst.addFigure(fig,'ssd','lat',i)
             rst.addSection("Measurement Window Summary Table")
-            rst.addTable(tests['lat'].getTables()[0],tests['lat'].getBsLables(),'avg-lat')#avg lat
-            rst.addTable(tests['lat'].getTables()[1],tests['lat'].getBsLables(),'max-lat')#max lat
+            rst.addTable(tests['lat'].getTables()[0],tests['lat'].getBsLabels(),'avg-lat')#avg lat
+            rst.addTable(tests['lat'].getTables()[1],tests['lat'].getBsLabels(),'max-lat')#max lat
         if SsdPerfTest.wrKey in tests:
             rst.addChapter("Write Saturation")
             rst.addTestInfo('ssd','writesat',tests['writesat'])

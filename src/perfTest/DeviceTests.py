@@ -149,15 +149,15 @@ class SsdIopsTest(DeviceTest):
         Add or remove block sizes from the static block size list.
         '''
         if bsToAdd != None:
-            if bsToAdd not in self.getBsLables():
-                self.getBsLables().append(bsToAdd)
+            if bsToAdd not in self.getBsLabels():
+                self.getBsLabels().append(bsToAdd)
         if bsToRemove != None:
-            if bsToRemove in self.getBsLables():
-                self.getBsLables().remove(bsToRemove)
+            if bsToRemove in self.getBsLabels():
+                self.getBsLabels().remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
-    def getBsLables(self): return self.__bsLabels
+    def getBsLabels(self): return self.__bsLabels
 
     def toLog(self):
         '''
@@ -180,7 +180,7 @@ class SsdIopsTest(DeviceTest):
         rndMatrix = []
         for i in SsdIopsTest.mixWlds:
             rwRow = []
-            for j in self.getBsLables():
+            for j in self.getBsLabels():
                 self.getFioJob().addKVArg("rwmixread",str(i))
                 self.getFioJob().addKVArg("bs",j)
                 call,jobOut = self.getFioJob().start()
@@ -327,15 +327,15 @@ class SsdLatencyTest(DeviceTest):
         Add or remove block sizes from the static block size list.
         '''
         if bsToAdd != None:
-            if bsToAdd not in self.getBsLables():
-                self.getBsLables().append(bsToAdd)
+            if bsToAdd not in self.getBsLabels():
+                self.getBsLabels().append(bsToAdd)
         if bsToRemove != None:
-            if bsToRemove in self.getBsLables():
-                self.getBsLables().remove(bsToRemove)
+            if bsToRemove in self.getBsLabels():
+                self.getBsLabels().remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
-    def getBsLables(self): return self.__bsLabels
+    def getBsLabels(self): return self.__bsLabels
 
     def toLog(self):
         '''
@@ -358,7 +358,7 @@ class SsdLatencyTest(DeviceTest):
         rndMatrix = []        
         for i in SsdLatencyTest.mixWlds:
             rwRow = []
-            for j in self.getBsLables():
+            for j in self.getBsLabels():
                 self.getFioJob().addKVArg("rwmixread",str(i))
                 self.getFioJob().addKVArg("bs",j)
                 call,jobOut = self.getFioJob().start()
@@ -490,14 +490,13 @@ class SsdTPTest(DeviceTest):
     '''
     A class to carry out the Throughput test.
     '''
-    ##Labels of block sizes for throughput test
-    bsLabels = ["1024k","64k","8k","4k","512"]
-    
     def __init__(self,testname,device,options):
         '''
         Constructor.
         '''
         super(SsdTPTest,self).__init__(testname,device,options)
+        ## Labels of block sizes to run tests with
+        self.__bsLabels = ["1024k","64k","8k","4k","512"]
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
@@ -507,14 +506,15 @@ class SsdTPTest(DeviceTest):
         Add or remove block sizes from the static block size list.
         '''
         if bsToAdd != None:
-            if bsToAdd not in SsdTPTest.bsLabels:
-                SsdTPTest.bsLabels.append(bsToAdd)
+            if bsToAdd not in self.getBsLabels():
+                self.getBsLabels().append(bsToAdd)
         if bsToRemove != None:
-            if bsToRemove in SsdTPTest.bsLabels:
-                SsdTPTest.bsLabels.remove(bsToRemove)
+            if bsToRemove in self.getBsLabels():
+                self.getBsLabels().remove(bsToRemove)
 
     def getRndMatrices(self): return self.__roundMatrices
     def getStdyState(self): return self.__stdyState
+    def getBsLabels(self): return self.__bsLabels
 
     def toLog(self):
         '''
@@ -567,7 +567,7 @@ class SsdTPTest(DeviceTest):
         xrangesWrite = deque([])#Rounds of current measurement window
         
         #rounds are the same for IOPS and throughput
-        for j in SsdTPTest.bsLabels:
+        for j in self.getBsLabels():
             try: 
                 self.getDevice().secureErase()
             except RuntimeError:

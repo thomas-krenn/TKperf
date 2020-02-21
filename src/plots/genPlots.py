@@ -121,17 +121,17 @@ def stdyStConvPlt(toPlot,mode):
     if mode == "IOPS":
         for i in range(len(lines)):
             min_y,max_y = getMinMax(lines[i], min_y, max_y)
-            plt.plot(x,lines[i],'o-',label='bs='+toPlot.getBsLables()[i])
+            plt.plot(x,lines[i],'o-',label='bs='+toPlot.getBsLabels()[i])
     if mode == "LAT":
         for i in range(len(readLines)):
             min_y,max_y = getMinMax(readLines[i], min_y, max_y)
-            plt.plot(x,readLines[i],'s-',label='bs='+toPlot.getBsLables()[i]+' read')
+            plt.plot(x,readLines[i],'s-',label='bs='+toPlot.getBsLabels()[i]+' read')
         for i in range(len(mixLines)):
             min_y,max_y = getMinMax(mixLines[i], min_y, max_y)
-            plt.plot(x,mixLines[i],'^-',label='bs='+toPlot.getBsLables()[i]+' mixed')
+            plt.plot(x,mixLines[i],'^-',label='bs='+toPlot.getBsLabels()[i]+' mixed')
         for i in range(len(writeLines)):
             min_y,max_y = getMinMax(writeLines[i], min_y, max_y)
-            plt.plot(x,writeLines[i],'o-',label='bs='+toPlot.getBsLables()[i]+' write')
+            plt.plot(x,writeLines[i],'o-',label='bs='+toPlot.getBsLabels()[i]+' write')
     
     plt.xticks(x)
     plt.suptitle(mode+" Steady State Convergence Plot",fontweight='bold')
@@ -165,11 +165,11 @@ def mes2DPlt(toPlot,mode):
     calcMsmtTable(toPlot, mode)
     if mode == "IOPS":
         wlds = dt.SsdIopsTest.mixWlds
-        bsLabels = toPlot.getBsLables()
+        bsLabels = toPlot.getBsLabels()
         mixWLds = toPlot.getTables()[0]
     if mode == "avg-LAT" or mode == "max-LAT":
         wlds = dt.SsdLatencyTest.mixWlds
-        bsLabels = toPlot.getBsLables()
+        bsLabels = toPlot.getBsLabels()
         if mode == "avg-LAT":
             mixWLds = toPlot.getTables()[0]
         if mode == "max-LAT":
@@ -177,9 +177,9 @@ def mes2DPlt(toPlot,mode):
 
     plt.clf()#clear plot
     if mode == "IOPS":
-        x = getBS(toPlot.getBsLables())
+        x = getBS(toPlot.getBsLabels())
     if mode == "avg-LAT" or mode == "max-LAT":
-        x = getBS(toPlot.getBsLables())
+        x = getBS(toPlot.getBsLabels())
         
     max_y = 0
     min_y = 0
@@ -222,7 +222,7 @@ def mes3DPlt(toPlot,mode):
         #reverse the block size in each table row, to start with 512B
         for row in matrix:
             row.reverse()
-        bsLabels = list(toPlot.getBsLables())
+        bsLabels = list(toPlot.getBsLabels())
         mixWlds = list(dt.SsdIopsTest.mixWlds)
     
     #define positions for bars
@@ -275,7 +275,7 @@ def latMes3DPlt(toPlot):
     '''
     colorTable = ['#0000FF','#008080','#00FFFF']
     mixWlds = list(dt.SsdLatencyTest.mixWlds)
-    bsLabels = list(toPlot.getBsLables())
+    bsLabels = list(toPlot.getBsLabels())
 
     avgMatrix = deepcopy(toPlot.getTables()[0])
     maxMatrix = deepcopy(toPlot.getTables()[1])
@@ -400,7 +400,7 @@ def tpRWStdyStConvPlt(toPlot):
     matrices = deepcopy(toPlot.getRndMatrices())
     rnds = toPlot.getStdyState().getRnds()#fetch the number of total rounds
     bsLens = len(matrices)#fetch the number of bs, each row is a bs in the matrix
-    bsLabels = dt.SsdTPTest.bsLabels
+    bsLabels = toPlot.getBsLabels()
     
     #initialize matrix for plotting
     lines = []
@@ -467,7 +467,7 @@ def tpMes2DPlt(toPlot):
     wlds = toPlot.getTables()[0]
     #start plotting
     plt.clf()#clear
-    x = getBS(dt.SsdTPTest.bsLabels)
+    x = getBS(toPlot.getBsLabels())
     for i in range(len(wlds)):
         if i == 0:
             label = "read"
@@ -479,7 +479,7 @@ def tpMes2DPlt(toPlot):
     plt.suptitle("TP Measurement Plot",fontweight='bold')
     plt.xlabel("Block Size (Byte)")
     plt.ylabel("Bandwidth (MB/s)")
-    plt.xticks(x,dt.SsdTPTest.bsLabels)
+    plt.xticks(x,toPlot.getBsLabels())
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.07),
                ncol=3, fancybox=True, shadow=True,prop={'size':12})
     plt.savefig(toPlot.getTestname()+'-TP-mes2DPlt.png',dpi=300)
@@ -656,10 +656,10 @@ def calcMsmtTable(toPlot,mode):
     mesWin = toPlot.getStdyState().getStdyRnds() #get measurement window, only include these values
     if mode == "IOPS":
         wlds = dt.SsdIopsTest.mixWlds
-        bsLabels = toPlot.getBsLables()
+        bsLabels = toPlot.getBsLabels()
     if mode == "avg-LAT" or mode == "max-LAT":
         wlds = dt.SsdLatencyTest.mixWlds
-        bsLabels = toPlot.getBsLables()
+        bsLabels = toPlot.getBsLabels()
 
     #each row will be a workload percentage
     for i in range(len(wlds)):
@@ -718,7 +718,7 @@ def calcMsmtTPTable(toPlot):
     for i in range(2):
         wlds.append([])
         #in each row will be the different block sizes
-        for bs in range(len(dt.SsdTPTest.bsLabels)):
+        for bs in range(len(toPlot.getBsLabels())):
             wlds[i].append(0)
     matrices = deepcopy(toPlot.getRndMatrices())
     #each row of the matrix is a block size

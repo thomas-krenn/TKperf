@@ -337,7 +337,7 @@ class RstReport(object):
                 print >>desc, dt.SsdIopsTest.mixWlds
                 desc.write('\t\t\t')
                 print >>desc, "For block sizes",
-                print >>desc, test.getBsLables()
+                print >>desc, test.getBsLabels()
                 desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
                 desc.write("The average number of read and write IOPS is measured and summed up, therefore 56 values are ")
                 desc.write("the result of the two loops.\n")
@@ -352,7 +352,7 @@ class RstReport(object):
                 desc.write("The throughput test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
                 print >>desc, "For block sizes ",
-                print >>desc, dt.SsdTPTest.bsLabels
+                print >>desc, test.getBsLabels()
                 desc.write('\t\t')
                 print >>desc, "Make Secure Erase"
                 desc.write('\t\t')
@@ -380,7 +380,7 @@ class RstReport(object):
                 print >>desc, dt.SsdLatencyTest.mixWlds
                 desc.write('\t\t\t')
                 print >>desc, "For block sizes",
-                print >>desc, test.getBsLables()
+                print >>desc, test.getBsLabels()
                 desc.write("\nFor all block sizes random read, a 65/35 read/write mixed workload and random write is carried out for 60 ") 
                 desc.write("seconds using direct IO. ")
                 desc.write("For every combination the Min, Max and Mean Latency is measured. ")
