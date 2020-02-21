@@ -5,6 +5,7 @@ Created on 07.08.2012
 '''
 __version__ = '2.2'
 
+from abc import ABCMeta, abstractmethod
 import logging
 import subprocess
 from lxml import etree
@@ -284,6 +285,10 @@ class PerfTest(object):
                     if test != None:
                         test.fromXml(elem)
                         self.addTest(tag, test)
+
+    @abstractmethod
+    def toRst(self):
+        ''' Convert tests to restructured text '''
 
     def run(self):
         ''' The main run method, runs tests, generates plots and rst report. '''
