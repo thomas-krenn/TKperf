@@ -161,7 +161,7 @@ class Device(object):
         out = subprocess.Popen(['blockdev','--getsize64',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
-            logging.error("blockdev --getss encountered an error: " + stderr)
+            logging.error("blockdev --getsize64 encountered an error: " + stderr)
             raise RuntimeError, "blockdev error"
         else:
             byteSize = long(stdout)
@@ -339,7 +339,7 @@ class Device(object):
             out = subprocess.Popen(['blockdev', '--getsize64' ,self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
-                logging.error("blockdev encountered an error: " + stderr)
+                logging.error("blockdev --getsize64 encountered an error: " + stderr)
                 return False
             else:
                 self.__devinfo += "Device Size (bytes): " + stdout
