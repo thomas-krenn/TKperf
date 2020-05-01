@@ -78,7 +78,7 @@ class PerfTest(object):
         out = subprocess.Popen(['uname','-r'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
-            logging.error("uname -r encountered an error: " + stderr)
+            logging.error("uname -r encountered an error: " + stderr.decode())
             return False
         else:
             self.__OSInfo['kernel'] = stdout
@@ -89,7 +89,7 @@ class PerfTest(object):
             out = subprocess.Popen(['lsb_release','-d'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         (stdout,stderr) = out.communicate()
         if stderr != '':
-            logging.error("getting OS information encountered an error: " + stderr)
+            logging.error("getting OS information encountered an error: " + stderr.decode())
             return False
         else:
             self.__OSInfo['lsb'] = stdout
