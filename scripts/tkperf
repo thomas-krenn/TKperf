@@ -97,7 +97,7 @@ if __name__ == '__main__':
         myTest = HddPerfTest(args.testname, devToTest,options)
     # First check if we are loading values from a given xml
     if args.fromxml == True:
-        print "Loading from xml file..."
+        print("Loading from xml file...")
         myTest.fromXml()
         myTest.genPlots()
         myTest.toRst()
@@ -109,17 +109,17 @@ if __name__ == '__main__':
             devToTest.setConfig(args.config)
         myTest.initialize()
     except RuntimeError:
-        print "### Error! ###"
-        print "Test initialization failed, please inspect the log file!"
+        print("### Error! ###")
+        print("Test initialization failed, please inspect the log file!")
         exit(1)
     # Keep used command line arguments
     myTest.readCmdLineArgs(sys.argv)
     # Check if a correct setup is given
     if (not devToTest.isInitialized()) and args.desc_file == None:
-        print "### Error! ###"
-        print "Please use a description file for the current device."
-        print "The information via hdparm -I is not reliable."
-        print "Use -dsc DESC_FILE to provide the information"
+        print("### Error! ###")
+        print("Please use a description file for the current device.")
+        print("The information via hdparm -I is not reliable.")
+        print("Use -dsc DESC_FILE to provide the information")
         exit(1)
     if args.desc_file != None:
         devToTest.readDevInfoFile(args.desc_file)
@@ -128,31 +128,31 @@ if __name__ == '__main__':
     # Don't print a warning if force test is given
     if args.force_test == False:
         if devToTest.isMounted():
-            print "!!!WARNING!!!"
-            print "You are testing a mounted device, this is highly dangerous!"
+            print("!!!WARNING!!!")
+            print("You are testing a mounted device, this is highly dangerous!")
             exit(0)
         if devToTest.isAvailable():
-            print "!!!Attention!!!"
-            print "All data on " + args.device + " will be lost!"
-            print "Are you sure you want to continue? (In case you really know what you are doing.)"
-            print "Press 'y' to continue, any key to stop:"
-            key = raw_input()
+            print("!!!Attention!!!")
+            print("All data on " + args.device + " will be lost!")
+            print("Are you sure you want to continue? (In case you really know what you are doing.)")
+            print("Press 'y' to continue, any key to stop:")
+            key = input()
             if key != 'y':
                 exit(0)
         else:
-            print "You are not using a valid device or partition!"
+            print("You are not using a valid device or partition!")
             exit(1)
-    print "Starting "+args.mode+" mode..."
-    print "Testing device:"
-    print devToTest.getDevInfo()
+    print("Starting "+args.mode+" mode...")
+    print("Testing device:")
+    print(devToTest.getDevInfo())
     try:
         myTest.run()
         if args.gen_report != None:
             try:
                 myTest.getRstReport().toPDF(args.gen_report)
             except RuntimeError:
-                print "### Error! ###"
-                print "Generating PDF failed."
+                print("### Error! ###")
+                print("Generating PDF failed.")
         if args.mail != None and args.smtp != None:
             try:
                 mail = Mail('TKperf message', 'root@tkperf.local', args.mail, args.smtp)
@@ -164,11 +164,11 @@ if __name__ == '__main__':
                 mail.addTextAttachment(logfile)
                 mail.send()
             except MessageError:
-                print "### Error! ###"
-                print "Creating and sending mail failed."
+                print("### Error! ###")
+                print("Creating and sending mail failed.")
     except RuntimeError:
-        print "### Error! ###"
-        print "Running the tests failed, please inspect the log file!"
+        print("### Error! ###")
+        print("Running the tests failed, please inspect the log file!")
         if args.mail != None and args.smtp != None:
             try:
                 mail = Mail('TKperf message', 'root@tkperf.local', args.mail, args.smtp)
@@ -176,6 +176,6 @@ if __name__ == '__main__':
                 mail.addTextAttachment(logfile)
                 mail.send()
             except MessageError:
-                print "### Error! ###"
-                print "Creating and sending mail failed."
+                print("### Error! ###")
+                print("Creating and sending mail failed.")
         exit(1)

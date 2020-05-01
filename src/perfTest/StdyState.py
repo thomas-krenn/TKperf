@@ -50,7 +50,7 @@ class StdyState(object):
         @exception RuntimeError if state is not set (None)
         '''
         if self.__reachStdyState == None:
-            raise RuntimeError, "steady state is none"
+            raise RuntimeError("steady state is none")
         return self.__reachStdyState
 
     def checkSteadyState(self,xs,ys,rounds):

@@ -25,7 +25,7 @@ class XmlReport(object):
         return self.__xml
     
     def printXml(self):
-        print(etree.tostring(self.__xml, xml_declaration=True,pretty_print=True))
+        print((etree.tostring(self.__xml, xml_declaration=True,pretty_print=True)))
     
     def xmlToFile(self,testname):
         et = etree.ElementTree(self.__xml)

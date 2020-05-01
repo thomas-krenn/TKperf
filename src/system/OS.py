@@ -13,11 +13,10 @@ from os import lstat
 from stat import S_ISBLK
 from time import sleep
 
-class RAIDtec(object):
+class RAIDtec(object, metaclass=ABCMeta):
     '''
     Representing a RAID technology, used from the OS.
     '''
-    __metaclass__ = ABCMeta
 
     def __init__(self, path, level, devices):
         ## Path of the RAID utils
@@ -49,7 +48,7 @@ class RAIDtec(object):
         (stdout, stderr) = out.communicate()
         if stderr != '':
             logging.error("lsblk encountered an error: " + stderr)
-            raise RuntimeError, "lsblk command error"
+            raise RuntimeError("lsblk command error")
         else:
             self.__blockdevs = stdout.splitlines()
             logging.info("# Got the following BDs: ")
@@ -87,7 +86,7 @@ class Mdadm(RAIDtec):
         stdout = mdadm.communicate()[0]
         if mdadm.returncode != 0:
             logging.error("# Error: command 'which mdadm' returned an error code.")
-            raise RuntimeError, "which mdadm command error"
+            raise RuntimeError("which mdadm command error")
         else:
             self.setUtil(stdout.rstrip("\n"))
 
@@ -115,7 +114,7 @@ class Mdadm(RAIDtec):
         stderr = mdadm.communicate()[1]
         if stderr != '':
             logging.error("mdadm encountered an error: " + stderr)
-            raise RuntimeError, "mdadm command error"
+            raise RuntimeError("mdadm command error")
 
     def deleteVD(self):
         logging.info("# Deleting raid device "+self.getDevPath())
@@ -123,7 +122,7 @@ class Mdadm(RAIDtec):
         stderr = mdadm.communicate()[1]
         if mdadm.returncode != 0:
             logging.error("mdadm encountered an error: " + stderr)
-            raise RuntimeError, "mdadm command error"
+            raise RuntimeError("mdadm command error")
         # Reset all devices in the Raid
         # If the raid device was overwritten completely before (precondition), zero-superblock can fail
         for dev in self.getDevices():
@@ -137,7 +136,7 @@ class Mdadm(RAIDtec):
         (stdout, stderr) = process.communicate()
         if stderr != '':
             logging.error("cat mdstat encountered an error: " + stderr)
-            raise RuntimeError, "cat mdstat command error"
+            raise RuntimeError("cat mdstat command error")
         else:
             # Remove the Personalities line
             stdout = stdout.partition("\n")[2]
@@ -194,7 +193,7 @@ class Storcli(RAIDtec):
             stdout = storcli.communicate()[0]
         if storcli.returncode != 0:
             logging.error("# Error: command 'which storcli' returned an error code.")
-            raise RuntimeError, "which storcli command error"
+            raise RuntimeError("which storcli command error")
         else:
             self.setUtil(stdout.rstrip("\n"))
 
@@ -211,7 +210,7 @@ class Storcli(RAIDtec):
             (stdout,stderr) = storcli.communicate()
             if storcli.returncode != 0:
                 logging.error("storcli encountered an error: " + stderr)
-                raise RuntimeError, "storcli command error"
+                raise RuntimeError("storcli command error")
             else:
                 vdCheck = None
                 for line in stdout.splitlines():
@@ -235,7 +234,7 @@ class Storcli(RAIDtec):
             (stdout,stderr) = storcli.communicate()
             if storcli.returncode != 0:
                 logging.error("storcli encountered an error: " + stderr)
-                raise RuntimeError, "storcli command error"
+                raise RuntimeError("storcli command error")
             else:
                 vdCheck = None
                 for line in stdout.splitlines():
@@ -268,7 +267,7 @@ class Storcli(RAIDtec):
         (stdout,stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
-            raise RuntimeError, "storcli command error"
+            raise RuntimeError("storcli command error")
         else:
             PDs = []
             for line in stdout.splitlines():
@@ -292,7 +291,7 @@ class Storcli(RAIDtec):
         (stdout, stderr) = process3.communicate()
         if process3.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
-            raise RuntimeError, "storcli command error"
+            raise RuntimeError("storcli command error")
         else:
             self.setVDs(stdout.splitlines())
             logging.info("# Got the following VDs: ")
@@ -331,7 +330,7 @@ class Storcli(RAIDtec):
         stderr = process.communicate()[1]
         if process.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
-            raise RuntimeError, "storcli command error"
+            raise RuntimeError("storcli command error")
         else:
             # Wait for update of lsblk
             sleep(5)
@@ -349,7 +348,7 @@ class Storcli(RAIDtec):
             if (len(bd) != 1) or (('/dev/'+bd[0]) != self.getDevPath()):
                 logging.info("Got BD: " + bd[0])
                 logging.error("# Error: The new block device doesn't match the tested device path!")
-                raise RuntimeError, "New block dev doesn't match tested dev error"
+                raise RuntimeError("New block dev doesn't match tested dev error")
             # Set MegaRAID's automatic background initialization (autobgi) to
             # off to prevent performance influences caused by autobgi
             match = re.search('^[0-9]\/([0-9]+)', self.getVD())
@@ -358,7 +357,7 @@ class Storcli(RAIDtec):
             stderr = storclibgi.communicate()[1]
             if storclibgi.returncode != 0:
                 logging.error("storcli encountered an error: " + stderr)
-                raise RuntimeError, "storcli command error"
+                raise RuntimeError("storcli command error")
             else:
                 logging.info("# Set autobgi=off for VD " + vdNum)
             # Log information about the created VD
@@ -376,7 +375,7 @@ class Storcli(RAIDtec):
         stderr = storcli.communicate()[1]
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
-            raise RuntimeError, "storcli command error"
+            raise RuntimeError("storcli command error")
         else:
             logging.info("# Deleting raid device VD "+vdNum)
 
@@ -391,7 +390,7 @@ class Storcli(RAIDtec):
         (stdout, stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
-            raise RuntimeError, "storcli command error"
+            raise RuntimeError("storcli command error")
         else:
             for line in stdout.splitlines():
                 match = re.search('^\/c0\/e([0-9]+\/s[0-9]+).*$',line)
@@ -411,7 +410,7 @@ class Storcli(RAIDtec):
         (stdout, stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
-            raise RuntimeError, "storcli command error"
+            raise RuntimeError("storcli command error")
         else:
             for line in stdout.splitlines():
                 match = re.search(vdNum+' INIT',line)

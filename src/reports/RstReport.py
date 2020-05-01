@@ -3,7 +3,7 @@ Created on 9 Aug 2012
 
 @author: gschoenb
 '''
-from cStringIO import StringIO
+from io import StringIO
 from copy import deepcopy
 import os
 import inspect
@@ -29,39 +29,39 @@ class RstReport(object):
         return self.__rst    
     
     def addTitle(self):
-        print >>self.__rst,"===================="
-        print >>self.__rst,"TKperf Test Report"
-        print >>self.__rst,"====================\n"
-        print >>self.__rst,".. contents::"
-        print >>self.__rst,".. sectnum::"
-        print >>self.__rst,".. include:: <isonum.txt>"
-        print >>self.__rst,".. raw:: pdf\n"
-        print >>self.__rst,"\tPageBreak\n"
+        print("====================", file=self.__rst)
+        print("TKperf Test Report", file=self.__rst)
+        print("====================\n", file=self.__rst)
+        print(".. contents::", file=self.__rst)
+        print(".. sectnum::", file=self.__rst)
+        print(".. include:: <isonum.txt>", file=self.__rst)
+        print(".. raw:: pdf\n", file=self.__rst)
+        print("\tPageBreak\n", file=self.__rst)
 
     def addFooter(self):
-        print >>self.__rst,".. |logo| image:: " + os.path.dirname(inspect.getfile(RstReport)) + "/pics/TKperf_logo.png"
-        print >>self.__rst,"\t:height: 90px"
-        print >>self.__rst,".. footer::"
-        print >>self.__rst,"\t |logo| A `Thomas-Krenn <http://www.thomas-krenn.com/>`_ project, Page ###Page### of ###Total###\n"
+        print(".. |logo| image:: " + os.path.dirname(inspect.getfile(RstReport)) + "/pics/TKperf_logo.png", file=self.__rst)
+        print("\t:height: 90px", file=self.__rst)
+        print(".. footer::", file=self.__rst)
+        print("\t |logo| A `Thomas-Krenn <http://www.thomas-krenn.com/>`_ project, Page ###Page### of ###Total###\n", file=self.__rst)
 
     def addChapter(self,chap):
-        print >>self.__rst, chap
+        print(chap, file=self.__rst)
         line = "="
         for i in chap:
             line += "="
-        print >>self.__rst, line+'\n'
+        print(line+'\n', file=self.__rst)
 
     def addSection(self,sec):
-        print >>self.__rst, sec
+        print(sec, file=self.__rst)
         line = "-"
         for i in sec:
             line += "-"
-        print >>self.__rst, line+'\n'
+        print(line+'\n', file=self.__rst)
         
     def addString(self,str):
         if str[-1] != '\n':
             str += '\n'
-        print >>self.__rst, str
+        print(str, file=self.__rst)
     
     def addFigure(self,filename,testtype,perftype,index):
         '''
@@ -71,9 +71,9 @@ class RstReport(object):
         @param type The type of the test (iops,tp etc)
         @param index The index of the caption to insert after the figure.
         '''
-        print >>self.__rst,".. figure:: "+filename 
-        print >>self.__rst,"\t:scale: 65%"
-        print >>self.__rst,"\t:figwidth: 85%\n"
+        print(".. figure:: "+filename, file=self.__rst) 
+        print("\t:scale: 65%", file=self.__rst)
+        print("\t:figwidth: 85%\n", file=self.__rst)
         caption = ''
         if testtype == 'ssd':
             if perftype == 'iops':
@@ -147,8 +147,8 @@ class RstReport(object):
         
         if perftype == 'iops':
             val = StringIO()
-            print >>self.__rst,".. csv-table:: Average IOPS vs. Block Size and R/W Mix %"
-            print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 100/0, 95/5, 65/35, 50/50, 35/65, 5/95, 0/100\n"
+            print(".. csv-table:: Average IOPS vs. Block Size and R/W Mix %", file=self.__rst)
+            print("\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 100/0, 95/5, 65/35, 50/50, 35/65, 5/95, 0/100\n", file=self.__rst)
             #reverse the block size in each table row, to start with 512B
             for row in t:
                 row.reverse()
@@ -156,20 +156,20 @@ class RstReport(object):
             l.reverse()
         if perftype == 'tp':
             val = StringIO()
-            print >>self.__rst,".. csv-table:: Average MB/s vs. Block Size and R/W"
-            print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Read\", \"Write\"\n"
+            print(".. csv-table:: Average MB/s vs. Block Size and R/W", file=self.__rst)
+            print("\t:header: \"Block Size\ |darr|\", \"Read\", \"Write\"\n", file=self.__rst)
             
         if perftype == 'avg-lat':
             val = StringIO()
-            print >>self.__rst,".. csv-table:: Average Latency (ms) vs. Block Size and R/W Mix %"
-            print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 0/100, 65/35, 100/0\n"
+            print(".. csv-table:: Average Latency (ms) vs. Block Size and R/W Mix %", file=self.__rst)
+            print("\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 0/100, 65/35, 100/0\n", file=self.__rst)
             #reverse to start with 0/100
             t.reverse()
         
         if perftype == 'max-lat':
             val = StringIO()
-            print >>self.__rst,".. csv-table:: Max Latency (ms) vs. Block Size and R/W Mix %"
-            print >>self.__rst,"\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 0/100, 65/35, 100/0\n"
+            print(".. csv-table:: Max Latency (ms) vs. Block Size and R/W Mix %", file=self.__rst)
+            print("\t:header: \"Block Size\ |darr|\", \"Wld. |rarr| \" 0/100, 65/35, 100/0\n", file=self.__rst)
             #reverse to start with 0/100
             t.reverse()
             
@@ -197,7 +197,7 @@ class RstReport(object):
         stderr = pdf.communicate()[1]
         if pdf.returncode != 0:
             logging.error("generating the PDF encountered an error: " + stderr)
-            raise RuntimeError, "PDF gen command error"
+            raise RuntimeError("PDF gen command error")
     
     def addDevInfo(self,devStr,featMat):
         '''
@@ -206,20 +206,20 @@ class RstReport(object):
         @param featMat The extra feature matrix given via a csv table. 
         ''' 
         self.addChapter("Setup Information")
-        print >>self.__rst,"Tested Device:"
+        print("Tested Device:", file=self.__rst)
         if devStr[-1] == '\n':
             devStr = devStr[:-1]
         for line in devStr.split('\n'):
-            print >>self.__rst," - " + line
-        print >>self.__rst,'\n'
+            print(" - " + line, file=self.__rst)
+        print('\n', file=self.__rst)
         
         if featMat != None:
-            print >>self.__rst,"Feature Matrix:"
-            print >>self.__rst,featMat + "\n"
+            print("Feature Matrix:", file=self.__rst)
+            print(featMat + "\n", file=self.__rst)
             
     def addCmdLine(self,cmdLineStr):
-        print >>self.__rst,"Used command line:"
-        print >>self.__rst," - " + cmdLineStr
+        print("Used command line:", file=self.__rst)
+        print(" - " + cmdLineStr, file=self.__rst)
         
     def addSetupInfo(self,ioVer,fioVer,dateStr):
         '''
@@ -227,10 +227,10 @@ class RstReport(object):
         @param setupStr The Fio version string, fetched via str-method of a FioJob.
         @param dateStr The date string the test was carried out.
         ''' 
-        print >>self.__rst,"Performance System:"
-        print >>self.__rst," - TKperf Version: " + ioVer
-        print >>self.__rst," - Fio Version: " + fioVer
-        print >>self.__rst," - Date of test run: " + dateStr
+        print("Performance System:", file=self.__rst)
+        print(" - TKperf Version: " + ioVer, file=self.__rst)
+        print(" - Fio Version: " + fioVer, file=self.__rst)
+        print(" - Date of test run: " + dateStr, file=self.__rst)
         
     def addFioJobInfo(self,nj,iod):
         '''
@@ -246,11 +246,11 @@ class RstReport(object):
         
     def addOSInfo(self,OSDict):
         if OSDict != None:
-            print >>self.__rst,"Operating System:"
+            print("Operating System:", file=self.__rst)
             if 'kernel' in OSDict:
-                print >>self.__rst," - Kernel Version: " + OSDict['kernel']
+                print(" - Kernel Version: " + OSDict['kernel'], file=self.__rst)
             if 'lsb' in OSDict:
-                print >>self.__rst," - " + OSDict['lsb']
+                print(" - " + OSDict['lsb'], file=self.__rst)
         
     def addGeneralInfo(self,testtype):
         '''
@@ -284,8 +284,8 @@ class RstReport(object):
             info.write("Therefore the test can be stopped and the performance values of the measurement window can be taken ")
             info.write("for the measurement plots. If the steady state has not been reached after a maximum number of rounds the test ")
             info.write("can be stopped as well. The numbers for these two variables are:\n\n")
-            print >>info, "- Measurement Window: " + str(StdyState.testMesWindow)
-            print >>info, "- Max. number of rounds: " + str(StdyState.testRnds) + '\n'
+            print("- Measurement Window: " + str(StdyState.testMesWindow), file=info)
+            print("- Max. number of rounds: " + str(StdyState.testRnds) + '\n', file=info)
             self.addString(info.getvalue())
             info.close()
     
@@ -299,19 +299,19 @@ class RstReport(object):
         stdyStr = StringIO()
         stdyStr.write("Steady State has been reached:\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getStdyState().isSteady()
+        print(test.getStdyState().isSteady(), file=stdyStr)
         
         stdyStr.write("Steady State has been reached in rounds    :\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getStdyState().getStdyRnds()
+        print(test.getStdyState().getStdyRnds(), file=stdyStr)
         
         stdyStr.write("Values in stdy measurement window:\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getStdyState().getStdyValues()
+        print(test.getStdyState().getStdyValues(), file=stdyStr)
         
         stdyStr.write("Average in stdy measurement window:\n")
         stdyStr.write(" - ")
-        print >>stdyStr, test.getStdyState().getStdyAvg()  
+        print(test.getStdyState().getStdyAvg(), file=stdyStr)  
         
         self.addString(stdyStr.getvalue())
         stdyStr.close()
@@ -330,20 +330,20 @@ class RstReport(object):
                 desc = StringIO()
                 desc.write("The IOPS test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
-                print >>desc, "Make Secure Erase"
-                print >>desc, "\tWorkload Ind. Preconditioning"
-                print >>desc, "\tWhile not Steady State"
-                print >>desc, "\t\tFor workloads ",
-                print >>desc, dt.SsdIopsTest.mixWlds
+                print("Make Secure Erase", file=desc)
+                print("\tWorkload Ind. Preconditioning", file=desc)
+                print("\tWhile not Steady State", file=desc)
+                print("\t\tFor workloads ", end=' ', file=desc)
+                print(dt.SsdIopsTest.mixWlds, file=desc)
                 desc.write('\t\t\t')
-                print >>desc, "For block sizes",
-                print >>desc, test.getBsLabels()
+                print("For block sizes", end=' ', file=desc)
+                print(test.getBsLabels(), file=desc)
                 desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
                 desc.write("The average number of read and write IOPS is measured and summed up, therefore 56 values are ")
                 desc.write("the result of the two loops.\n")
                 desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
                 desc.write("the IOPS of 4k random write are taken.\n\n")
-                print >>desc, "- Dependent Variable: 4k block size, random write"
+                print("- Dependent Variable: 4k block size, random write", file=desc)
                 self.addString(desc.getvalue())
                 desc.close()
                 self.addSteadyInfo(test)
@@ -351,21 +351,21 @@ class RstReport(object):
                 desc = StringIO()
                 desc.write("The throughput test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
-                print >>desc, "For block sizes ",
-                print >>desc, test.getBsLabels()
+                print("For block sizes ", end=' ', file=desc)
+                print(test.getBsLabels(), file=desc)
                 desc.write('\t\t')
-                print >>desc, "Make Secure Erase"
+                print("Make Secure Erase", file=desc)
                 desc.write('\t\t')
-                print >>desc, "While not Steady State"
+                print("While not Steady State", file=desc)
                 desc.write('\t\t\t')
-                print >>desc, "Sequential read"
+                print("Sequential read", file=desc)
                 desc.write('\t\t\t')
-                print >>desc, "Sequential write"
+                print("Sequential write", file=desc)
                 desc.write("\nFor each block size sequential read and write is carried out for 60 seconds using direct IO. ")
                 desc.write("The number of kilobytes for read and write is measured, therefore 2 values are ")
                 desc.write("the result of one round.\n")
                 desc.write("To detect the steady state the throughput of 1024k sequential write is taken.\n\n")
-                print >>desc, "- Dependent Variable: 1024k block size, sequential write"
+                print("- Dependent Variable: 1024k block size, sequential write", file=desc)
                 self.addString(desc.getvalue())
                 desc.close()
                 self.addSteadyInfo(test)
@@ -373,20 +373,20 @@ class RstReport(object):
                 desc = StringIO()
                 desc.write("The latency test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
-                print >>desc, "Make Secure Erase"
-                print >>desc, "\tWorkload Ind. Preconditioning"
-                print >>desc, "\tWhile not Steady State"
-                print >>desc, "\t\tFor workloads ",
-                print >>desc, dt.SsdLatencyTest.mixWlds
+                print("Make Secure Erase", file=desc)
+                print("\tWorkload Ind. Preconditioning", file=desc)
+                print("\tWhile not Steady State", file=desc)
+                print("\t\tFor workloads ", end=' ', file=desc)
+                print(dt.SsdLatencyTest.mixWlds, file=desc)
                 desc.write('\t\t\t')
-                print >>desc, "For block sizes",
-                print >>desc, test.getBsLabels()
+                print("For block sizes", end=' ', file=desc)
+                print(test.getBsLabels(), file=desc)
                 desc.write("\nFor all block sizes random read, a 65/35 read/write mixed workload and random write is carried out for 60 ") 
                 desc.write("seconds using direct IO. ")
                 desc.write("For every combination the Min, Max and Mean Latency is measured. ")
                 desc.write("After these loops are finished one test round has been carried out. To detect the steady state ")
                 desc.write("the mean latency of 4k random write is taken.\n\n")
-                print >>desc, "- Dependent Variable: 4k block size, random write mean latency"
+                print("- Dependent Variable: 4k block size, random write mean latency", file=desc)
                 self.addString(desc.getvalue())
                 desc.close()
                 self.addSteadyInfo(test)
@@ -394,9 +394,9 @@ class RstReport(object):
                 desc = StringIO()
                 desc.write("The write saturation test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
-                print >>desc, "Make Secure Erase"
-                print >>desc, "\tWhile not written 4x User Capacity or 24h"
-                print >>desc, "\t\tCarry out random write, 4k block size for 1 minute."
+                print("Make Secure Erase", file=desc)
+                print("\tWhile not written 4x User Capacity or 24h", file=desc)
+                print("\t\tCarry out random write, 4k block size for 1 minute.", file=desc)
                 desc.write("\nFor 4k block size random write is carried out for 60 ") 
                 desc.write("seconds using direct IO. ")
                 desc.write("For each round (60 second window) the write IOPS and latencies are measured. Also the total written ")
@@ -410,13 +410,13 @@ class RstReport(object):
                 desc = StringIO()
                 desc.write("The IOPS test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
-                print >>desc, "Divide device in " + str(dt.HddIopsTest.maxRnds) + " parts"
-                print >>desc, "\tFor range(" + str(dt.HddIopsTest.maxRnds) + ")"
-                print >>desc, "\t\tFor workloads ",
-                print >>desc, dt.HddIopsTest.mixWlds
+                print("Divide device in " + str(dt.HddIopsTest.maxRnds) + " parts", file=desc)
+                print("\tFor range(" + str(dt.HddIopsTest.maxRnds) + ")", file=desc)
+                print("\t\tFor workloads ", end=' ', file=desc)
+                print(dt.HddIopsTest.mixWlds, file=desc)
                 desc.write('\t\t\t')
-                print >>desc, "For block sizes",
-                print >>desc, test.getBsLabels()
+                print("For block sizes", end=' ', file=desc)
+                print(test.getBsLabels(), file=desc)
                 desc.write("\nEach combination of workload and block size is carried out for 60 seconds using direct IO. ")
                 desc.write("The IOPS of one round are an indicator for the random performance of the corresponding area.")
                 self.addString(desc.getvalue())
@@ -425,14 +425,14 @@ class RstReport(object):
                 desc = StringIO()
                 desc.write("The throughput test consists of looping over the following parameters:\n")
                 desc.write('\n::\n\n\t')
-                print >>desc, "For block sizes ",
-                print >>desc, test.getBsLabels()
+                print("For block sizes ", end=' ', file=desc)
+                print(test.getBsLabels(), file=desc)
                 desc.write('\t\t')
-                print >>desc, "For range(" + str(dt.HddTPTest.maxRnds) + ")"
+                print("For range(" + str(dt.HddTPTest.maxRnds) + ")", file=desc)
                 desc.write('\t\t\t')
-                print >>desc, "Sequential read"
+                print("Sequential read", file=desc)
                 desc.write('\t\t\t')
-                print >>desc, "Sequential write"
+                print("Sequential write", file=desc)
                 desc.write("\nFor each block size, every area of the device (this are the rounds) is tested ")
                 desc.write("with sequential read and write using direct IO. ")
                 self.addString(desc.getvalue())

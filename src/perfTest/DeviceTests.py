@@ -14,11 +14,10 @@ from perfTest.StdyState import StdyState
 from perfTest.Options import Options
 from fio.FioJob import FioJob
 
-class DeviceTest(object):
+class DeviceTest(object, metaclass=ABCMeta):
     '''
     Representing a performance test, run on a device.
     '''
-    __metaclass__ = ABCMeta
 
     def __init__(self,testname,device,options=None):
         '''

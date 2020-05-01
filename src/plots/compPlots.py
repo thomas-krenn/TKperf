@@ -3,7 +3,7 @@ Created on Oct 3, 2013
 
 @author: gschoenb
 '''
-from __future__ import division
+
 import plots.genPlots as pgp
 import matplotlib.pyplot as plt
 
@@ -24,7 +24,7 @@ def compWriteSatIOPSPlt(testsToPlot, subfolder=None):
     for i,tests in enumerate(testsToPlot):
         test = tests.getTests()['writesat']
         rnds = test.getRnds()
-        x = range(rnds + 1)
+        x = list(range(rnds + 1))
         #first elem in matrix are iops
         iops_l = test.getRndMatrices()[0]
         plt.plot(x,iops_l,'-',label=test.getTestname(), color = __colorTable__[i])
@@ -35,7 +35,7 @@ def compWriteSatIOPSPlt(testsToPlot, subfolder=None):
     
     plt.ylim(min_y * 0.75, max_y * 1.25)
     #every 50 rounds print the round number
-    x = range(0, max_x, 50)
+    x = list(range(0, max_x, 50))
     plt.xticks(x)
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
@@ -57,7 +57,7 @@ def compILPlt(testsToPlot, mode, subfolder=None):
     mode -- the desired test mode (IOPS or Latency)
     """
     plt.clf()#clear plot
-    x = range(3)
+    x = list(range(3))
     width = 1/len(testsToPlot)
     max_y = 0
     for i in range(len(x)):
@@ -116,7 +116,7 @@ def compTPPlt(testsToPlot, subfolder=None):
     fig = plt.figure()
     # Plot read throughput
     ax = fig.add_subplot(2, 1, 2)
-    y = range(3)
+    y = list(range(3))
     for i in range(len(y)):
         y[i] = y[i] + (i * height)
     for i,tests in enumerate(testsToPlot):
@@ -136,7 +136,7 @@ def compTPPlt(testsToPlot, subfolder=None):
     
     # Plot write throughput
     ax = fig.add_subplot(2, 1, 1)
-    y = range(3)
+    y = list(range(3))
     for i in range(len(y)):
         y[i] = y[i] + (i * height)
     for i,tests in enumerate(testsToPlot):

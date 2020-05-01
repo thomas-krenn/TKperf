@@ -73,8 +73,8 @@ if __name__ == '__main__':
     # Check if a zip archive should be created
     if args.zip:
         if args.folder == None:
-            print "### Error! ###"
-            print "Please use Option '-f' in conjunction with '-z'."
+            print("### Error! ###")
+            print("Please use Option '-f' in conjunction with '-z'.")
         else:
             zfile = zipfile.ZipFile(args.folder+'.zip', 'w')
             for root, dirs, files in walk(args.folder):
