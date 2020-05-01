@@ -7,7 +7,6 @@ Created on Sep 24, 2014
 from abc import ABCMeta, abstractmethod
 import subprocess
 import logging
-from string import split
 import re
 from os import lstat
 from stat import S_ISBLK
