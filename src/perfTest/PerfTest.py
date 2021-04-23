@@ -75,7 +75,7 @@ class PerfTest(object):
         Collects some information about the current OS in use.
         @return True if all infos are present, False on error.
         '''
-        out = subprocess.Popen(['uname','-r'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['uname','-r'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("uname -r encountered an error: " + stderr.decode())
@@ -84,9 +84,9 @@ class PerfTest(object):
             self.__OSInfo['kernel'] = stdout
         #Check if we are on red hat based distributions
         if os.path.isfile('/etc/redhat-release'):
-            out = subprocess.Popen(['cat','/etc/redhat-release'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['cat','/etc/redhat-release'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         else:
-            out = subprocess.Popen(['lsb_release','-d'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['lsb_release','-d'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("getting OS information encountered an error: " + stderr.decode())

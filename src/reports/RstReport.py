@@ -193,7 +193,7 @@ class RstReport(object):
         f.close()
     
     def toPDF(self,pdfgen):
-        pdf = subprocess.Popen([pdfgen, self.__testname+'.rst'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        pdf = subprocess.Popen([pdfgen, self.__testname+'.rst'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         stderr = pdf.communicate()[1]
         if pdf.returncode != 0:
             logging.error("generating the PDF encountered an error: " + stderr)
