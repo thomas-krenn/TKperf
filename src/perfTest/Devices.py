@@ -690,7 +690,7 @@ class SSD(Device):
             if out.returncode != 0:
                 logging.error('# Error: nvme id-ns encountered an error: ' + stderr)
                 return False
-            output_line = list([_f for _f in stdout.decode().split('\n') if _f])
+            output_line = list([_f for _f in stdout.split('\n') if _f])
             for line in output_line:
                 if 'lbaf' in line and 'in use' in line:
                     lbaf_opt = '-l={}'.format(line.split()[1])
