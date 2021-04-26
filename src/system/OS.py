@@ -43,7 +43,7 @@ class RAIDtec(object, metaclass=ABCMeta):
         Checks the current available block devices.
         Sets blockdevs of OS.
         '''
-        out = subprocess.Popen(['lsblk', '-l', '-n', '-e', '7', '-e', '1', '-o', 'NAME'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out = subprocess.Popen(['lsblk', '-l', '-n', '-e', '7', '-e', '1', '-o', 'NAME'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True)
         (stdout, stderr) = out.communicate()
         if stderr != '':
             logging.error("lsblk encountered an error: " + stderr)
@@ -81,7 +81,7 @@ class Mdadm(RAIDtec):
         '''
         Checks for mdadm and sets the util path.
         '''
-        mdadm = subprocess.Popen(['which', 'mdadm'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        mdadm = subprocess.Popen(['which', 'mdadm'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         stdout = mdadm.communicate()[0]
         if mdadm.returncode != 0:
             logging.error("# Error: command 'which mdadm' returned an error code.")
@@ -117,7 +117,7 @@ class Mdadm(RAIDtec):
 
     def deleteVD(self):
         logging.info("# Deleting raid device "+self.getDevPath())
-        mdadm = subprocess.Popen([self.getUtil(), "--stop", self.getDevPath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        mdadm = subprocess.Popen([self.getUtil(), "--stop", self.getDevPath()], stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True)
         stderr = mdadm.communicate()[1]
         if mdadm.returncode != 0:
             logging.error("mdadm encountered an error: " + stderr)
@@ -126,12 +126,12 @@ class Mdadm(RAIDtec):
         # If the raid device was overwritten completely before (precondition), zero-superblock can fail
         for dev in self.getDevices():
             logging.info("# Deleting superblock for device "+dev)
-            mdadm = subprocess.Popen([self.getUtil(), "--zero-superblock", dev], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            mdadm = subprocess.Popen([self.getUtil(), "--zero-superblock", dev], stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True)
             mdadm.communicate()
 
     def isReady(self):
         logging.info("# Checking if raid device "+self.getDevPath()+" is ready...")
-        process = subprocess.Popen(["cat", "/proc/mdstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(["cat", "/proc/mdstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True)
         (stdout, stderr) = process.communicate()
         if stderr != '':
             logging.error("cat mdstat encountered an error: " + stderr)
@@ -185,10 +185,10 @@ class Storcli(RAIDtec):
         '''
         Checks for the storcli executable and sets the path of storcli.
         '''
-        storcli = subprocess.Popen(['which', 'storcli'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        storcli = subprocess.Popen(['which', 'storcli'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         stdout = storcli.communicate()[0]
         if storcli.returncode != 0:
-            storcli = subprocess.Popen(['which', 'storcli64'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            storcli = subprocess.Popen(['which', 'storcli64'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             stdout = storcli.communicate()[0]
         if storcli.returncode != 0:
             logging.error("# Error: command 'which storcli' returned an error code.")
@@ -205,7 +205,7 @@ class Storcli(RAIDtec):
             logging.info("# Checking for virtual drive "+self.getVD())
             match = re.search('^[0-9]\/([0-9]+)',self.getVD())
             vdNum = match.group(1)
-            storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = storcli.communicate()
             if storcli.returncode != 0:
                 logging.error("storcli encountered an error: " + stderr)
@@ -229,7 +229,7 @@ class Storcli(RAIDtec):
         else:
             logging.info("# VD not set, checking for PDs: ")
             logging.info(self.getDevices())
-            storcli = subprocess.Popen([self.getUtil(),'/c0/vall', 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            storcli = subprocess.Popen([self.getUtil(),'/c0/vall', 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = storcli.communicate()
             if storcli.returncode != 0:
                 logging.error("storcli encountered an error: " + stderr)
@@ -262,7 +262,7 @@ class Storcli(RAIDtec):
         @param vdNum Number of VD to check for
         @return A list of enclosure:device IDs
         '''
-        storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'show', 'all'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
@@ -282,9 +282,9 @@ class Storcli(RAIDtec):
         Checks which virtual drives are configured.
         Sets VDs as a list of virtual drives.
         '''
-        process1 = subprocess.Popen([self.getUtil(), '/call', '/vall', 'show'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process2 = subprocess.Popen(['awk', 'BEGIN{RS=ORS=\"\\n\\n\";FS=OFS=\"\\n\\n\"}/TYPE /'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process1.stdout)
-        process3 = subprocess.Popen(['awk', '/^[0-9]/{print $1}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process2.stdout)
+        process1 = subprocess.Popen([self.getUtil(), '/call', '/vall', 'show'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,universal_newlines=True)
+        process2 = subprocess.Popen(['awk', 'BEGIN{RS=ORS=\"\\n\\n\";FS=OFS=\"\\n\\n\"}/TYPE /'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process1.stdout,universal_newlines=True)
+        process3 = subprocess.Popen(['awk', '/^[0-9]/{print $1}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=process2.stdout,universal_newlines=True)
         process1.stdout.close()
         process2.stdout.close()
         (stdout, stderr) = process3.communicate()
@@ -352,7 +352,7 @@ class Storcli(RAIDtec):
             # off to prevent performance influences caused by autobgi
             match = re.search('^[0-9]\/([0-9]+)', self.getVD())
             vdNum = match.group(1)
-            storclibgi = subprocess.Popen([self.getUtil(),'/c0/v' + vdNum, 'set autobgi=off'], stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            storclibgi = subprocess.Popen([self.getUtil(),'/c0/v' + vdNum, 'set autobgi=off'], stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             stderr = storclibgi.communicate()[1]
             if storclibgi.returncode != 0:
                 logging.error("storcli encountered an error: " + stderr)
@@ -370,7 +370,7 @@ class Storcli(RAIDtec):
         '''
         match = re.search('^[0-9]\/([0-9]+)',self.getVD())
         vdNum = match.group(1)
-        storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        storcli = subprocess.Popen([self.getUtil(),'/c0/v'+vdNum, 'del', 'force'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         stderr = storcli.communicate()[1]
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
@@ -385,7 +385,7 @@ class Storcli(RAIDtec):
         @return True if VD is ready, False if not
         '''
         ready = None
-        storcli = subprocess.Popen([self.getUtil(),'/c0/eall/sall', 'show', 'rebuild'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        storcli = subprocess.Popen([self.getUtil(),'/c0/eall/sall', 'show', 'rebuild'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout, stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)
@@ -405,7 +405,7 @@ class Storcli(RAIDtec):
                                 ready = False
         match = re.search('^[0-9]\/([0-9]+)',self.getVD())
         vdNum = match.group(1)
-        storcli = subprocess.Popen([self.getUtil(),'/call', '/v'+vdNum, 'show', 'init'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        storcli = subprocess.Popen([self.getUtil(),'/call', '/v'+vdNum, 'show', 'init'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout, stderr) = storcli.communicate()
         if storcli.returncode != 0:
             logging.error("storcli encountered an error: " + stderr)

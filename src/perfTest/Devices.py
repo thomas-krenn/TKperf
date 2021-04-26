@@ -126,14 +126,14 @@ class Device(object, metaclass=ABCMeta):
         @return Size on success
         @exception RuntimeError if blockdev fails
         '''
-        out = subprocess.Popen(['blockdev','--getss',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['blockdev','--getss',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("blockdev --getss encountered an error: " + stderr)
             raise RuntimeError("blockdev error")
         else:
             sectorSize = int(stdout)
-            out = subprocess.Popen(['blockdev','--getsz',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['blockdev','--getsz',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if stderr != '':
                 logging.error("blockdev --getsz encountered an error: " + stderr)
@@ -157,7 +157,7 @@ class Device(object, metaclass=ABCMeta):
         @return Size on success
         @exception RuntimeError if blockdev fails
         '''
-        out = subprocess.Popen(['blockdev','--getsize64',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['blockdev','--getsize64',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("blockdev --getsize64 encountered an error: " + stderr)
@@ -176,7 +176,7 @@ class Device(object, metaclass=ABCMeta):
         @return Size on success
         @exception RuntimeError if blockdev fails or size is 0
         '''
-        out = subprocess.Popen(['blockdev','--getpbsz',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['blockdev','--getpbsz',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("blockdev --getpbsz encountered an error: " + stderr)
@@ -196,7 +196,7 @@ class Device(object, metaclass=ABCMeta):
         @return Size on success
         @exception RuntimeError if blockdev fails or size is 0
         '''
-        out = subprocess.Popen(['blockdev','--getss',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['blockdev','--getss',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("blockdev --getss encountered an error: " + stderr)
@@ -217,7 +217,7 @@ class Device(object, metaclass=ABCMeta):
         @return True if device is mounted, False if not
         @exception RuntimeError if mount command fails
         '''
-        out = subprocess.Popen(['mount','-l'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['mount','-l'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("mount -l encountered an error: " + stderr)
@@ -234,7 +234,7 @@ class Device(object, metaclass=ABCMeta):
         Check if the given device is a valid partition.
         @return True if yes, False if not.
         '''
-        out = subprocess.Popen(['cat','/proc/partitions'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['cat','/proc/partitions'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("cat /proc/partitions encountered an error: " + stderr)
@@ -276,7 +276,7 @@ class Device(object, metaclass=ABCMeta):
 
     def devInfoHdparm(self):
         logging.info("# Trying to get device info with hdparm")
-        out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['hdparm','-I',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("hdparm -I encountered an error: " + stderr)
@@ -305,7 +305,7 @@ class Device(object, metaclass=ABCMeta):
             #Check for write caching state
             stdout = ''
             stderr = ''
-            out = subprocess.Popen(['hdparm','-W',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['hdparm','-W',self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if stderr != '':
                 logging.error("# Error: hdparm -W encountered an error: " + stderr)
@@ -320,7 +320,7 @@ class Device(object, metaclass=ABCMeta):
 
     def devInfoUdevadm(self):
         logging.info("# Trying to get device info with udevadm")
-        out = subprocess.Popen(['udevadm', 'info', '--name=' + self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['udevadm', 'info', '--name=' + self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if out.returncode != 0:
             logging.error("udevadm info encountered an error: " + stderr)
@@ -335,7 +335,7 @@ class Device(object, metaclass=ABCMeta):
                     self.__devinfo += line + '\n'
                 if line.find("ID_SERIAL") > -1:
                     self.__devinfo += line + '\n'
-            out = subprocess.Popen(['blockdev', '--getsize64' ,self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['blockdev', '--getsize64' ,self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error("blockdev --getsize64 encountered an error: " + stderr)
@@ -374,7 +374,7 @@ class Device(object, metaclass=ABCMeta):
         # For sas devices use sg utils
         elif self.getIntfce() == 'sas':
             logging.info("# Trying to get device info with sginfo")
-            out = subprocess.Popen(['sginfo', '-a', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['sginfo', '-a', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error("sginfo -a encountered an error: " + stderr)
@@ -393,7 +393,7 @@ class Device(object, metaclass=ABCMeta):
                         self.__devinfo += line + '\n'
                     if line.find("Write Cache Enabled") > -1:
                         self.__devinfo += line + '\n'
-                out = subprocess.Popen(['sg_readcap', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out = subprocess.Popen(['sg_readcap', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
                 (stdout,stderr) = out.communicate()
                 if out.returncode != 0:
                     logging.error("sg_readcap encountered an error: " + stderr)
@@ -406,7 +406,7 @@ class Device(object, metaclass=ABCMeta):
         # For nvme devices use nvme tools
         elif self.getIntfce() == 'nvme':
             logging.info("# Trying to get device info with nvme id-ctrl")
-            out = subprocess.Popen(['nvme', 'id-ctrl', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['nvme', 'id-ctrl', self.__path],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error("nvme id-ctrl encountered an error: " + stderr)
@@ -512,7 +512,7 @@ class SSD(Device):
         secured = True
         securitySet = False
         #start hdparm to grab the state for frozen, locked and secured
-        out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("hdparm -I encountered an error: " + stderr)
@@ -550,7 +550,7 @@ class SSD(Device):
                     #the secured state (or locked) was not detected in previous steps so we start to set the security password here
                     out = subprocess.Popen(['hdparm', '--user-master','u',
                                             '--security-set-pass','pwd',self.getDevPath()],
-                                            stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                                            stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
                     stdout,stderr = out.communicate()
                     if out.returncode != 0:
                         logging.error("# Error: command 'hdparm --user-master u --security-set-pass pwd returned an error code.")
@@ -558,7 +558,7 @@ class SSD(Device):
                         raise RuntimeError("hdparm command error on setting the security")
                 #at this point the password is set, either by the above command or it has been left over from a previous run
                 #the next step is to check with hdparm if this states that the master password has been set successfully
-                out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
                 (stdout,stderr) = out.communicate()
                 if stderr != '':
                     logging.error("hdparm -I encountered an error: " + stderr)
@@ -589,7 +589,7 @@ class SSD(Device):
                         logging.info("Starting secure erase via hdparm")
                         out = subprocess.Popen(['hdparm', '--user-master','u',
                                                 '--security-erase','pwd',self.getDevPath()],
-                                                stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                                                stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
                         stdout,stderr = out.communicate()
                         logging.info("Secure erase done, checking its output")
                         if out.returncode != 0:
@@ -599,7 +599,7 @@ class SSD(Device):
                         else:
                             logging.info("# Successfully carried out secure erase for "+self.getDevPath())
                             #Check if security is diasbled again by parsing the hdparm output
-                            out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                            out = subprocess.Popen(['hdparm','-I',self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
                             (stdout,stderr) = out.communicate()
                             if stderr != '':
                                 logging.error("hdparm -I encountered an error: " + stderr)
@@ -620,7 +620,7 @@ class SSD(Device):
                                             logging.info("# Security still enabled for hdparm, therefore calling disable.")
                                             out = subprocess.Popen(['hdparm', '--user-master','u',
                                                 '--security-disable','pwd',self.getDevPath()],
-                                                stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                                                stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
                                             stdout,stderr = out.communicate()
                                             if out.returncode != 0:
                                                 logging.error("# Error: command 'hdparm --user-master u --security-disable pwd returned an error code.")
@@ -641,7 +641,7 @@ class SSD(Device):
         @return True if blocks were discarded, False if not
         '''
         logging.info("# Trying to discard all blocks with blkdiscard.")
-        out = subprocess.Popen(['blkdiscard', '-v', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['blkdiscard', '-v', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if out.returncode != 0:
             logging.warn("# blkdiscard returned an error: " + stderr)
@@ -673,7 +673,7 @@ class SSD(Device):
                 logging.warn("# Continuing tests without running Secure Erase/blkdiscard")
         elif self.getIntfce() == 'sas':
             logging.info("# Using sg_format as secure erase for SAS device.")
-            out = subprocess.Popen(['sg_format', '--format', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['sg_format', '--format', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error("# Error: sg_format --format encountered an error: " + stderr)
@@ -685,17 +685,17 @@ class SSD(Device):
             # Detect the correct lbaf of the nvme device and use it for the format command.
             lbaf_opt = ''
             logging.info('# Detect used nvme lbaf.')
-            out = subprocess.Popen(['nvme', 'id-ns', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['nvme', 'id-ns', self.getDevPath()],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error('# Error: nvme id-ns encountered an error: ' + stderr)
                 return False
-            output_line = list([_f for _f in stdout.decode().split('\n') if _f])
+            output_line = list([_f for _f in stdout.split('\n') if _f])
             for line in output_line:
                 if 'lbaf' in line and 'in use' in line:
                     lbaf_opt = '-l={}'.format(line.split()[1])
             logging.info("# Using nvme format as secure erase for NVME device.")
-            out = subprocess.Popen(['nvme', 'format', self.getDevPath(), '-s=1', lbaf_opt],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['nvme', 'format', self.getDevPath(), '-s=1', lbaf_opt],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error("# Error: nvme format encountered an error: " + stderr)
@@ -711,7 +711,7 @@ class SSD(Device):
             fusionPath = '/dev/fct' + str(fusionNum)
             logging.info("# Matched " + self.getDevPath() + "to " + fusionPath)
             logging.info("# Detaching " + fusionPath)
-            out = subprocess.Popen(['fio-detach', fusionPath],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['fio-detach', fusionPath],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
             (stdout,stderr) = out.communicate()
             if out.returncode != 0:
                 logging.error("# Error: command 'fio-detach' returned an error code.")
@@ -719,7 +719,7 @@ class SSD(Device):
                 raise RuntimeError("fio-detach command error")
             else:
                 logging.info("# Running fio-sure-erase for " + fusionPath)
-                out = subprocess.Popen(['fio-sure-erase', fusionPath, '-y'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                out = subprocess.Popen(['fio-sure-erase', fusionPath, '-y'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
                 (stdout,stderr) = out.communicate()
                 if out.returncode != 0:
                     logging.error("# Error: command 'fio-sure-erase' returned an error code.")
@@ -728,7 +728,7 @@ class SSD(Device):
                 else:
                     logging.info("# fio-sure-erase: " + stdout)
                     logging.info("# Attaching " + fusionPath)
-                    out = subprocess.Popen(['fio-attach', fusionPath],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    out = subprocess.Popen(['fio-attach', fusionPath],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
                     (stdout,stderr) = out.communicate()
                     if out.returncode != 0:
                         logging.error("# Error: command 'fio-attach' returned an error code.")
