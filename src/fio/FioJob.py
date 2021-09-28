@@ -50,14 +50,14 @@ class FioJob(object):
 
     def initialize(self):
         ''' Initialize Fio path and version. '''
-        fio = subprocess.Popen(['which', 'fio'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        fio = subprocess.Popen(['which', 'fio'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         stdout = fio.communicate()[0]
         if fio.returncode != 0:
             logging.error("# Error: command 'which fio' returned an error code.")
-            raise RuntimeError, "which fio command error"
+            raise RuntimeError("which fio command error")
 
         self.__fioPath = stdout.rstrip("\n");
-        fio = subprocess.Popen(['fio','--version'],stdout=subprocess.PIPE)
+        fio = subprocess.Popen(['fio','--version'],stdout=subprocess.PIPE,universal_newlines=True)
         self.__fioVersion = fio.communicate()[0]
 
     def getFioVersion(self):
@@ -74,16 +74,16 @@ class FioJob(object):
             match = re.search(r'[\d\.]+',self.__fioVersion)
             if match == None:
                 logging.error("# Error: checking fio version returned a none string.")
-                raise RuntimeError, "fio version string error"
+                raise RuntimeError("fio version string error")
             version = match.group().split('.')
             if int(version[0]) < 2:
                 logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
-                raise RuntimeError, "fio version to old error"
+                raise RuntimeError("fio version to old error")
             if int(version[0]) >= 2:
                 if int(version[1]) == 0:
                     if int(version[2]) < 3:
                         logging.error("# Error: the fio version is to old, ensure to use > 2.0.3.")
-                        raise RuntimeError, "fio version to old error"
+                        raise RuntimeError("fio version to old error")
 
     def appendXml(self,root):
         '''
@@ -130,7 +130,7 @@ class FioJob(object):
     def prepKVArgs(self):
         ''' Generate an argument list out of the dictionary suited for fio. '''
         argList = [self.__fioPath]
-        for k,v in self.__fioKVArgs.iteritems():
+        for k,v in self.__fioKVArgs.items():
             argList.append('--' + k + '=' + v)
         return argList
     
@@ -151,7 +151,7 @@ class FioJob(object):
         if len(args) == 0:
             logging.error("Error: Fio argument list is empty.")
             exit(1)
-        out = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("Fio encountered an error: " + stderr)

@@ -32,8 +32,8 @@
   * time.sleep
   * setuptools
 * Under Ubuntu it is normally sufficient to install:
-    $ sudo apt-get install python-argparse python-matplotlib \
-    python-lxml python-numpy python-simplejson python-setuptools
+    $ sudo apt-get install python3-matplotlib \
+    python3-lxml python3-numpy python3-simplejson python3-setuptools
 * The following software is required:
   * FIO version 2.0.3 or higher.
     Please note that older FIO versions are not supported due to an

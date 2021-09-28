@@ -75,7 +75,7 @@ class PerfTest(object):
         Collects some information about the current OS in use.
         @return True if all infos are present, False on error.
         '''
-        out = subprocess.Popen(['uname','-r'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        out = subprocess.Popen(['uname','-r'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("uname -r encountered an error: " + stderr)
@@ -84,9 +84,9 @@ class PerfTest(object):
             self.__OSInfo['kernel'] = stdout
         #Check if we are on red hat based distributions
         if os.path.isfile('/etc/redhat-release'):
-            out = subprocess.Popen(['cat','/etc/redhat-release'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['cat','/etc/redhat-release'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         else:
-            out = subprocess.Popen(['lsb_release','-d'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            out = subprocess.Popen(['lsb_release','-d'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
         (stdout,stderr) = out.communicate()
         if stderr != '':
             logging.error("getting OS information encountered an error: " + stderr)
@@ -156,7 +156,7 @@ class PerfTest(object):
         init params for all tests.
         '''
         sorted(self.__tests.items())
-        for k,v in self.__tests.items():
+        for k,v in list(self.__tests.items()):
             logging.info("# Initialiazing test "+k)
             v.initialize()
 
@@ -167,8 +167,8 @@ class PerfTest(object):
         '''
         #sort per key to ensure tests have the same order
         sorted(self.__tests.items())
-        for k,v in self.__tests.items():
-            print "Starting test: " + k
+        for k,v in list(self.__tests.items()):
+            print("Starting test: " + k)
             #before each test sleep, to ensure device operations of previous
             #tests are finished
             logging.info("# Sleeping for 5 seconds...")
@@ -180,7 +180,7 @@ class PerfTest(object):
         Generate the plots/charts for each specific test in the dictionary.
         '''
         sorted(self.__tests.items())
-        for k,v in self.__tests.items():
+        for k,v in list(self.__tests.items()):
             logging.info("# Generating plots for "+k+" test")
             v.genPlots()
 
@@ -215,7 +215,7 @@ class PerfTest(object):
             dev.text = json.dumps(self.__cmdLineArgs)
         # Call the xml function for every test in the dictionary
         sorted(self.__tests.items())
-        for k,v in tests.iteritems():
+        for k,v in tests.items():
             e.append(v.toXml(k))
         self.getXmlReport().xmlToFile(self.getTestname())
 
@@ -341,13 +341,13 @@ class SsdPerfTest(PerfTest):
         rst.addFooter()
         rst.addTitle()
         #add the device information and the feature matrix for one device
-        for keys in tests.iterkeys():
+        for keys in tests.keys():
             rst.addDevInfo(tests[keys].getDevice().getDevInfo(),tests[keys].getDevice().getFeatureMatrix())
             break
         rst.addCmdLine(self.getCmdLineArgs())
 
         #add the fio version, nj, iod and general info of one test to the report
-        for keys in tests.iterkeys():
+        for keys in tests.keys():
             if keys != 'lat':
                 rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                                  self.getTestDate())
@@ -430,13 +430,13 @@ class HddPerfTest(PerfTest):
         rst.addFooter()
         rst.addTitle()
         #add the device information and the feature matrix for one device
-        for keys in tests.iterkeys():
+        for keys in tests.keys():
             rst.addDevInfo(tests[keys].getDevice().getDevInfo(),tests[keys].getDevice().getFeatureMatrix())
             break
         rst.addCmdLine(self.getCmdLineArgs())
 
         #Setup and OS infos are the same for all tests, just take one
-        for keys in tests.iterkeys():
+        for keys in tests.keys():
             rst.addSetupInfo(self.getIOPerfVersion(),tests[keys].getFioJob().getFioVersion(),
                              self.getTestDate())
             rst.addFioJobInfo(tests[keys].getOptions().getNj(), tests[keys].getOptions().getIod())

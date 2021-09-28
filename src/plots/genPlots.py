@@ -3,7 +3,7 @@ Created on 09.07.2012
 
 @author: gschoenb
 '''
-from __future__ import division
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -115,7 +115,7 @@ def stdyStConvPlt(toPlot,mode):
     plt.clf()#clear
 
     #fetch number of rounds, we want to include all rounds
-    x = range(rnds + 1)
+    x = list(range(rnds + 1))
     max_y = 0
     min_y = 0
     if mode == "IOPS":
@@ -340,7 +340,7 @@ def writeSatIOPSPlt(toPlot):
     #fetch number of rounds, we want to include all rounds
     #as stdy state was reached at rnds, it must be included
     rnds = toPlot.getRnds()
-    x = range(rnds + 1)
+    x = list(range(rnds + 1))
     
     iops_l = toPlot.getRndMatrices()[0]#first elem in matrix are iops
 
@@ -348,7 +348,7 @@ def writeSatIOPSPlt(toPlot):
     plt.plot(x,iops_l,'-',label='Avg IOPS')
     plt.ylim(min(iops_l)*0.75,max(iops_l)*1.25)
     #every 10 rounds print the round number
-    x = range(0,rnds + 1,50)
+    x = list(range(0,rnds + 1,50))
     plt.xticks(x)
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
@@ -360,7 +360,7 @@ def writeSatIOPSPlt(toPlot):
     
 def writeSatLatPlt(toPlot):
     rnds = toPlot.getRnds()
-    x = range(rnds + 1)
+    x = list(range(rnds + 1))
     
     lats_l = toPlot.getRndMatrices()[1]#second elem in matrix are latencies
     
@@ -375,7 +375,7 @@ def writeSatLatPlt(toPlot):
     #set the y axes to start at 3/4 of mininum
     plt.ylim(min(av_lats)*0.75,max(av_lats)*1.25)
     #every 50 rounds print the round number
-    x = range(0,rnds + 1,50)
+    x = list(range(0,rnds + 1,50))
     plt.xticks(x)
     plt.suptitle("Write Saturation Test",fontweight='bold')
     plt.xlabel("Round #")
@@ -412,7 +412,7 @@ def tpRWStdyStConvPlt(toPlot):
     min_y = 0
     
     plt.clf()#clear
-    x = range(rnds+1)#ensure to include all rounds
+    x = list(range(rnds+1))#ensure to include all rounds
     
     plt.clf
     fig = plt.figure()
@@ -506,7 +506,7 @@ def TPplot(toPlot):
     min_y = 0
     
     plt.clf()#clear
-    x = range(rnds)
+    x = list(range(rnds))
     for i,rndMat in enumerate(matrices):
         #convert to MB/S
         for v in range(len(rndMat[0])):
@@ -520,7 +520,7 @@ def TPplot(toPlot):
         min_y,max_y = getMinMax(rndMat[1], min_y, max_y)
         plt.plot(x,rndMat[1],'o-',label='write bs='+bsLabels[i])
     
-    x = range(0,rnds+1,16)
+    x = list(range(0,rnds+1,16))
     plt.xticks(x)
     plt.suptitle("TP Measurement Plot",fontweight='bold')    
     plt.xlabel("Area of Device (in rounds)")
@@ -561,7 +561,7 @@ def IOPSplot(toPlot):
                 mixWLds[i][j].append(bs)
 
     plt.clf()#clear
-    x = range(rnds)
+    x = list(range(rnds))
     max_y = 0
     min_y = 0
     for i in range(len(mixWLds)):
@@ -581,7 +581,7 @@ def IOPSplot(toPlot):
             min_y,max_y = getMinMax(mixWLds[i][j], min_y, max_y)
             plt.plot(x,mixWLds[i][j],ls,color=lc,
                   label=str(wlds[i])+'/bs=' + bsLabels[j])
-    x = range(0,rnds + 1,16)
+    x = list(range(0,rnds + 1,16))
     plt.xticks(x)
     plt.suptitle("IOPS Measurement Plot",fontweight='bold')
     plt.xlabel("Area of Device (in rounds)")
@@ -621,7 +621,7 @@ def TPBoxPlot(toPlot):
         boxes.append(bsRows[1])
         min_y,max_y = getMinMax(bsRows[1], min_y, max_y)
     #Length of BS per R/W
-    pos = range(len(bsLabels) * 2)
+    pos = list(range(len(bsLabels) * 2))
     plt.boxplot(boxes,positions=pos)
     labels = []
     for l in bsLabels:
