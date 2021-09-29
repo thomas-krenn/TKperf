@@ -311,6 +311,9 @@ class SsdLatencyTest(DeviceTest):
         if options != None:
             #For latency the specification says to use 1 job/thread, 1 outstanding IO
             wsoptions = Options(1,1)
+            # Keep the runtime parameter if set on start
+            if options.getRuntime():
+                wsoptions.setRuntime(options.getRuntime())
             if options.getXargs() != None:
                 wsoptions.setXargs(options.getXargs())
         super(SsdLatencyTest,self).__init__(testname,device,wsoptions)
