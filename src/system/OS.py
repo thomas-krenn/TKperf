@@ -112,7 +112,7 @@ class Mdadm(RAIDtec):
         mdadm = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stderr = mdadm.communicate()[1]
         if stderr != '':
-            logging.error("mdadm encountered an error: " + stderr)
+            logging.error("mdadm encountered an error: " + str(stderr))
             raise RuntimeError("mdadm command error")
 
     def deleteVD(self):
@@ -328,7 +328,7 @@ class Storcli(RAIDtec):
         process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stderr = process.communicate()[1]
         if process.returncode != 0:
-            logging.error("storcli encountered an error: " + stderr)
+            logging.error("storcli encountered an error: " + str(stderr))
             raise RuntimeError("storcli command error")
         else:
             # Wait for update of lsblk
