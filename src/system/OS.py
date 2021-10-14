@@ -302,11 +302,11 @@ class Storcli(RAIDtec):
         enclosure:drive IDs. self.__devices must be a list of raid devices as
         strings, e.g. ['e252:1','e252:2'].
         ''' 
-        encid = split(self.getDevices()[0], ":")[0]
+        encid = self.getDevices()[0].split(":")[0]
         args = [self.getUtil(), '/c0', 'add', 'vd', str('type=r' + str(self.getLevel()))]
         devicearg = "drives=" + encid + ":"
         for dev in self.getDevices():
-            devicearg += split(dev, ":")[1] + ","
+            devicearg += dev.split(":")[1] + ","
         args.append(devicearg.rstrip(","))
         if str(self.getLevel()) == "10":
             args.append(str('PDperArray=2'))
