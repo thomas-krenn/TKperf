@@ -108,11 +108,10 @@ class Mdadm(RAIDtec):
             args.append(dev)
         logging.info("# Creating raid device "+self.getDevPath())
         logging.info("# Command line: "+subprocess.list2cmdline(args))
-        ##Execute the commandline
-        mdadm = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        mdadm = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         stderr = mdadm.communicate()[1]
-        if stderr != '':
-            logging.error("mdadm encountered an error: " + str(stderr))
+        if mdadm.returncode != 0:
+            logging.error("mdadm encountered an error: " + stderr)
             raise RuntimeError("mdadm command error")
 
     def deleteVD(self):
