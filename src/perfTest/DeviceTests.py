@@ -560,12 +560,13 @@ class SsdTPTest(DeviceTest):
         tpWrite = self.getFioJob().getTPWrite(jobOut)
         return [tpRead,tpWrite]
 
-    def testRound(self,rw,bs):
+    def testRound(self,rw,bs, rnd):
         '''
         Carry out one test round of the read or write throughput test.
         Read and Write throughput is tested with the given block size
         @param rw
         @param bs The current block size to use.
+        @param rnd The current round number
         @return Read or Write bandwidths tpRead or tpWrite
         '''
         self.getFioJob().addKVArg("bs",bs)
@@ -587,6 +588,10 @@ class SsdTPTest(DeviceTest):
                 tpWrite = 0 #write bandwidth
                 #start write tests
                 self.getFioJob().addKVArg("rw","write")
+                if rnd == 0:
+                    self.getFioJob().addKVArg("ramp_time",str(self.getOptions().getTPramptime()))
+                else:
+                    self.getFioJob().addKVArg("ramp_time","0")
                 call,jobOut = self.getFioJob().start()
                 if call == False:
                     exit(1)
@@ -622,7 +627,7 @@ class SsdTPTest(DeviceTest):
             for i in range(StdyState.testRnds):
                 logging.info("######")
                 logging.info("Write Round nr. "+str(i))
-                tpWrite = self.testRound("write",j)
+                tpWrite = self.testRound("write",j,i)
                 tpWrite_l.append(tpWrite)
                 
                 #if the rounds have been set by steady state for 1M block size
@@ -655,7 +660,7 @@ class SsdTPTest(DeviceTest):
             for i in range(StdyState.testRnds):
                 logging.info("######")
                 logging.info("Read Round nr. "+str(i))
-                tpRead = self.testRound("read",j)
+                tpRead = self.testRound("read",j,i)
                 tpRead_l.append(tpRead)
 
                 #if the rounds have been set by steady state for 1M block size

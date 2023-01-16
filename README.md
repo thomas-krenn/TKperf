@@ -178,7 +178,7 @@ usage: tkperf [-h] [-v] [-d] [-q] [-nj NUMJOBS] [-iod IODEPTH] [-rt RUNTIME]
               [-i {sas,nvme,fusion}] [-xml] [-rfb] [-dsc DESC_FILE]
               [-c CONFIG] [-ft] [-fm FEATURE_MATRIX] [-hddt {iops,tp}]
               [-ssdt {iops,lat,tp,writesat}] [-m MAIL] [-s SMTP]
-              [-g GEN_REPORT]
+              [-g GEN_REPORT] [-trp RAMPTIME]
               {hdd,ssd,raid} testname device
 
 positional arguments:
@@ -199,6 +199,9 @@ optional arguments:
   -rt RUNTIME, --runtime RUNTIME
                         specify the fio runtime of one test round, if not set
                         this is 60 seconds
+  -trp RAMPTIME, --tpramptime RAMPTIME
+                        specify the fio ramp_time of the first throughput
+                        write test round, if not set this is 30 seconds
   -i {sas,nvme,fusion}, --interface {sas,nvme,fusion}
                         specify optional device interface
   -xml, --fromxml       don't run tests but load test objects from xml file
