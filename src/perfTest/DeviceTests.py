@@ -559,7 +559,45 @@ class SsdTPTest(DeviceTest):
         logging.info("######")
         tpWrite = self.getFioJob().getTPWrite(jobOut)
         return [tpRead,tpWrite]
-    
+
+    def testRound(self,rw,bs):
+        '''
+        Carry out one test round of the read or write throughput test.
+        Read and Write throughput is tested with the given block size
+        @param rw
+        @param bs The current block size to use.
+        @return Read or Write bandwidths tpRead or tpWrite
+        '''
+        self.getFioJob().addKVArg("bs",bs)
+        jobOut = ''
+        if rw == "read":
+            tpRead = 0 #read bandwidth
+            #start read tests
+            self.getFioJob().addKVArg("rw","read")
+            call,jobOut = self.getFioJob().start()
+            if call == False:
+                 exit(1)
+            logging.info("Read TP test:")
+            logging.info(jobOut)
+            logging.info("######")
+            tpRead = self.getFioJob().getTPRead(jobOut)
+            return tpRead
+        else:
+            if rw == "write":
+                tpWrite = 0 #write bandwidth
+                #start write tests
+                self.getFioJob().addKVArg("rw","write")
+                call,jobOut = self.getFioJob().start()
+                if call == False:
+                    exit(1)
+                logging.info("Write TP test:")
+                logging.info(jobOut)
+                logging.info("######")
+                tpWrite = self.getFioJob().getTPWrite(jobOut)
+                return tpWrite
+            else:
+                return
+
     def runRounds(self):
         '''
         Carry out the throughput/bandwidth test rounds and check if the steady state is reached.
@@ -583,16 +621,14 @@ class SsdTPTest(DeviceTest):
             
             for i in range(StdyState.testRnds):
                 logging.info("######")
-                logging.info("Round nr. "+str(i))
-                tpRead,tpWrite = self.testRound(j)
-                tpRead_l.append(tpRead)
+                logging.info("Write Round nr. "+str(i))
+                tpWrite = self.testRound("write",j)
                 tpWrite_l.append(tpWrite)
                 
                 #if the rounds have been set by steady state for 1M block size
                 #we need to carry out only i rounds for the other block sizes
                 #as steady state has already been reached
                 if self.getStdyState().getRnds() != 0 and self.getStdyState().getRnds() == i:
-                    self.getRndMatrices().append([tpRead_l,tpWrite_l])
                     break
                 
                 # Use 1M block sizes sequential write for steady state detection
@@ -614,9 +650,21 @@ class SsdTPTest(DeviceTest):
                             logging.warn("#Did not reach steady state for bs %s",j)
                         #In both cases we are done with steady state checking
                         if steadyState == True or i == ((StdyState.testRnds) - 1):
-                            self.getRndMatrices().append([tpRead_l,tpWrite_l])
                             #Done with 1M block size
                             break
+            for i in range(StdyState.testRnds):
+                logging.info("######")
+                logging.info("Read Round nr. "+str(i))
+                tpRead = self.testRound("read",j)
+                tpRead_l.append(tpRead)
+
+                #if the rounds have been set by steady state for 1M block size
+                #we need to carry out only i rounds for the other block sizes
+                #as steady state has already been reached
+                if self.getStdyState().getRnds() != 0 and self.getStdyState().getRnds() == i:
+                    break
+
+            self.getRndMatrices().append([tpRead_l,tpWrite_l])
         #Return current steady state
         return self.getStdyState().isSteady()
         
