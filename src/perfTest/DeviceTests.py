@@ -236,6 +236,11 @@ class SsdIopsTest(DeviceTest):
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
             raise
         try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
+        try:
             if self.getOptions() == None:
                 self.getDevice().precondition(1,1)
             else:
@@ -252,6 +257,11 @@ class SsdIopsTest(DeviceTest):
         if steadyState == False:
             logging.info("# Steady State has not been reached for IOPS Test.")
         self.toLog()
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         return True
 
     def toXml(self,root):
@@ -428,6 +438,12 @@ class SsdLatencyTest(DeviceTest):
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
             raise
         try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
+        return True
+        try:
             if self.__userOptions == None:
                 self.getDevice().precondition(1,1)
             else:
@@ -444,6 +460,11 @@ class SsdLatencyTest(DeviceTest):
         if steadyState == False:
             logging.info("# Steady State has not been reached for Latency Test.")
         self.toLog()
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         return True
 
     def toXml(self,root):
@@ -679,10 +700,20 @@ class SsdTPTest(DeviceTest):
         @return True if all tests were run
         '''
         logging.info("########### Starting Throughput Test ###########")
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         steadyState = self.runRounds()
         if steadyState == False:
             logging.info("# Steady State has not been reached for Throughput Test.")
         self.toLog()
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         return True
 
     def toXml(self,root):
@@ -827,9 +858,19 @@ class SsdWriteSatTest(DeviceTest):
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
             raise
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         logging.info("########### Starting Write Saturation Test ###########")
         self.runRounds()
         self.toLog()
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         return True
 
     def toXml(self,root):
