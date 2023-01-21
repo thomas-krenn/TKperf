@@ -770,6 +770,7 @@ class SSD(Device):
         job.addKVArg("iodepth",str(iod))
         job.addSglArg("group_reporting")
         job.addSglArg('refill_buffers')
+        job.addKVArg("size",str(round(100/nj))+"%")
 
         for i in range(SSD.wlIndPrecRnds):
             logging.info("# Starting preconditioning round "+str(i))
