@@ -34,6 +34,7 @@ if __name__ == '__main__':
     parser.add_argument("-iod","--iodepth",help="specify iodepth for libaio used by fio",type=int)
     parser.add_argument("-rt","--runtime",help="specify the fio runtime of one test round, if not set this is 60 seconds",type=int)
     parser.add_argument("-trp","--tpramptime",help="specify the fio ramp_time of the first throughput write test round, if not set this is 30 seconds",type=int)
+    parser.add_argument("-tr","--testrnds",help="specify the maximum number of test rounds in a test, if not set this is 25 rounds",type=int)
     parser.add_argument("-i","--interface",help="specify optional device interface",choices=["sas","nvme","fusion","usb","sdcard","compactflash"])
     parser.add_argument("-xml","--fromxml",help="don't run tests but load test objects from xml file",
                         action='store_true')
@@ -86,6 +87,8 @@ if __name__ == '__main__':
         options.setRuntime(args.runtime)
     if args.tpramptime != None:
         options.setTPramptime(args.tpramptime)
+    if args.testrnds != None:
+        options.setTestRnds(args.testrnds)
     if args.refill_buffers == True:
         xargs = ['refill_buffers']
         options.setXargs(xargs)

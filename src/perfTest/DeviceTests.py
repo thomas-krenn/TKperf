@@ -205,7 +205,7 @@ class SsdIopsTest(DeviceTest):
         steadyValues = deque([])#List of 4k random writes IOPS
         xranges = deque([])#Rounds of current measurement window
         
-        for i in range(StdyState.testRnds):
+        for i in range(self.getOptions().getTestRnds()):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
             rndMatrix = self.testRound()
@@ -407,7 +407,7 @@ class SsdLatencyTest(DeviceTest):
         steadyValues = deque([])
         xranges = deque([])#Rounds of current measurement window
         
-        for i in range(StdyState.testRnds):
+        for i in range(self.getOptions().getTestRnds()):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
             rndMatrix = self.testRound()
@@ -645,7 +645,7 @@ class SsdTPTest(DeviceTest):
             logging.info("#################")
             logging.info("Current block size. "+str(j))
             
-            for i in range(StdyState.testRnds):
+            for i in range(self.getOptions().getTestRnds()):
                 logging.info("######")
                 logging.info("Write Round nr. "+str(i))
                 tpWrite = self.testRound("write",j,i)
@@ -671,14 +671,14 @@ class SsdTPTest(DeviceTest):
                         if steadyState == True:
                             logging.info("Reached steady state at round %d",i)
                         #running from 0 to 24
-                        if i == ((StdyState.testRnds) - 1):
+                        if i == ((self.getOptions().getTestRnds()) - 1):
                             self.getStdyState().setReachStdyState(False)
                             logging.warn("#Did not reach steady state for bs %s",j)
                         #In both cases we are done with steady state checking
-                        if steadyState == True or i == ((StdyState.testRnds) - 1):
+                        if steadyState == True or i == ((self.getOptions().getTestRnds()) - 1):
                             #Done with 1M block size
                             break
-            for i in range(StdyState.testRnds):
+            for i in range(self.getOptions().getTestRnds()):
                 logging.info("######")
                 logging.info("Read Round nr. "+str(i))
                 tpRead = self.testRound("read",j,i)
