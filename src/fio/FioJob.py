@@ -20,6 +20,9 @@ class FioJob(object):
     ## Position of write total IO in the fio terse output
     terseTotIOWritePos = 46
 
+    ## Position of read total IO in the fio terse output
+    terseTotIOReadPos = 5
+
     ## Start Position of write latencies in fio terse output
     terseLatStartWritePos = 78
 
@@ -199,7 +202,17 @@ class FioJob(object):
         #index 46 write total IO
         fioTerse = fioOut.split(';')
         return int(fioTerse[FioJob.terseTotIOWritePos])
-    
+
+    def getTotIORead(self,fioOut):
+        '''
+        Parses the read total IO out of the Fio result output.
+        @param fioOut The output of the Fio performance test.
+        @return Write total IO in KB.
+        '''
+        #index 5 read total IO
+        fioTerse = fioOut.split(';')
+        return int(fioTerse[FioJob.terseTotIOReadPos])
+
     def getWriteLats(self,fioOut):
         '''
         Parses the write total latencies out of the Fio result output.

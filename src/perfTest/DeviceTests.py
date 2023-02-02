@@ -499,9 +499,19 @@ class SsdTPTest(DeviceTest):
         super(SsdTPTest,self).__init__(testname,device,options)
         ## Labels of block sizes to run tests with
         self.__bsLabels = ["1024k","64k","8k","4k","512"]
+        # Block size mapping table for offset calculate in bytes, based in 1024(not 1000)
+        self.__bs_mapping = {"1024k": 1048576,
+                             "64k": 65536,
+                             "8k": 8192,
+                             "4k": 4096,
+                             "512": 512,
+                             }
         ## A list of matrices with the collected fio measurement values of each round.
         self.__roundMatrices = []
         self.__stdyState = StdyState()
+        ## set IO offset
+        self.__read_offset = 0  # unit: byte
+        self.__write_offset = 0 # unit: byte
 
     def prepareBsLabels(self, bsToAdd, bsToRemove):
         '''
@@ -527,6 +537,16 @@ class SsdTPTest(DeviceTest):
         logging.info(self.__roundMatrices)
         self.getStdyState().toLog()
 
+    def _round_value(self, value, block_size):
+        '''
+        Round the input value down to blocksize.
+         @return The rounded value.
+        '''
+        temp = value % self.__bs_mapping.get(block_size)
+        if temp:
+            value -= temp
+        return value
+
     def testRound(self,bs):
         '''    
         Carry out one test round of the throughput test.
@@ -541,6 +561,7 @@ class SsdTPTest(DeviceTest):
 
         #start read tests
         self.getFioJob().addKVArg("rw","read")
+        self.getFioJob().addKVArg("offset",str(self.__read_offset))
         call,jobOut = self.getFioJob().start()
         if call == False:
             exit(1)
@@ -548,9 +569,12 @@ class SsdTPTest(DeviceTest):
         logging.info(jobOut)
         logging.info("######")
         tpRead = self.getFioJob().getTPRead(jobOut)
+        # set offset
+        self.__read_offset += self._round_value(self.getFioJob().getTotIORead(jobOut) * 1000, bs) 
         
         #start write tests
         self.getFioJob().addKVArg("rw","write")
+        self.getFioJob().addKVArg("offset",str(self.__write_offset))
         call,jobOut = self.getFioJob().start()
         if call == False:
             exit(1)
@@ -558,8 +582,10 @@ class SsdTPTest(DeviceTest):
         logging.info(jobOut)
         logging.info("######")
         tpWrite = self.getFioJob().getTPWrite(jobOut)
+        # set offset
+        self.__write_offset += self._round_value(self.getFioJob().getTotIOWrite(jobOut) * 1000, bs)
         return [tpRead,tpWrite]
-    
+
     def runRounds(self):
         '''
         Carry out the throughput/bandwidth test rounds and check if the steady state is reached.
@@ -576,11 +602,29 @@ class SsdTPTest(DeviceTest):
                 logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
                 raise
 
+            # it is important to do precondition after secure erase,
+            # in case of read from the un-written blocks.
+            try:
+                if self.getOptions() == None:
+                    self.getDevice().precondition(1,32)  # speed up precondition by set iod=32
+                else:
+                    if self.getOptions().getNj() != None:
+                        nj = self.getOptions().getNj()
+                    if self.getOptions().getIod() != None:
+                        iod = self.getOptions().getIod()
+                    self.getDevice().precondition(nj,iod)  
+            except RuntimeError:
+                logging.error("# Could not carry out preconditioning for "+self.getDevice().getDevPath())
+                raise
+
             tpRead_l = []
             tpWrite_l = []
             logging.info("#################")
             logging.info("Current block size. "+str(j))
-            
+            ## reset offset for every block size loop
+            self.__read_offset = 0
+            self.__write_offset = 0
+
             for i in range(StdyState.testRnds):
                 logging.info("######")
                 logging.info("Round nr. "+str(i))
