@@ -13,8 +13,6 @@ class StdyState(object):
     '''
     Used to define a stable state of a device
     '''
-    ## Max number of carried out test rounds.
-    testRnds = 25
     ## Always use a sliding window of 4 to measure performance values.
     testMesWindow = 4
 
@@ -40,6 +38,8 @@ class StdyState(object):
     def getStdyAvg(self): return self.__stdyAvg
     def getStdyValues(self): return self.__stdyValues
     def getStdySlope(self): return self.__stdySlope
+    def getTestRnds(self): return self.__testRnds
+    def setTestRnds(self,rnds): self.__testRnds = rnds
 
     def setReachStdyState(self,s): self.__reachStdyState = s
 

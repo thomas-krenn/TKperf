@@ -737,6 +737,20 @@ class SSD(Device):
                     else:
                         return True
 
+    def logSMARTlog(self):
+        '''
+        Log SMART log
+        @return True if nvme smart-log was successful
+        '''
+        out = subprocess.Popen(['nvme', 'smart-log', self.getDevPath() ],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)
+        (stdout,stderr) = out.communicate()
+        if out.returncode != 0:
+            logging.error("# Error: nvme smart-log encountered an error: " + stderr)
+            return False
+        else:
+            logging.info("# nvme smartlog: " + stdout)
+            return True
+
     def precondition(self,nj=1,iod=1):
         '''
         Workload independent preconditioning for SSDs.
@@ -756,6 +770,7 @@ class SSD(Device):
         job.addKVArg("iodepth",str(iod))
         job.addSglArg("group_reporting")
         job.addSglArg('refill_buffers')
+        job.addKVArg("size",str(round(100/nj))+"%")
 
         for i in range(SSD.wlIndPrecRnds):
             logging.info("# Starting preconditioning round "+str(i))

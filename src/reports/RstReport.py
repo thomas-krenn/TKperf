@@ -252,7 +252,7 @@ class RstReport(object):
             if 'lsb' in OSDict:
                 print(" - " + OSDict['lsb'], file=self.__rst)
         
-    def addGeneralInfo(self,testtype):
+    def addGeneralInfo(self,testtype,testrounds):
         '''
         Defines some general used words.
         @param testtype The type of the performance test (ssd,hdd)
@@ -285,7 +285,7 @@ class RstReport(object):
             info.write("for the measurement plots. If the steady state has not been reached after a maximum number of rounds the test ")
             info.write("can be stopped as well. The numbers for these two variables are:\n\n")
             print("- Measurement Window: " + str(StdyState.testMesWindow), file=info)
-            print("- Max. number of rounds: " + str(StdyState.testRnds) + '\n', file=info)
+            print("- Max. number of rounds: " + str(testrounds) + '\n', file=info)
             self.addString(info.getvalue())
             info.close()
     

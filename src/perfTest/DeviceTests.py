@@ -205,7 +205,7 @@ class SsdIopsTest(DeviceTest):
         steadyValues = deque([])#List of 4k random writes IOPS
         xranges = deque([])#Rounds of current measurement window
         
-        for i in range(StdyState.testRnds):
+        for i in range(self.getOptions().getTestRnds()):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
             rndMatrix = self.testRound()
@@ -236,6 +236,11 @@ class SsdIopsTest(DeviceTest):
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
             raise
         try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
+        try:
             if self.getOptions() == None:
                 self.getDevice().precondition(1,1)
             else:
@@ -252,6 +257,11 @@ class SsdIopsTest(DeviceTest):
         if steadyState == False:
             logging.info("# Steady State has not been reached for IOPS Test.")
         self.toLog()
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         return True
 
     def toXml(self,root):
@@ -397,7 +407,7 @@ class SsdLatencyTest(DeviceTest):
         steadyValues = deque([])
         xranges = deque([])#Rounds of current measurement window
         
-        for i in range(StdyState.testRnds):
+        for i in range(self.getOptions().getTestRnds()):
             logging.info("#################")
             logging.info("Round nr. "+str(i))
             rndMatrix = self.testRound()
@@ -428,6 +438,12 @@ class SsdLatencyTest(DeviceTest):
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
             raise
         try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
+        return True
+        try:
             if self.__userOptions == None:
                 self.getDevice().precondition(1,1)
             else:
@@ -444,6 +460,11 @@ class SsdLatencyTest(DeviceTest):
         if steadyState == False:
             logging.info("# Steady State has not been reached for Latency Test.")
         self.toLog()
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         return True
 
     def toXml(self,root):
@@ -559,7 +580,50 @@ class SsdTPTest(DeviceTest):
         logging.info("######")
         tpWrite = self.getFioJob().getTPWrite(jobOut)
         return [tpRead,tpWrite]
-    
+
+    def testRound(self,rw,bs, rnd):
+        '''
+        Carry out one test round of the read or write throughput test.
+        Read and Write throughput is tested with the given block size
+        @param rw
+        @param bs The current block size to use.
+        @param rnd The current round number
+        @return Read or Write bandwidths tpRead or tpWrite
+        '''
+        self.getFioJob().addKVArg("bs",bs)
+        jobOut = ''
+        if rw == "read":
+            tpRead = 0 #read bandwidth
+            #start read tests
+            self.getFioJob().addKVArg("rw","read")
+            call,jobOut = self.getFioJob().start()
+            if call == False:
+                 exit(1)
+            logging.info("Read TP test:")
+            logging.info(jobOut)
+            logging.info("######")
+            tpRead = self.getFioJob().getTPRead(jobOut)
+            return tpRead
+        else:
+            if rw == "write":
+                tpWrite = 0 #write bandwidth
+                #start write tests
+                self.getFioJob().addKVArg("rw","write")
+                if rnd == 0:
+                    self.getFioJob().addKVArg("ramp_time",str(self.getOptions().getTPramptime()))
+                else:
+                    self.getFioJob().addKVArg("ramp_time","0")
+                call,jobOut = self.getFioJob().start()
+                if call == False:
+                    exit(1)
+                logging.info("Write TP test:")
+                logging.info(jobOut)
+                logging.info("######")
+                tpWrite = self.getFioJob().getTPWrite(jobOut)
+                return tpWrite
+            else:
+                return
+
     def runRounds(self):
         '''
         Carry out the throughput/bandwidth test rounds and check if the steady state is reached.
@@ -581,18 +645,16 @@ class SsdTPTest(DeviceTest):
             logging.info("#################")
             logging.info("Current block size. "+str(j))
             
-            for i in range(StdyState.testRnds):
+            for i in range(self.getOptions().getTestRnds()):
                 logging.info("######")
-                logging.info("Round nr. "+str(i))
-                tpRead,tpWrite = self.testRound(j)
-                tpRead_l.append(tpRead)
+                logging.info("Write Round nr. "+str(i))
+                tpWrite = self.testRound("write",j,i)
                 tpWrite_l.append(tpWrite)
                 
                 #if the rounds have been set by steady state for 1M block size
                 #we need to carry out only i rounds for the other block sizes
                 #as steady state has already been reached
                 if self.getStdyState().getRnds() != 0 and self.getStdyState().getRnds() == i:
-                    self.getRndMatrices().append([tpRead_l,tpWrite_l])
                     break
                 
                 # Use 1M block sizes sequential write for steady state detection
@@ -609,14 +671,26 @@ class SsdTPTest(DeviceTest):
                         if steadyState == True:
                             logging.info("Reached steady state at round %d",i)
                         #running from 0 to 24
-                        if i == ((StdyState.testRnds) - 1):
+                        if i == ((self.getOptions().getTestRnds()) - 1):
                             self.getStdyState().setReachStdyState(False)
                             logging.warn("#Did not reach steady state for bs %s",j)
                         #In both cases we are done with steady state checking
-                        if steadyState == True or i == ((StdyState.testRnds) - 1):
-                            self.getRndMatrices().append([tpRead_l,tpWrite_l])
+                        if steadyState == True or i == ((self.getOptions().getTestRnds()) - 1):
                             #Done with 1M block size
                             break
+            for i in range(self.getOptions().getTestRnds()):
+                logging.info("######")
+                logging.info("Read Round nr. "+str(i))
+                tpRead = self.testRound("read",j,i)
+                tpRead_l.append(tpRead)
+
+                #if the rounds have been set by steady state for 1M block size
+                #we need to carry out only i rounds for the other block sizes
+                #as steady state has already been reached
+                if self.getStdyState().getRnds() != 0 and self.getStdyState().getRnds() == i:
+                    break
+
+            self.getRndMatrices().append([tpRead_l,tpWrite_l])
         #Return current steady state
         return self.getStdyState().isSteady()
         
@@ -626,10 +700,20 @@ class SsdTPTest(DeviceTest):
         @return True if all tests were run
         '''
         logging.info("########### Starting Throughput Test ###########")
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         steadyState = self.runRounds()
         if steadyState == False:
             logging.info("# Steady State has not been reached for Throughput Test.")
         self.toLog()
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         return True
 
     def toXml(self,root):
@@ -774,9 +858,19 @@ class SsdWriteSatTest(DeviceTest):
         except RuntimeError:
             logging.error("# Could not carry out secure erase for "+self.getDevice().getDevPath())
             raise
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         logging.info("########### Starting Write Saturation Test ###########")
         self.runRounds()
         self.toLog()
+        try:
+            self.getDevice().logSMARTlog()
+        except RuntimeError:
+            logging.error("# Could not carry out retrieving SMART log for "+self.getDevice().getDevPath())
+            raise
         return True
 
     def toXml(self,root):
